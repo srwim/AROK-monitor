@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "generatedAt": "2026-06-19T00:22:07Z",
+  "disclosure": "As an Amazon Associate I earn from qualifying purchases.",
+  "componentUpgrades": {
+    "cpu": {
+      "label": "Processor (CPU)",
+      "bangForBuck": {
+        "title": "AMD Ryzen 5 7600",
+        "asin": "B0BMQGKMTV",
+        "price": "~$199",
+        "url": "https://www.amazon.com/dp/B0BMQGKMTV/?tag=lifeupgrad02b-20"
+      },
+      "highEnd": {
+        "title": "AMD Ryzen 7 7800X3D",
+        "asin": "B0BTZB7F88",
+        "price": "~$359",
+        "url": "https://www.amazon.com/dp/B0BTZB7F88/?tag=lifeupgrad02b-20"
+      },
+      "linkCheckedAt": "2026-06-19T00:22:07Z"
+    },
+    "gpu": {
+      "label": "Graphics Card (GPU)",
+      "bangForBuck": {
+        "title": "NVIDIA GeForce RTX 4060",
+        "asin": "B0C9TZJ3X4",
+        "price": "~$289",
+        "url": "https://www.amazon.com/dp/B0C9TZJ3X4/?tag=lifeupgrad02b-20"
+      },
+      "highEnd": {
+        "title": "NVIDIA GeForce RTX 4080 SUPER",
+        "asin": "B0CSP6F1RR",
+        "price": "~$999",
+        "url": "https://www.amazon.com/dp/B0CSP6F1RR/?tag=lifeupgrad02b-20"
+      },
+      "linkCheckedAt": "2026-06-19T00:22:07Z"
+    },
+    "ram": {
+      "label": "Memory (RAM)",
+      "bangForBuck": {
+        "title": "Corsair Vengeance DDR5 32GB (2x16) 6000",
+        "asin": "B0BWP9YGNT",
+        "price": "~$94",
+        "url": "https://www.amazon.com/dp/B0BWP9YGNT/?tag=lifeupgrad02b-20"
+      },
+      "highEnd": {
+        "title": "G.Skill Trident Z5 DDR5 64GB 6400",
+        "asin": "B0BG6QXNQH",
+        "price": "~$229",
+        "url": "https://www.amazon.com/dp/B0BG6QXNQH/?tag=lifeupgrad02b-20"
+      },
+      "linkCheckedAt": "2026-06-19T00:22:07Z"
+    },
+    "storage": {
+      "label": "SSD / Storage",
+      "bangForBuck": {
+        "title": "Samsung 990 EVO 1TB NVMe",
+        "asin": "B0CYKDStorage",
+        "price": "~$79",
+        "url": "https://www.amazon.com/dp/B0CYKDStorage/?tag=lifeupgrad02b-20"
+      },
+      "highEnd": {
+        "title": "Samsung 990 PRO 2TB NVMe",
+        "asin": "B0BHJJ9Y77",
+        "price": "~$169",
+        "url": "https://www.amazon.com/dp/B0BHJJ9Y77/?tag=lifeupgrad02b-20"
+      },
+      "linkCheckedAt": "2026-06-19T00:22:07Z"
+    },
+    "motherboard": {
+      "label": "Motherboard",
+      "bangForBuck": {
+        "title": "MSI B650 Gaming Plus WiFi",
+        "asin": "B0BWGGPJTF",
+        "price": "~$179",
+        "url": "https://www.amazon.com/dp/B0BWGGPJTF/?tag=lifeupgrad02b-20"
+      },
+      "highEnd": {
+        "title": "ASUS ROG Strix X670E-E Gaming",
+        "asin": "B0BDRWG6HM",
+        "price": "~$469",
+        "url": "https://www.amazon.com/dp/B0BDRWG6HM/?tag=lifeupgrad02b-20"
+      },
+      "linkCheckedAt": "2026-06-19T00:22:07Z"
+    },
+    "psu": {
+      "label": "Power Supply (PSU)",
+      "bangForBuck": {
+        "title": "Corsair RM750e 750W 80+ Gold",
+        "asin": "B0BWMQZ3F8",
+        "price": "~$99",
+        "url": "https://www.amazon.com/dp/B0BWMQZ3F8/?tag=lifeupgrad02b-20"
+      },
+      "highEnd": {
+        "title": "Corsair RM1000x 1000W 80+ Gold",
+        "asin": "B09Q3RML8B",
+        "price": "~$189",
+        "url": "https://www.amazon.com/dp/B09Q3RML8B/?tag=lifeupgrad02b-20"
+      },
+      "linkCheckedAt": "2026-06-19T00:22:07Z"
+    },
+    "cooler": {
+      "label": "CPU Cooler",
+      "bangForBuck": {
+        "title": "Thermalright Peerless Assassin 120 SE",
+        "asin": "B09NQDX3KD",
+        "price": "~$36",
+        "url": "https://www.amazon.com/dp/B09NQDX3KD/?tag=lifeupgrad02b-20"
+      },
+      "highEnd": {
+        "title": "ARCTIC Liquid Freezer III 360",
+        "asin": "B0CP9T1HJN",
+        "price": "~$119",
+        "url": "https://www.amazon.com/dp/B0CP9T1HJN/?tag=lifeupgrad02b-20"
+      },
+      "linkCheckedAt": "2026-06-19T00:22:07Z"
+    }
+  },
+  "featuredSystems": [
+    {
+      "name": "Balanced 1440p Gaming Build",
+      "source": "curated",
+      "components": [
+        {
+          "type": "CPU",
+          "name": "AMD Ryzen 5 7600",
+          "url": "https://www.amazon.com/dp/B0BMQGKMTV/?tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "GPU",
+          "name": "NVIDIA GeForce RTX 4060",
+          "url": "https://www.amazon.com/dp/B0C9TZJ3X4/?tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "Memory",
+          "name": "Corsair Vengeance DDR5 32GB 6000",
+          "url": "https://www.amazon.com/dp/B0BWP9YGNT/?tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "Storage",
+          "name": "Samsung 990 PRO 2TB NVMe",
+          "url": "https://www.amazon.com/dp/B0BHJJ9Y77/?tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "Motherboard",
+          "name": "MSI B650 Gaming Plus WiFi",
+          "url": "https://www.amazon.com/dp/B0BWGGPJTF/?tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "PSU",
+          "name": "Corsair RM750e 750W",
+          "url": "https://www.amazon.com/dp/B0BWMQZ3F8/?tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "Cooler",
+          "name": "Thermalright Peerless Assassin 120 SE",
+          "url": "https://www.amazon.com/dp/B09NQDX3KD/?tag=lifeupgrad02b-20"
+        }
+      ]
+    }
+  ]
+}

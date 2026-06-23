@@ -1,0 +1,47 @@
+# Daily refresh of the Hardware Upgrades manifest. Runs the generator and
+# commits manifest.json (+ the bundled frontend fallback) so the app's
+# Upgrades tab gets fresh picks/builds without an app update.
+name: Update Hardware Upgrades manifest
+
+on:
+  schedule:
+    - cron: "0 9 * * *" # 09:00 UTC daily
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: upgrades-pipeline
+        run: pip install -r requirements.txt
+
+      - name: Generate manifest
+        working-directory: upgrades-pipeline
+        env:
+          AMAZON_TAG: lifeupgrad02b-20
+        run: python build_manifest.py
+
+      - name: Sync bundled fallback copy
+        run: cp upgrades-pipeline/manifest.json frontend/public/manifest.json
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "arok-manifest-bot"
+          git config user.email "actions@github.com"
+          git add upgrades-pipeline/manifest.json frontend/public/manifest.json
+          if git diff --cached --quiet; then
+            echo "No manifest changes."
+          else
+            git commit -m "chore: daily Hardware Upgrades manifest refresh"
+            git push
+          fi

@@ -1,0 +1,3 @@
+# Optional: real local inference for AI Insights.
+# Prebuilt Windows wheels: pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+llama-cpp-python>=0.3

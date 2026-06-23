@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AROK Monitor — Legacy Console</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin:0; background:#07090f; color:#e2e8f0; font:14px/1.5 system-ui,"Segoe UI",sans-serif; }
+  header { display:flex; align-items:center; gap:12px; padding:16px 24px; border-bottom:1px solid #1e293b; }
+  .logo { width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg,#06b6d4,#1d4ed8); display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; }
+  .muted { color:#64748b; font-size:12px; }
+  main { padding:24px; max-width:1100px; margin:0 auto; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; }
+  .card { background:#0f172acc; border:1px solid #1e293b; border-radius:12px; padding:14px; }
+  .label { font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#64748b; }
+  .value { font-size:30px; font-weight:700; margin-top:4px; font-variant-numeric:tabular-nums; }
+  .cyan{color:#22d3ee}.violet{color:#a78bfa}.amber{color:#fbbf24}.green{color:#34d399}
+  .panel { margin-top:18px; }
+  .panel h3 { font-size:13px; letter-spacing:.05em; color:#94a3b8; margin:0 0 8px; }
+  #narrative { color:#94a3b8; }
+  #alerts li { margin-bottom:6px; color:#fca5a5; }
+  canvas { width:100%; height:120px; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:6px; font-size:11px; background:#164e63; color:#67e8f9; }
+  .note { margin-top:24px; padding:14px; border:1px dashed #334155; border-radius:12px; color:#64748b; font-size:12px; }
+  code { color:#94a3b8; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">A</div>
+  <div>
+    <div style="font-weight:700;letter-spacing:.2em">AROK <span class="muted">MONITOR v1.0</span></div>
+    <div class="muted">Legacy console — dual-serving fallback (React build not detected)</div>
+  </div>
+  <div style="margin-left:auto" class="pill" id="engine">engine: …</div>
+</header>
+<main>
+  <div class="grid">
+    <div class="card"><div class="label">CPU</div><div class="value cyan" id="cpu">—</div></div>
+    <div class="card"><div class="label">Memory</div><div class="value violet" id="mem">—</div></div>
+    <div class="card"><div class="label">Disk</div><div class="value amber" id="disk">—</div></div>
+    <div class="card"><div class="label">Processes</div><div class="value green" id="procs">—</div></div>
+    <div class="card"><div class="label">Network</div><div class="value" style="font-size:16px" id="net">—</div></div>
+  </div>
+
+  <div class="panel card">
+    <h3>CPU — live</h3>
+    <canvas id="spark" width="1000" height="120"></canvas>
+  </div>
+
+  <div class="panel card">
+    <h3>AI Pulse</h3>
+    <p id="narrative">Gathering baseline…</p>
+  </div>
+
+  <div class="panel card">
+    <h3>Active alerts</h3>
+    <ul id="alerts"><li style="color:#64748b">None</li></ul>
+  </div>
+
+  <div class="note">
+    This is the legacy fallback UI. Build the full React interface with
+    <code>cd frontend &amp;&amp; npm install &amp;&amp; npm run build</code>, then restart the server —
+    it will be served automatically.
+  </div>
+</main>
+<script>
+const hist = [];
+function fmtKB(b){ return b>1048576 ? (b/1048576).toFixed(1)+" MB/s" : (b/1024).toFixed(1)+" KB/s"; }
+async function poll(){
+  try{
+    const s = await (await fetch("/api/stats")).json();
+    cpu.textContent = s.cpu.toFixed(1)+"%";
+    mem.textContent = s.mem.toFixed(1)+"%";
+    disk.textContent = s.disk.toFixed(1)+"%";
+    procs.textContent = s.proc_count;
+    net.textContent = "↓ "+fmtKB(s.net_recv)+"  ↑ "+fmtKB(s.net_sent);
+    hist.push(s.cpu); if(hist.length>200) hist.shift();
+    draw();
+  }catch(e){}
+}
+function draw(){
+  const c = spark.getContext("2d");
+  c.clearRect(0,0,spark.width,spark.height);
+  c.strokeStyle = "#22d3ee"; c.lineWidth = 2; c.beginPath();
+  hist.forEach((v,i)=>{
+    const x = i/(200-1)*spark.width, y = spark.height - (v/100)*spark.height;
+    i ? c.lineTo(x,y) : c.moveTo(x,y);
+  });
+  c.stroke();
+}
+async function pollSlow(){
+  try{
+    const ins = await (await fetch("/api/insights")).json();
+    narrative.textContent = ins.enabled === false
+      ? "AI Insights are off — enable them in the full UI (AI Insights tab)."
+      : ins.narrative;
+    engine.textContent = "engine: "+ins.engine;
+    const al = await (await fetch("/api/alerts")).json();
+    const un = al.filter(a=>!a.acked);
+    alerts.innerHTML = un.length
+      ? un.slice(0,6).map(a=>`<li>[${a.severity}] ${a.message}</li>`).join("")
+      : '<li style="color:#64748b">None — all clear</li>';
+  }catch(e){}
+}
+poll(); pollSlow();
+setInterval(poll, 3000);
+setInterval(pollSlow, 20000);
+</script>
+</body>
+</html>

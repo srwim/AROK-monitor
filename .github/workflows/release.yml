@@ -1,0 +1,56 @@
+# Build the AROK desktop installer (.exe) on Windows and attach it to a GitHub
+# Release. Triggered by pushing a version tag (e.g. v1.0.0) — which is exactly
+# what the in-app updater (backend/updater.py) polls for via releases/latest.
+#
+# Bump backend/updater.py VERSION, commit, then:  git tag v1.0.1 && git push --tags
+name: Build & Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python deps
+        run: |
+          pip install -r backend/requirements.txt
+          if (Test-Path backend/requirements-desktop.txt) { pip install -r backend/requirements-desktop.txt }
+          pip install pyinstaller
+
+      - name: Build AROK.exe (PyInstaller)
+        working-directory: backend
+        run: pyinstaller arok.spec --noconfirm
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Build installer
+        run: iscc installer.iss
+
+      - name: Publish release with installer
+        uses: softprops/action-gh-release@v2
+        with:
+          files: installer_out/*.exe
+          generate_release_notes: true

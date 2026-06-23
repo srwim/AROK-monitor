@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.spec.bak
+
+# Node / frontend build
+node_modules/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+
+# Build artifacts
+backend/build/
+backend/dist/
+installer_out/
+
+# Runtime / local data
+*.db
+arok.db
+desktop.log
+models/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Ignore a specific file
+CLAUDE.md
