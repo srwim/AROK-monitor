@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-06-26T11:38:02Z",
+  "generatedAt": "2026-06-27T10:52:39Z",
   "disclosure": "As an Amazon Associate I earn from qualifying purchases.",
   "componentUpgrades": {
     "cpu": {
@@ -17,7 +17,7 @@
         "price": "~$359",
         "url": "https://www.amazon.com/dp/B0BTZB7F88/?tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-06-26T11:38:02Z"
+      "linkCheckedAt": "2026-06-27T10:52:39Z"
     },
     "gpu": {
       "label": "Graphics Card (GPU)",
@@ -33,7 +33,7 @@
         "price": "~$999",
         "url": "https://www.amazon.com/dp/B0CSP6F1RR/?tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-06-26T11:38:02Z"
+      "linkCheckedAt": "2026-06-27T10:52:39Z"
     },
     "ram": {
       "label": "Memory (RAM)",
@@ -49,7 +49,7 @@
         "price": "~$229",
         "url": "https://www.amazon.com/dp/B0BG6QXNQH/?tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-06-26T11:38:02Z"
+      "linkCheckedAt": "2026-06-27T10:52:39Z"
     },
     "storage": {
       "label": "SSD / Storage",
@@ -65,7 +65,7 @@
         "price": "~$169",
         "url": "https://www.amazon.com/dp/B0BHJJ9Y77/?tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-06-26T11:38:02Z"
+      "linkCheckedAt": "2026-06-27T10:52:39Z"
     },
     "motherboard": {
       "label": "Motherboard",
@@ -81,7 +81,7 @@
         "price": "~$469",
         "url": "https://www.amazon.com/dp/B0BDRWG6HM/?tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-06-26T11:38:02Z"
+      "linkCheckedAt": "2026-06-27T10:52:40Z"
     },
     "psu": {
       "label": "Power Supply (PSU)",
@@ -97,7 +97,7 @@
         "price": "~$189",
         "url": "https://www.amazon.com/dp/B09Q3RML8B/?tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-06-26T11:38:02Z"
+      "linkCheckedAt": "2026-06-27T10:52:40Z"
     },
     "cooler": {
       "label": "CPU Cooler",
@@ -113,7 +113,7 @@
         "price": "~$119",
         "url": "https://www.amazon.com/dp/B0CP9T1HJN/?tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-06-26T11:38:02Z"
+      "linkCheckedAt": "2026-06-27T10:52:40Z"
     }
   },
   "featuredSystems": [
