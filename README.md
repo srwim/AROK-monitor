@@ -1,4 +1,4 @@
-# AROK Monitor v1.0.2
+# AROK Monitor v1.1.0
 
 Autonomous Resource Observation Kernel — a Windows desktop system monitor. FastAPI backend + React/Vite/Tailwind UI following the LLM-narrator architecture: detection is deterministic, the model only narrates. Dual-serving frontend, demo-safe control plane, and a native pywebview/WebView2 window with a system tray.
 
@@ -9,7 +9,7 @@ The app is **free**, monetized through an Amazon affiliate funnel in the Upgrade
 1. Double-click **`run_demo.bat`** — creates a venv, installs deps, starts the server at `http://127.0.0.1:8420`, opens the browser. The legacy console UI serves immediately.
 2. Double-click **`build_frontend.bat`** (requires Node 18+) — builds the React UI. Restart `run_demo.bat` and it's served automatically (dual-serving).
 
-Other launchers: **`run_desktop.bat`** — native window (pywebview/WebView2), no browser. **`make_installer.bat`** — full pipeline: React build → PyInstaller `AROK.exe` → Inno Setup `installer_out\AROK-Setup-1.0.2.exe` (needs Inno Setup 6).
+Other launchers: **`run_desktop.bat`** — native window (pywebview/WebView2), no browser. **`make_installer.bat`** — full pipeline: React build → PyInstaller `AROK.exe` → Inno Setup `installer_out\AROK-Setup-1.1.0.exe` (needs Inno Setup 6).
 
 For React dev with hot reload: `cd frontend && npm run dev` (proxies `/api` and `/ws` to port 8420). `tsc -b` is the authoritative correctness check for the frontend.
 
