@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ExternalLink, ChevronLeft, ChevronRight, Gauge, Crown } from "lucide-react";
+import { ExternalLink, ChevronLeft, ChevronRight, Gauge, Crown, Cpu, MemoryStick, HardDrive, MonitorCog, CircuitBoard } from "lucide-react";
 import { Panel, Badge } from "../components/ui";
 import { api, type HardwareInventory } from "../api";
+
+const AMAZON_TAG = "lifeupgrad02b-20";
+const amazonSearch = (q: string) =>
+  `https://www.amazon.com/s?k=${encodeURIComponent(q)}&tag=${AMAZON_TAG}`;
 
 // ── Manifest types ──────────────────────────────────────────────────────────
 type Pick = { title: string; asin?: string; price?: string; image?: string; url: string };
@@ -27,7 +31,7 @@ type Manifest = {
 // unreachable (offline, first run), we fall back to the copy bundled at
 // /manifest.json that ships with the build.
 const MANIFEST_REMOTE =
-  "https://raw.githubusercontent.com/srwim/AROK/main/upgrades-pipeline/manifest.json";
+  "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/manifest.json";
 const MANIFEST_LOCAL = "/manifest.json";
 
 const ROTATE_MS = 6000; // "slowly rotating" carousel cadence
@@ -86,9 +90,11 @@ function PickCard({ pick, kind }: { pick: Pick; kind: "value" | "high" }) {
 function UpgradeCarousel({
   categories,
   currentParts,
+  notes,
 }: {
   categories: [string, ComponentUpgrade][];
   currentParts: Record<string, string | null>;
+  notes: Record<string, string | null>;
 }) {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -107,6 +113,7 @@ function UpgradeCarousel({
   const go = (d: number) => setI((x) => (x + d + n) % n);
   const [key, current] = categories[i];
   const currentPart = currentParts[key];
+  const note = notes[key];
 
   return (
     <div
@@ -123,6 +130,11 @@ function UpgradeCarousel({
           {currentPart && (
             <div className="mt-0.5 text-xs text-slate-500">
               Your current: <span className="text-slate-300">{currentPart}</span>
+            </div>
+          )}
+          {note && (
+            <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-950/50 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+              ✓ {note}
             </div>
           )}
         </div>
@@ -195,6 +207,137 @@ function FeaturedSystems({ systems }: { systems: FeaturedSystem[] }) {
   );
 }
 
+// ── Make picks relevant to the user's actual configuration ────────────────────
+// The manifest is platform-agnostic (AMD/DDR5 curated). When we know the user's
+// CPU vendor or memory generation, swap in platform-appropriate picks so we
+// never suggest an Intel user an AM5 board, or a DDR4 user a DDR5 kit. Links are
+// tagged Amazon searches, so every tailored pick still resolves and earns.
+
+type Platform = "amd" | "intel" | null;
+type Ddr = "DDR4" | "DDR5" | null;
+
+function detectPlatform(cpuName?: string | null): Platform {
+  const n = (cpuName ?? "").toLowerCase();
+  if (n.includes("amd") || n.includes("ryzen") || n.includes("threadripper")) return "amd";
+  if (n.includes("intel") || n.includes("core i") || /\bi[3579]-/.test(n) || n.includes("xeon") || n.includes("ultra")) return "intel";
+  return null;
+}
+
+function detectDdr(ramType?: string | null): Ddr {
+  const t = (ramType ?? "").toUpperCase();
+  if (t.includes("DDR5")) return "DDR5";
+  if (t.includes("DDR4")) return "DDR4";
+  return null;
+}
+
+const CPU_PICKS: Record<"amd" | "intel", { bang: Pick; high: Pick }> = {
+  amd: {
+    bang: { title: "AMD Ryzen 5 7600", price: "~$199", url: amazonSearch("AMD Ryzen 5 7600 CPU") },
+    high: { title: "AMD Ryzen 7 7800X3D", price: "~$359", url: amazonSearch("AMD Ryzen 7 7800X3D CPU") },
+  },
+  intel: {
+    bang: { title: "Intel Core i5-14600K", price: "~$279", url: amazonSearch("Intel Core i5-14600K CPU") },
+    high: { title: "Intel Core i7-14700K", price: "~$389", url: amazonSearch("Intel Core i7-14700K CPU") },
+  },
+};
+
+const MOBO_PICKS: Record<"amd" | "intel", { bang: Pick; high: Pick }> = {
+  amd: {
+    bang: { title: "MSI B650 Gaming Plus WiFi (AM5)", price: "~$179", url: amazonSearch("MSI B650 Gaming Plus WiFi AM5") },
+    high: { title: "ASUS ROG Strix X670E-E Gaming", price: "~$469", url: amazonSearch("ASUS ROG Strix X670E-E Gaming") },
+  },
+  intel: {
+    bang: { title: "MSI PRO B760-P WiFi (LGA1700)", price: "~$159", url: amazonSearch("MSI PRO B760-P WiFi LGA1700") },
+    high: { title: "ASUS ROG Strix Z790-E Gaming", price: "~$449", url: amazonSearch("ASUS ROG Strix Z790-E Gaming WiFi") },
+  },
+};
+
+const RAM_PICKS: Record<"DDR4" | "DDR5", { bang: Pick; high: Pick }> = {
+  DDR4: {
+    bang: { title: "Corsair Vengeance LPX DDR4 32GB (2x16) 3600", price: "~$69", url: amazonSearch("Corsair Vengeance LPX DDR4 32GB 3600") },
+    high: { title: "G.Skill Trident Z RGB DDR4 64GB 3600", price: "~$139", url: amazonSearch("G.Skill Trident Z RGB DDR4 64GB 3600") },
+  },
+  DDR5: {
+    bang: { title: "Corsair Vengeance DDR5 32GB (2x16) 6000", price: "~$94", url: amazonSearch("Corsair Vengeance DDR5 32GB 6000") },
+    high: { title: "G.Skill Trident Z5 DDR5 64GB 6400", price: "~$229", url: amazonSearch("G.Skill Trident Z5 DDR5 64GB 6400") },
+  },
+};
+
+/** Returns a config-matched version of a category plus a short compatibility note. */
+function tailorCategory(
+  key: string,
+  entry: ComponentUpgrade,
+  hw: HardwareInventory | null
+): { entry: ComponentUpgrade; note: string | null } {
+  if (!hw) return { entry, note: null };
+  const platform = detectPlatform(hw.cpu?.name);
+  const ddr = detectDdr(hw.ram?.type);
+
+  if ((key === "cpu" || key === "motherboard") && platform) {
+    const table = key === "cpu" ? CPU_PICKS : MOBO_PICKS;
+    const p = table[platform];
+    return {
+      entry: { ...entry, bangForBuck: p.bang, highEnd: p.high },
+      note: `Matched to your ${platform === "amd" ? "AMD" : "Intel"} platform`,
+    };
+  }
+  if (key === "ram" && ddr) {
+    const p = RAM_PICKS[ddr];
+    return { entry: { ...entry, bangForBuck: p.bang, highEnd: p.high }, note: `Matched to your ${ddr}` };
+  }
+  return { entry, note: null };
+}
+
+// ── User's detected system hardware ───────────────────────────────────────────
+function HwRow({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-3 border-b border-slate-800/60 py-2.5 last:border-0">
+      <span className="mt-0.5 text-cyan-500">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[10px] uppercase tracking-wider text-slate-500">{label}</div>
+        <div className="truncate text-sm text-slate-200" title={value}>{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function SystemHardware({ hw }: { hw: HardwareInventory | null }) {
+  if (!hw) {
+    return (
+      <Panel title="Your system">
+        <p className="text-sm text-slate-500">Detecting hardware…</p>
+      </Panel>
+    );
+  }
+  const ramStr =
+    `${hw.ram.total_gb} GB` +
+    (hw.ram.type ? ` ${hw.ram.type}` : "") +
+    (hw.ram.speed_mhz ? ` @ ${hw.ram.speed_mhz} MHz` : "");
+  const cpuStr =
+    hw.cpu.name +
+    (hw.cpu.cores_physical ? ` · ${hw.cpu.cores_physical}C` : "") +
+    (hw.cpu.cores_logical ? `/${hw.cpu.cores_logical}T` : "");
+  return (
+    <Panel
+      title="Your system"
+      action={<Badge tone="slate">{hw.os}</Badge>}
+    >
+      <div className="-mt-1">
+        <HwRow icon={<Cpu size={15} />} label="Processor" value={cpuStr} />
+        <HwRow icon={<MonitorCog size={15} />} label="Graphics" value={hw.gpu.name} />
+        <HwRow icon={<MemoryStick size={15} />} label="Memory" value={ramStr} />
+        <HwRow icon={<HardDrive size={15} />} label="Storage" value={hw.disk.total_gb ? `${hw.disk.total_gb} GB total` : "—"} />
+        <HwRow icon={<CircuitBoard size={15} />} label="Motherboard" value={hw.motherboard.name ?? "—"} />
+      </div>
+      {!hw.wmi && (
+        <p className="mt-3 text-xs text-slate-600">
+          Limited detail available on this system — connect details improve with WMI on Windows.
+        </p>
+      )}
+    </Panel>
+  );
+}
+
 export default function UpgradesTab() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [error, setError] = useState(false);
@@ -206,14 +349,21 @@ export default function UpgradesTab() {
     api.hardware().then(setHw).catch(() => {});
   }, []);
 
-  // Sort categories so the most relevant upgrade for THIS system shows first.
-  const categories = useMemo(() => {
-    if (!manifest) return [] as [string, ComponentUpgrade][];
-    const entries = Object.entries(manifest.componentUpgrades);
-    if (!hw) return entries;
-    return [...entries].sort(
-      (a, b) => (hw.relevance[b[0]] ?? 0) - (hw.relevance[a[0]] ?? 0)
-    );
+  // Tailor each category to the detected hardware, then sort so the most
+  // relevant upgrade for THIS system shows first.
+  const { categories, notes } = useMemo(() => {
+    if (!manifest) return { categories: [] as [string, ComponentUpgrade][], notes: {} as Record<string, string | null> };
+    let entries = Object.entries(manifest.componentUpgrades);
+    const noteMap: Record<string, string | null> = {};
+    entries = entries.map(([key, entry]) => {
+      const t = tailorCategory(key, entry, hw);
+      noteMap[key] = t.note;
+      return [key, t.entry] as [string, ComponentUpgrade];
+    });
+    if (hw) {
+      entries = [...entries].sort((a, b) => (hw.relevance[b[0]] ?? 0) - (hw.relevance[a[0]] ?? 0));
+    }
+    return { categories: entries, notes: noteMap };
   }, [manifest, hw]);
 
   const currentParts = hw?.current ?? {};
@@ -250,11 +400,17 @@ export default function UpgradesTab() {
 
       {manifest && (
         <>
-          <UpgradeCarousel categories={categories} currentParts={currentParts} />
+          <UpgradeCarousel categories={categories} currentParts={currentParts} notes={notes} />
 
-          <div className="pt-2">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">Featured full systems</h3>
-            <FeaturedSystems systems={manifest.featuredSystems} />
+          <div className="grid gap-4 pt-2 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">Featured full systems</h3>
+              <FeaturedSystems systems={manifest.featuredSystems} />
+            </div>
+            <div>
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">System hardware</h3>
+              <SystemHardware hw={hw} />
+            </div>
           </div>
 
           {/* FTC-required affiliate disclosure */}

@@ -2,7 +2,7 @@
 
 Ships with AI insights OFF. The user enables insights in the UI, then
 chooses engines via independent toggles:
-  - Local model (Gemma 3 2B, downloaded in-app with progress)
+  - Local model (Gemma 2 2B Q4, downloaded in-app with progress)
   - Anthropic API (key entered in the UI, stored in settings)
 
 Engine priority when enabled: local → API → deterministic template.
@@ -22,10 +22,27 @@ if getattr(sys, "frozen", False):
 else:
     HERE = os.path.dirname(os.path.abspath(__file__))
     MODEL_DIR = os.path.join(HERE, "models")
-MODEL_FILE = os.path.join(MODEL_DIR, "gemma-3-2b-q4.gguf")
-MODEL_SIZE = 1_700_000_000  # ~1.7 GB
-MODEL_URL = os.environ.get("AROK_MODEL_URL", "")  # set for production downloads
+MODEL_FILE = os.path.join(MODEL_DIR, "gemma-2-2b-it-q4.gguf")
+MODEL_NAME = "Gemma 2 2B"
+MODEL_SIZE = 1_708_582_752  # gemma-2-2b-it Q4_K_M, exact bytes
+
+# Real, public, ungated GGUF (HuggingFace) so the in-app download works out of
+# the box — no longer a demo simulation. Override with AROK_MODEL_URL or the
+# stored "ai_model_url" setting (Settings → AI engine) to use a different model.
+DEFAULT_MODEL_URL = (
+    "https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/"
+    "gemma-2-2b-it-Q4_K_M.gguf"
+)
 DEMO = os.environ.get("AROK_DEMO", "1") == "1"
+
+
+def model_url() -> str:
+    """Resolve the model download URL: stored setting > env var > baked default."""
+    return (
+        db.get_setting("ai_model_url", "")
+        or os.environ.get("AROK_MODEL_URL", "")
+        or DEFAULT_MODEL_URL
+    )
 
 _download = {"status": "idle", "pct": 0.0, "error": None}
 _dl_lock = threading.Lock()
@@ -60,12 +77,14 @@ def get_config() -> dict:
         "api_key_set": bool(_api_key()),
         "local_model_ready": model_ready(),
         "local_model_simulated": _model_simulated(),
+        "model_name": MODEL_NAME,
+        "model_url": model_url(),
         "download": dl,
         "engine": engine_name(),
     }
 
 
-def set_config(enabled=None, local_enabled=None, api_enabled=None, api_key=None) -> dict:
+def set_config(enabled=None, local_enabled=None, api_enabled=None, api_key=None, model_url=None) -> dict:
     if enabled is not None:
         db.set_setting("ai_enabled", "1" if enabled else "0")
         db.log_event("ai", f"AI insights {'enabled' if enabled else 'disabled'}")
@@ -78,6 +97,9 @@ def set_config(enabled=None, local_enabled=None, api_enabled=None, api_key=None)
     if api_key is not None:
         db.set_setting("ai_api_key", api_key)
         db.log_event("ai", "API key updated" if api_key else "API key cleared")
+    if model_url is not None:
+        db.set_setting("ai_model_url", model_url.strip())
+        db.log_event("ai", "model URL updated" if model_url.strip() else "model URL reset to default")
     return get_config()
 
 
@@ -85,7 +107,7 @@ def engine_name() -> str:
     if not _flag("ai_enabled"):
         return "off"
     if _flag("ai_local_enabled") and model_ready():
-        return "local (simulated)" if _model_simulated() else "local (Gemma 3 2B)"
+        return "local (simulated)" if _model_simulated() else f"local ({MODEL_NAME})"
     if _flag("ai_api_enabled") and _api_key():
         model = db.get_setting("ai_api_model", "claude-haiku-4-5-20251001") or "claude-haiku-4-5-20251001"
         return f"cloud:{model}"
@@ -108,10 +130,11 @@ def _download_worker():
     global _local_llm
     os.makedirs(MODEL_DIR, exist_ok=True)
     try:
-        if MODEL_URL:
-            # real download whenever a model URL is configured —
+        url = model_url()
+        if url:
+            # real download whenever a model URL is configured (now the default) —
             # independent of demo mode (control actions stay simulated)
-            _real_download()
+            _real_download(url)
         else:
             _simulated_download()
         with _dl_lock:
@@ -124,10 +147,11 @@ def _download_worker():
         db.log_event("ai", f"local model download failed: {e}")
 
 
-def _real_download():
+def _real_download(url: str):
     import urllib.request
     tmp = MODEL_FILE + ".part"
-    with urllib.request.urlopen(MODEL_URL, timeout=60) as r, open(tmp, "wb") as f:
+    req = urllib.request.Request(url, headers={"User-Agent": "AROK-Monitor"})
+    with urllib.request.urlopen(req, timeout=60) as r, open(tmp, "wb") as f:
         total = int(r.headers.get("Content-Length") or MODEL_SIZE)
         done = 0
         while True:
@@ -149,7 +173,7 @@ def _simulated_download():
         with _dl_lock:
             _download["pct"] = round(i / 40 * 100, 1)
     with open(MODEL_FILE, "wb") as f:
-        f.write(b"AROK-DEMO-PLACEHOLDER gemma-3-2b-q4.gguf (simulated download)\n")
+        f.write(b"AROK-DEMO-PLACEHOLDER gemma-2-2b-it-q4.gguf (simulated download)\n")
 
 
 # ---------- narration ----------

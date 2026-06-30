@@ -290,6 +290,48 @@ function ClickStatCard({
   );
 }
 
+// ── AI engine status indicator ────────────────────────────────────────────────
+// Shows which LLM is actually serving narration (or that none is), with a
+// colour-coded status dot, instead of dumping the raw engine string.
+function EngineStatus({ engine }: { engine?: string }) {
+  const e = engine ?? "";
+  let dot = "bg-slate-500";
+  let text = "text-slate-400";
+  let label = "…";
+
+  if (!engine) {
+    label = "…";
+  } else if (e === "off") {
+    label = "AI off";
+  } else if (e.startsWith("cloud:")) {
+    dot = "bg-cyan-400";
+    text = "text-cyan-300";
+    label = "Cloud · " + e.slice("cloud:".length).replace(/^claude-/, "");
+  } else if (e.includes("simulated")) {
+    dot = "bg-amber-400";
+    text = "text-amber-300";
+    label = "Local (simulated)";
+  } else if (e.startsWith("local")) {
+    dot = "bg-emerald-400";
+    text = "text-emerald-300";
+    const m = e.match(/\(([^)]+)\)/);
+    label = m ? "Local · " + m[1] : "Local model";
+  } else if (e === "template") {
+    dot = "bg-amber-400";
+    text = "text-amber-300";
+    label = "Template · no LLM";
+  } else {
+    label = e;
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${text}`} title={`Narration engine: ${engine ?? "unknown"}`}>
+      <span className={`inline-block h-2 w-2 rounded-full ${dot}`} style={{ boxShadow: "0 0 8px currentColor" }} />
+      {label}
+    </span>
+  );
+}
+
 // ── Main tab ──────────────────────────────────────────────────────────────────
 
 export default function DashboardTab() {
@@ -365,7 +407,7 @@ export default function DashboardTab() {
         </div>
 
         <div className="space-y-4">
-          <Panel title="AI Pulse" action={<Badge tone="cyan">{insight?.engine ?? "…"}</Badge>}>
+          <Panel title="AI Pulse" action={<EngineStatus engine={insight?.engine} />}>
             {insight && !insight.enabled ? (
               <p className="text-sm leading-relaxed text-slate-500">
                 AI Insights are off. Enable them in the <span className="text-cyan-400">AI Insights</span> tab —

@@ -1,8 +1,8 @@
 ; AROK Monitor — Inno Setup script
 ; Build the exe first (make_installer.bat does both steps).
 #define AppName "AROK Monitor"
-#define AppVersion "1.0.0"
-#define AppVersionDisplay "v1.0"
+#define AppVersion "1.0.2"
+#define AppVersionDisplay "v1.0.2"
 #define AppPublisher "arok.ai"
 #define AppExe "AROK.exe"
 

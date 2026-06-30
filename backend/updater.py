@@ -8,9 +8,9 @@ import json
 import os
 import urllib.request
 
-VERSION = "1.0.0"
-DISPLAY_VERSION = "v1.0"
-REPO = os.environ.get("AROK_REPO", "srwim/AROK")
+VERSION = "1.0.2"
+DISPLAY_VERSION = "v1.0.2"
+REPO = os.environ.get("AROK_REPO", "srwim/AROK-monitor")
 
 
 def _parse(v: str) -> tuple:

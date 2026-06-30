@@ -2,6 +2,7 @@ import { useState } from "react";
 import { api } from "../api";
 import { usePolling, fmtBytes } from "../hooks";
 import { Panel, Badge, Button } from "../components/ui";
+import NetworkMap from "../components/NetworkMap";
 
 export default function NetworkTab() {
   const conns = usePolling(() => api.network(60), 6000);
@@ -34,6 +35,8 @@ export default function NetworkTab() {
           {result} <button className="ml-2 text-cyan-500" onClick={() => setResult(null)}>dismiss</button>
         </div>
       )}
+
+      <NetworkMap conns={conns ?? []} />
 
       <Panel title="Connections">
         <table className="w-full text-left text-sm">

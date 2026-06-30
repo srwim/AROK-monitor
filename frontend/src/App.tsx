@@ -37,6 +37,8 @@ export default function App() {
   const alerts = usePolling(() => api.alerts(), 5000);
   const unacked = (alerts ?? []).filter((a) => !a.acked).length;
   const gamingPolled = usePolling(() => api.gaming(), 8000);
+  const settings = usePolling(() => api.settings(), 60000);
+  const version = settings?.version ?? "";
   const [gaming, setGaming] = useState<GamingStatus | null>(null);
   const [gamingBusy, setGamingBusy] = useState(false);
   const g = gaming ?? gamingPolled;
@@ -78,7 +80,7 @@ export default function App() {
           <div>
             <div className="brand-serif text-base font-bold tracking-[0.25em] text-slate-100">AROK</div>
             <div className="text-[10px] uppercase tracking-wider text-slate-500">
-              Monitor <span className="text-orange-500">v1.0</span>
+              Monitor <span className="text-orange-500">{version || "…"}</span>
             </div>
           </div>
         </div>

@@ -24,8 +24,8 @@ function LicensePanel() {
     <Panel
       title="License"
       action={
-        <Badge tone={lic?.licensed ? "green" : "amber"}>
-          {lic ? (lic.licensed ? "licensed" : "unlicensed — demo") : "…"}
+        <Badge tone={lic?.licensed ? "green" : "cyan"}>
+          {lic ? (lic.licensed ? "licensed" : "Personal Use") : "…"}
         </Badge>
       }
     >
@@ -116,6 +116,12 @@ export default function SettingsTab() {
     setSaved(`${metric.toUpperCase()} threshold saved: ${thresholds[metric]}%`);
   };
 
+  const applyRuntime = async (patch: Parameters<typeof api.setRuntime>[0], label: string) => {
+    const s = await api.setRuntime(patch);
+    setSettings(s);
+    setSaved(label);
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-bold text-slate-200">Settings</h2>
@@ -130,23 +136,55 @@ export default function SettingsTab() {
         <Panel title="Runtime">
           <dl className="space-y-3 text-sm">
             <Row label="Demo mode">
-              <Badge tone={settings?.demo_mode ? "amber" : "green"}>
-                {settings?.demo_mode ? "ON — control actions are simulated" : "OFF — control actions are live"}
-              </Badge>
+              <button
+                onClick={() => applyRuntime({ demo_mode: !settings?.demo_mode }, `Demo mode ${settings?.demo_mode ? "off — actions live" : "on — actions simulated"}`)}
+                disabled={!settings}
+                className="inline-flex items-center gap-2"
+                title="Toggle whether control actions execute for real or are simulated"
+              >
+                <Badge tone={settings?.demo_mode ? "amber" : "green"}>
+                  {settings?.demo_mode ? "ON — simulated" : "OFF — live"}
+                </Badge>
+                <span className="text-xs text-cyan-500">change</span>
+              </button>
             </Row>
             <Row label="AI engine">
-              <Badge tone="cyan">{settings?.ai_engine ?? "…"}</Badge>
+              <select
+                value={settings?.ai_engine_mode ?? "off"}
+                onChange={(e) => applyRuntime({ ai_engine: e.target.value }, `AI engine set to ${e.target.value}`)}
+                disabled={!settings}
+                className="rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-200 focus:border-cyan-700 focus:outline-none"
+              >
+                <option value="off">Off</option>
+                <option value="template">Template (no LLM)</option>
+                <option value="local">Local model</option>
+                <option value="cloud">Anthropic Cloud</option>
+              </select>
             </Row>
             <Row label="Sample interval">
-              <span className="text-slate-300">{settings?.sample_interval ?? "…"}s</span>
+              <NumberField
+                suffix="s"
+                value={settings?.sample_interval ?? 0}
+                min={1}
+                max={60}
+                step={1}
+                onCommit={(v) => applyRuntime({ sample_interval: v }, `Sample interval set to ${v}s`)}
+              />
             </Row>
             <Row label="Z-score threshold">
-              <span className="text-slate-300">{settings?.z_threshold ?? "…"}σ</span>
+              <NumberField
+                suffix="σ"
+                value={settings?.z_threshold ?? 0}
+                min={1}
+                max={6}
+                step={0.1}
+                onCommit={(v) => applyRuntime({ z_threshold: v }, `Z-score threshold set to ${v}σ`)}
+              />
             </Row>
           </dl>
           <p className="mt-4 text-xs leading-relaxed text-slate-500">
-            Control actions are <strong>live by default</strong>. Set <code>AROK_DEMO=1</code> to simulate them instead,
-            <code>AROK_LOCAL_MODEL</code> to point at a local GGUF model, <code>AROK_ANTHROPIC_KEY</code> for API fallback narration.
+            These take effect immediately and persist across restarts. Environment variables
+            (<code>AROK_DEMO</code>, <code>AROK_ANTHROPIC_KEY</code>) still provide the initial defaults.
           </p>
         </Panel>
 
@@ -210,7 +248,7 @@ export default function SettingsTab() {
 
       <Panel title="About">
         <p className="text-sm leading-relaxed text-slate-400">
-          AROK Monitor v1.0 — Autonomous Resource Observation Kernel. FastAPI backend with dual-serving
+          AROK Monitor {settings?.version ?? "…"} — Autonomous Resource Observation Kernel. FastAPI backend with dual-serving
           strategy (React build with legacy fallback), deterministic detection with LLM narration, Ed25519 offline
           licensing and self-update via GitHub Releases in the full build.
         </p>
@@ -238,6 +276,44 @@ function PrefRow({ label, desc, checked, onChange }: { label: string; desc: stri
         />
       </button>
     </div>
+  );
+}
+
+// Editable number with commit-on-blur / Enter, seeded from the live value.
+function NumberField({
+  value, min, max, step, suffix, onCommit,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  suffix?: string;
+  onCommit: (v: number) => void;
+}) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+
+  const commit = () => {
+    const n = Number(draft);
+    if (!isNaN(n) && n !== value) onCommit(Math.min(max, Math.max(min, n)));
+    else setDraft(String(value));
+  };
+
+  return (
+    <span className="inline-flex items-center gap-1">
+      <input
+        type="number"
+        value={draft}
+        min={min}
+        max={max}
+        step={step}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+        className="w-16 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-right text-xs tabular-nums text-slate-200 focus:border-cyan-700 focus:outline-none"
+      />
+      {suffix && <span className="text-xs text-slate-500">{suffix}</span>}
+    </span>
   );
 }
 

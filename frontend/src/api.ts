@@ -89,6 +89,8 @@ export type AiConfig = {
   api_key_set: boolean;
   local_model_ready: boolean;
   local_model_simulated: boolean;
+  model_name: string;
+  model_url: string;
   download: { status: string; pct: number; error: string | null };
   engine: string;
 };
@@ -97,6 +99,7 @@ export type Settings = {
   demo_mode: boolean;
   version: string;
   ai_engine: string;
+  ai_engine_mode: string;
   sample_interval: number;
   abs_thresholds: Record<string, number>;
   z_threshold: number;
@@ -220,6 +223,8 @@ export const api = {
     post<CleanupResult & { digest?: string; expected?: string }>("/api/cleanup/tron/verify", { path, sha256 }),
   tronLaunch: (path: string, make_restore_point = true) =>
     post<CleanupResult>("/api/cleanup/tron/launch", { path, make_restore_point }),
+  pickFile: (file_types?: string[]) =>
+    post<{ ok: boolean; path: string | null; detail?: string }>("/api/dialog/open-file", { file_types }),
   registryScan: () => get<RegistryScan>("/api/cleanup/registry/scan"),
   registryClean: (ids: string[], issues: RegistryIssue[]) =>
     post<CleanupResult & { removed?: string[]; backups?: string[]; backup_dir?: string }>("/api/cleanup/registry/clean", { ids, issues }),
@@ -232,7 +237,7 @@ export const api = {
   events: () => get<AppEvent[]>("/api/events"),
   insights: () => get<Insight>("/api/insights"),
   aiConfig: () => get<AiConfig>("/api/ai/config"),
-  setAiConfig: (patch: Partial<{ enabled: boolean; local_enabled: boolean; api_enabled: boolean; api_key: string }>) =>
+  setAiConfig: (patch: Partial<{ enabled: boolean; local_enabled: boolean; api_enabled: boolean; api_key: string; model_url: string }>) =>
     post<AiConfig>("/api/ai/config", patch),
   aiDownload: () => post<AiConfig["download"]>("/api/ai/download"),
   optimize: (ids?: string[]) => post<OptimizeResult[]>("/api/optimize", { ids: ids ?? null }),
@@ -244,6 +249,8 @@ export const api = {
   updateCheck: () => get<UpdateInfo>("/api/update/check"),
   settings: () => get<Settings>("/api/settings"),
   setThreshold: (metric: string, value: number) => post("/api/settings/threshold", { metric, value }),
+  setRuntime: (patch: Partial<{ demo_mode: boolean; sample_interval: number; z_threshold: number; ai_engine: string }>) =>
+    post<Settings>("/api/settings/runtime", patch),
   setPref: (key: string, value: boolean) =>
     post<{ ok: boolean; prefs: Settings["prefs"] }>("/api/settings/pref", { key, value }),
   kill: (pid: number) => post<{ ok: boolean; detail: string }>("/api/control/kill", { pid }),

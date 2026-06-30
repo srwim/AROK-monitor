@@ -98,6 +98,21 @@ class TrayApp:
         self._set_interval(NORMAL_INTERVAL)
         log("window shown - normal sampling")
 
+    def pick_file(self, file_types=None):
+        """Open a native file-open dialog and return the chosen path (or None).
+        Called from the FastAPI thread via main.app.state.pick_file."""
+        if not self.window:
+            return None
+        try:
+            import webview
+            ft = tuple(file_types) if file_types else ()
+            result = self.window.create_file_dialog(webview.OPEN_DIALOG, allow_multiple=False, file_types=ft)
+            if result:
+                return result[0] if isinstance(result, (list, tuple)) else result
+        except Exception as e:
+            log(f"pick_file: {e}")
+        return None
+
     def hide_to_tray(self):
         self.hidden = True
         if self._pref("low_power_tray"):
@@ -264,6 +279,7 @@ def start():
     # register the window-raise hook for /api/desktop/show + mark desktop mode
     import main
     main.app.state.show_window = app.show_window
+    main.app.state.pick_file = app.pick_file
     main.app.state.desktop = True
 
     try:

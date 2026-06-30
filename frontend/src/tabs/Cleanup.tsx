@@ -130,6 +130,20 @@ function TronSection() {
     setVerifyMsg(r.detail ?? (r.ok ? "Verified." : "Checksum mismatch."));
   };
 
+  const browse = async () => {
+    try {
+      const r = await api.pickFile(["Batch files (*.bat)", "All files (*.*)"]);
+      if (r.path) {
+        setPath(r.path);
+        setVerified(false);
+      } else if (r.detail) {
+        setVerifyMsg(r.detail);
+      }
+    } catch {
+      setVerifyMsg("Couldn’t open the file picker — type the path manually.");
+    }
+  };
+
   const launch = async () => {
     if (!verified || !consent || busy) return;
     setBusy(true);
@@ -164,12 +178,15 @@ function TronSection() {
         </li>
         <li>
           2. Path to <code>tron.bat</code> (inside the extracted folder):
-          <input
-            value={path}
-            onChange={(e) => { setPath(e.target.value); setVerified(false); }}
-            placeholder={"C:\\Users\\you\\Downloads\\Tron\\tron.bat"}
-            className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-slate-200 placeholder:text-slate-600 focus:border-cyan-700 focus:outline-none"
-          />
+          <div className="mt-1 flex gap-2">
+            <input
+              value={path}
+              onChange={(e) => { setPath(e.target.value); setVerified(false); }}
+              placeholder={"C:\\Users\\you\\Downloads\\Tron\\tron.bat"}
+              className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 font-mono text-xs text-slate-200 placeholder:text-slate-600 focus:border-cyan-700 focus:outline-none"
+            />
+            <Button onClick={browse}>Browse…</Button>
+          </div>
         </li>
         <li>
           3. Official SHA-256 (paste from the release thread):

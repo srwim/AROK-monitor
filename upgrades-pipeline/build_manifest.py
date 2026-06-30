@@ -28,7 +28,7 @@ import json
 import sys
 from pathlib import Path
 
-from affiliate import DISCLOSURE, dp_link, search_link
+from affiliate import DISCLOSURE, search_link
 
 HERE = Path(__file__).parent
 OUT = HERE / "manifest.json"
@@ -78,13 +78,18 @@ CURATED: dict[str, dict] = {
 
 
 def build_component_upgrades() -> dict:
+    # Long-term link strategy: every pick uses a TAGGED AMAZON SEARCH link keyed
+    # by product title. Search links never 404 (unlike per-product /dp/ASIN links,
+    # which break when an ASIN is delisted or wrong), always carry the affiliate
+    # tag, and need zero ASIN upkeep or PA-API access. Curated ASINs are kept in
+    # the catalog only as human-readable notes; they no longer drive the URL.
     out: dict[str, dict] = {}
     for key, spec in CURATED.items():
         entry = {"label": spec["label"]}
         for slot in ("bangForBuck", "highEnd"):
             pick = dict(spec[slot])
-            asin = pick.get("asin") or ""
-            pick["url"] = dp_link(asin) if asin else search_link(pick["title"])
+            pick["url"] = search_link(pick["title"])
+            pick.pop("asin", None)
             entry[slot] = pick
         out[key] = entry
     return out
@@ -216,13 +221,13 @@ FALLBACK_SYSTEMS = [
         "name": "Balanced 1440p Gaming Build",
         "source": "curated",
         "components": [
-            {"type": "CPU", "name": "AMD Ryzen 5 7600", "url": dp_link("B0BMQGKMTV")},
-            {"type": "GPU", "name": "NVIDIA GeForce RTX 4060", "url": dp_link("B0C9TZJ3X4")},
-            {"type": "Memory", "name": "Corsair Vengeance DDR5 32GB 6000", "url": dp_link("B0BWP9YGNT")},
-            {"type": "Storage", "name": "Samsung 990 PRO 2TB NVMe", "url": dp_link("B0BHJJ9Y77")},
-            {"type": "Motherboard", "name": "MSI B650 Gaming Plus WiFi", "url": dp_link("B0BWGGPJTF")},
-            {"type": "PSU", "name": "Corsair RM750e 750W", "url": dp_link("B0BWMQZ3F8")},
-            {"type": "Cooler", "name": "Thermalright Peerless Assassin 120 SE", "url": dp_link("B09NQDX3KD")},
+            {"type": "CPU", "name": "AMD Ryzen 5 7600", "url": search_link("AMD Ryzen 5 7600")},
+            {"type": "GPU", "name": "NVIDIA GeForce RTX 4060", "url": search_link("NVIDIA GeForce RTX 4060")},
+            {"type": "Memory", "name": "Corsair Vengeance DDR5 32GB 6000", "url": search_link("Corsair Vengeance DDR5 32GB 6000")},
+            {"type": "Storage", "name": "Samsung 990 PRO 2TB NVMe", "url": search_link("Samsung 990 PRO 2TB NVMe")},
+            {"type": "Motherboard", "name": "MSI B650 Gaming Plus WiFi", "url": search_link("MSI B650 Gaming Plus WiFi")},
+            {"type": "PSU", "name": "Corsair RM750e 750W", "url": search_link("Corsair RM750e 750W")},
+            {"type": "Cooler", "name": "Thermalright Peerless Assassin 120 SE", "url": search_link("Thermalright Peerless Assassin 120 SE")},
         ],
     }
 ]

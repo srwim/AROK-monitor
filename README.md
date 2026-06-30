@@ -1,15 +1,33 @@
-# AROK Monitor v1.0
+# AROK Monitor v1.0.2
 
-Autonomous Resource Observation Kernel. FastAPI backend + React/Vite/Tailwind UI, following the v3 architecture: deterministic detection with LLM narration, dual-serving frontend, demo-safe control plane.
+Autonomous Resource Observation Kernel — a Windows desktop system monitor. FastAPI backend + React/Vite/Tailwind UI following the LLM-narrator architecture: detection is deterministic, the model only narrates. Dual-serving frontend, demo-safe control plane, and a native pywebview/WebView2 window with a system tray.
+
+The app is **free**, monetized through an Amazon affiliate funnel in the Upgrades tab.
 
 ## Quick start (Windows)
 
-1. Double-click **`run_demo.bat`** — creates a venv, installs deps, starts the server, opens the browser at `http://127.0.0.1:8420`. You get the legacy console immediately.
-2. Double-click **`build_frontend.bat`** (requires Node 18+) — builds the full eight-tab React UI. Restart `run_demo.bat` and it's served automatically (dual-serving strategy).
+1. Double-click **`run_demo.bat`** — creates a venv, installs deps, starts the server at `http://127.0.0.1:8420`, opens the browser. The legacy console UI serves immediately.
+2. Double-click **`build_frontend.bat`** (requires Node 18+) — builds the React UI. Restart `run_demo.bat` and it's served automatically (dual-serving).
 
-Other launchers: **`run_desktop.bat`** — native window (pywebview/WebView2), no browser. **`make_installer.bat`** — full pipeline: React build → PyInstaller `AROK.exe` → Inno Setup `installer_out\AROK-Setup-3.1.0.exe` (needs Inno Setup 6).
+Other launchers: **`run_desktop.bat`** — native window (pywebview/WebView2), no browser. **`make_installer.bat`** — full pipeline: React build → PyInstaller `AROK.exe` → Inno Setup `installer_out\AROK-Setup-1.0.2.exe` (needs Inno Setup 6).
 
-For React dev with hot reload: `cd frontend && npm run dev` (proxies `/api` and `/ws` to port 8420).
+For React dev with hot reload: `cd frontend && npm run dev` (proxies `/api` and `/ws` to port 8420). `tsc -b` is the authoritative correctness check for the frontend.
+
+## The ten tabs
+
+Dashboard · Processes · Network · Services · Cleanup · Analytics · AI Insights · Alerts · Upgrades · Settings — all live against the backend, polling every 3–10s. A global **Gaming mode** toggle (with optional auto-detect) lives in the app shell.
+
+Highlights:
+
+- **Dashboard** — live CPU/memory/disk/network/process cards with drill-down detail, plus an AI Pulse narrative with a colour-coded engine status indicator.
+- **Network** — a geographic world map that resolves external connections and animates sends/receives between the client and each endpoint, above the live connections table.
+- **Cleanup** — temp-file cleaner, conservative registry cleaner (restore point + `.reg` backup), and a guided, checksum-verified Tron launcher (with a native file Browse button).
+- **Upgrades** — hardware-aware component picks tailored to your detected platform (AMD/Intel) and memory generation (DDR4/DDR5), featured full builds, and a panel of your detected system hardware. All Amazon links are tagged search URLs (never stale, FTC-disclosed).
+- **Settings** — editable runtime settings (demo mode, AI engine, sample interval, z-score threshold), offline Ed25519 licensing, and GitHub-Releases update checks.
+
+## Real local AI
+
+The in-app model download is **real by default**: AROK fetches a Gemma 2 2B Q4 GGUF (~1.7 GB) from Hugging Face, after which narration runs entirely offline. Install inference support with `pip install -r backend\requirements-ai.txt`. Override the model with `AROK_MODEL_URL` (or the model-URL setting); engine priority is local model → Anthropic Cloud → deterministic template.
 
 ## Licensing & updates
 
@@ -19,26 +37,19 @@ Generate a keypair + license on a trusted machine (never ship `license_private.p
 python backend\generate_license.py --name "Customer" --email c@example.com --days 365
 ```
 
-First run creates `license_pub.hex` (ships with the app; bundled by `arok.spec` automatically). Activate keys in **Settings → License** — verification is offline Ed25519. **Settings → Updates** checks GitHub Releases (`AROK_REPO`, default `srwim/AROK`).
-
-## Real local AI
-
-Set `AROK_MODEL_URL` to a GGUF download URL (e.g. a Gemma quant from Hugging Face, ~1.7 GB Q4) and the in-app download becomes real even in demo mode. Install inference support with `pip install -r backend\requirements-ai.txt`. Without a URL, the download is simulated for demoing the UX.
-
-## The eight tabs
-
-Dashboard · Processes · Network · Services · Analytics · AI Insights · Alerts · Settings — all live against the backend, polling every 3–10s.
+First run creates `license_pub.hex` (ships with the app; bundled by `arok.spec`). Activate keys in **Settings → License** — verification is offline Ed25519; unlicensed installs run as **Personal Use**. **Settings → Updates** checks GitHub Releases (`AROK_REPO`, default `srwim/AROK-monitor`). Releases are built on `windows-latest` by `.github/workflows/release.yml` when a `v*` tag is pushed.
 
 ## Environment flags
 
 | Variable | Default | Effect |
 |---|---|---|
-| `AROK_DEMO` | `1` | `1` = control actions (kill, block IP, service stop) are simulated and logged. `0` = live. |
-| `AROK_LOCAL_MODEL` | unset | Path to a local GGUF model (e.g. Gemma 3 2B) for offline narration via llama-cpp. |
-| `AROK_ANTHROPIC_KEY` | unset | Anthropic API fallback for narration. |
+| `AROK_DEMO` | `0` | `0` = control actions (kill, block IP, service stop) execute for real. `1` = simulated and logged. Editable at runtime in Settings. |
+| `AROK_MODEL_URL` | unset | Override the local-model GGUF download URL (defaults to a public Gemma 2 2B Q4). |
+| `AROK_ANTHROPIC_KEY` | unset | Anthropic API key for cloud narration. |
+| `AROK_REPO` | `srwim/AROK-monitor` | GitHub repo for update checks. |
 | `AROK_DB` | `backend/arok.db` | SQLite path. |
 
-Without either AI flag, narration uses the deterministic template engine — the demo always works offline.
+Without a configured AI engine, narration uses the deterministic template — the app always works offline.
 
 ## Architecture notes
 
@@ -46,10 +57,13 @@ Without either AI flag, narration uses the deterministic template engine — the
 - **Dual serving** — `main.py` serves `frontend/dist/` when built, falls back to `backend/index.html` otherwise.
 - **VACUUM fix** — `db.purge()` runs VACUUM on a fresh autocommit connection, outside any transaction.
 - **Demo-safe controls** — every control endpoint logs to the event log; in demo mode nothing is executed.
+- **Affiliate links** — tagged Amazon **search** URLs (tag `lifeupgrad02b-20`) generated by `upgrades-pipeline/build_manifest.py`; a daily GitHub Action refreshes `manifest.json`, with a bundled fallback at `frontend/public/manifest.json`.
 
 ## Files
 
 ```
-backend/   main.py · monitor.py · db.py · ai.py · control.py · index.html (legacy fallback) · requirements.txt
-frontend/  Vite + React + TS + Tailwind v4 · src/tabs/ (8 tabs) · src/components/ui.tsx (NumberTicker etc.)
+backend/   main.py · monitor.py · db.py · ai.py · control.py · hardware.py · cleanup.py · optimizer.py
+           licensing.py · updater.py · desktop.py · index.html (legacy fallback) · arok.spec · requirements*.txt
+frontend/  Vite + React + TS + Tailwind v4 · src/tabs/ (10 tabs) · src/components/ (ui.tsx, NetworkMap.tsx) · src/geo.ts
+upgrades-pipeline/  build_manifest.py · affiliate.py · manifest.json
 ```

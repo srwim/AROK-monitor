@@ -26,7 +26,7 @@ import optimizer
 import upgrade
 import updater
 
-app = FastAPI(title="AROK Monitor", version="1.0.0")
+app = FastAPI(title="AROK Monitor", version="1.0.2")
 
 _stop = threading.Event()
 
@@ -42,6 +42,22 @@ def _startup():
                 monitor.ABS_THRESHOLDS[metric] = float(v)
             except ValueError:
                 pass
+    # reload persisted runtime settings (editable from the Settings tab)
+    dm = db.get_setting("demo_mode")
+    if dm is not None:
+        control.DEMO_MODE = (dm == "1")
+    si = db.get_setting("sample_interval")
+    if si:
+        try:
+            monitor.SAMPLE_INTERVAL = int(si)
+        except ValueError:
+            pass
+    zt = db.get_setting("z_threshold")
+    if zt:
+        try:
+            monitor.Z_THRESHOLD = float(zt)
+        except ValueError:
+            pass
     t = threading.Thread(target=monitor.sampler_loop, args=(_stop,), daemon=True)
     t.start()
     threading.Thread(target=optimizer.detector_loop, args=(_stop,), daemon=True).start()
@@ -241,6 +257,7 @@ class AiConfigReq(BaseModel):
     local_enabled: bool | None = None
     api_enabled: bool | None = None
     api_key: str | None = None
+    model_url: str | None = None
 
 
 @app.get("/api/ai/config")
@@ -250,7 +267,7 @@ def ai_config():
 
 @app.post("/api/ai/config")
 def ai_config_set(req: AiConfigReq):
-    return ai.set_config(req.enabled, req.local_enabled, req.api_enabled, req.api_key)
+    return ai.set_config(req.enabled, req.local_enabled, req.api_enabled, req.api_key, req.model_url)
 
 
 @app.post("/api/ai/download")
@@ -400,18 +417,67 @@ def get_pref(key: str) -> bool:
     return db.get_setting(f"pref_{key}", PREF_DEFAULTS.get(key, "0")) == "1"
 
 
+def _ai_engine_mode() -> str:
+    cfg = ai.get_config()
+    if not cfg["enabled"]:
+        return "off"
+    if cfg["local_enabled"]:
+        return "local"
+    if cfg["api_enabled"]:
+        return "cloud"
+    return "template"
+
+
 @app.get("/api/settings")
 def get_settings():
     return {
         "demo_mode": control.DEMO_MODE,
         "version": updater.DISPLAY_VERSION,
         "ai_engine": ai.engine_name(),
+        "ai_engine_mode": _ai_engine_mode(),
         "sample_interval": monitor.SAMPLE_INTERVAL,
         "abs_thresholds": monitor.ABS_THRESHOLDS,
         "z_threshold": monitor.Z_THRESHOLD,
         "prefs": {k: get_pref(k) for k in PREF_DEFAULTS},
         "desktop": getattr(app.state, "desktop", False),
     }
+
+
+class RuntimeReq(BaseModel):
+    demo_mode: bool | None = None
+    sample_interval: int | None = None
+    z_threshold: float | None = None
+    ai_engine: str | None = None  # off | template | local | cloud
+
+
+@app.post("/api/settings/runtime")
+def set_runtime(req: RuntimeReq):
+    if req.demo_mode is not None:
+        control.DEMO_MODE = req.demo_mode
+        db.set_setting("demo_mode", "1" if req.demo_mode else "0")
+        db.log_event("settings", f"demo mode -> {'on' if req.demo_mode else 'off'}")
+    if req.sample_interval is not None:
+        v = max(1, min(60, int(req.sample_interval)))
+        monitor.SAMPLE_INTERVAL = v
+        db.set_setting("sample_interval", str(v))
+        db.log_event("settings", f"sample interval -> {v}s")
+    if req.z_threshold is not None:
+        v = round(max(1.0, min(6.0, float(req.z_threshold))), 1)
+        monitor.Z_THRESHOLD = v
+        db.set_setting("z_threshold", str(v))
+        db.log_event("settings", f"z-threshold -> {v}")
+    if req.ai_engine is not None:
+        eng = req.ai_engine
+        if eng == "off":
+            ai.set_config(enabled=False)
+        elif eng == "template":
+            ai.set_config(enabled=True, local_enabled=False, api_enabled=False)
+        elif eng == "local":
+            ai.set_config(enabled=True, local_enabled=True, api_enabled=False)
+        elif eng == "cloud":
+            ai.set_config(enabled=True, local_enabled=False, api_enabled=True)
+        db.log_event("settings", f"ai engine -> {eng}")
+    return get_settings()
 
 
 class PrefReq(BaseModel):
@@ -426,6 +492,20 @@ def set_pref(req: PrefReq):
     db.set_setting(f"pref_{req.key}", "1" if req.value else "0")
     db.log_event("settings", f"pref {req.key} -> {'on' if req.value else 'off'}")
     return {"ok": True, "prefs": {k: get_pref(k) for k in PREF_DEFAULTS}}
+
+
+class FileDialogReq(BaseModel):
+    file_types: list[str] | None = None
+
+
+@app.post("/api/dialog/open-file")
+def open_file_dialog(req: FileDialogReq):
+    """Native file-open dialog (desktop app only). Returns the chosen path."""
+    fn = getattr(app.state, "pick_file", None)
+    if not fn:
+        return {"ok": False, "path": None, "detail": "file dialog only available in the desktop app"}
+    path = fn(req.file_types)
+    return {"ok": bool(path), "path": path}
 
 
 @app.post("/api/desktop/show")

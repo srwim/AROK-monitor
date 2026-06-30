@@ -118,7 +118,7 @@ function LocalModelPanel({
           <div>
             <div className="text-sm font-medium text-slate-400">Local Model</div>
             <div className="text-xs text-slate-600">
-              {config?.local_model_ready ? "Gemma 3 2B installed" : "Not downloaded"}
+              {config?.local_model_ready ? "Gemma 2 2B installed" : "Not downloaded"}
             </div>
           </div>
         </div>
@@ -148,7 +148,7 @@ function LocalModelPanel({
       {config?.local_model_ready ? (
         <div className="space-y-3">
           <p className="text-sm text-slate-400">
-            Gemma 3 2B is installed
+            Gemma 2 2B is installed
             {config.local_model_simulated ? " (simulated download — demo mode)" : ""}.
             {config.local_enabled
               ? " Narration runs entirely on this machine — no API key, no network."
@@ -164,7 +164,7 @@ function LocalModelPanel({
       ) : downloading ? (
         <div>
           <div className="mb-1.5 flex justify-between text-xs text-slate-500">
-            <span>Downloading Gemma 3 2B (~1.7 GB)…</span>
+            <span>Downloading Gemma 2 2B (~1.7 GB)…</span>
             <span className="tabular-nums">{config?.download.pct.toFixed(0)}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-slate-800">
@@ -185,7 +185,7 @@ function LocalModelPanel({
             onClick={onDownload}
             className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-200 hover:bg-slate-700"
           >
-            <Download size={14} /> Download Gemma 3 2B
+            <Download size={14} /> Download Gemma 2 2B
           </button>
           {config?.download.status === "error" && (
             <p className="text-xs text-red-400">Download failed: {config.download.error}</p>
