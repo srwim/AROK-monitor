@@ -23,6 +23,8 @@ a = Analysis(
         "clr_loader", "pythonnet",
         # system tray
         "pystray._win32", "PIL.Image", "PIL.ImageDraw",
+        # hardware inventory via WMI (GPU, motherboard, RAM type/speed)
+        "wmi", "win32com", "win32com.client", "win32timezone", "pythoncom", "pywintypes",
     ],
     hookspath=[],
     runtime_hooks=[],

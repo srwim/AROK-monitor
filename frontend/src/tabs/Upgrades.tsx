@@ -91,10 +91,12 @@ function UpgradeCarousel({
   categories,
   currentParts,
   notes,
+  wellEquipped,
 }: {
   categories: [string, ComponentUpgrade][];
   currentParts: Record<string, string | null>;
   notes: Record<string, string | null>;
+  wellEquipped: Record<string, boolean>;
 }) {
   const [i, setI] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -114,6 +116,7 @@ function UpgradeCarousel({
   const [key, current] = categories[i];
   const currentPart = currentParts[key];
   const note = notes[key];
+  const isWell = wellEquipped[key];
 
   return (
     <div
@@ -133,8 +136,12 @@ function UpgradeCarousel({
             </div>
           )}
           {note && (
-            <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-emerald-950/50 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
-              ✓ {note}
+            <div
+              className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                isWell ? "bg-slate-800 text-slate-300" : "bg-emerald-950/50 text-emerald-400"
+              }`}
+            >
+              {isWell ? "•" : "✓"} {note}
             </div>
           )}
         </div>
@@ -252,26 +259,27 @@ const MOBO_PICKS: Record<"amd" | "intel", { bang: Pick; high: Pick }> = {
   },
 };
 
-const RAM_PICKS: Record<"DDR4" | "DDR5", { bang: Pick; high: Pick }> = {
-  DDR4: {
-    bang: { title: "Corsair Vengeance LPX DDR4 32GB (2x16) 3600", price: "~$69", url: amazonSearch("Corsair Vengeance LPX DDR4 32GB 3600") },
-    high: { title: "G.Skill Trident Z RGB DDR4 64GB 3600", price: "~$139", url: amazonSearch("G.Skill Trident Z RGB DDR4 64GB 3600") },
-  },
-  DDR5: {
-    bang: { title: "Corsair Vengeance DDR5 32GB (2x16) 6000", price: "~$94", url: amazonSearch("Corsair Vengeance DDR5 32GB 6000") },
-    high: { title: "G.Skill Trident Z5 DDR5 64GB 6400", price: "~$229", url: amazonSearch("G.Skill Trident Z5 DDR5 64GB 6400") },
-  },
-};
+// A RAM pick for a given generation + capacity, as a tagged Amazon search so it
+// always resolves and matches the user's actual DDR generation.
+function ramPick(gen: Ddr, capGB: number, tier: "value" | "premium"): Pick {
+  const g = gen ?? "";
+  const speed = gen === "DDR5" ? (tier === "premium" ? "6400" : "6000") : gen === "DDR4" ? (tier === "premium" ? "3600" : "3200") : "";
+  const title = [`${capGB} GB`, g, tier === "premium" ? "(high-speed)" : "Kit"].filter(Boolean).join(" ");
+  const query = [`${capGB}GB`, g, speed, "desktop memory kit"].filter(Boolean).join(" ");
+  return { title, url: amazonSearch(query) };
+}
 
-/** Returns a config-matched version of a category plus a short compatibility note. */
-function tailorCategory(
-  key: string,
-  entry: ComponentUpgrade,
-  hw: HardwareInventory | null
-): { entry: ComponentUpgrade; note: string | null } {
+type Tailored = { entry: ComponentUpgrade; note: string | null; wellEquipped?: boolean };
+
+/**
+ * Returns a config-matched version of a category plus a short note. Beyond
+ * platform/generation matching, RAM is now *capacity-aware*: it never suggests
+ * less memory than you already have, matches your DDR generation, and flags when
+ * you're already well-equipped so we don't push a pointless upgrade.
+ */
+function tailorCategory(key: string, entry: ComponentUpgrade, hw: HardwareInventory | null): Tailored {
   if (!hw) return { entry, note: null };
   const platform = detectPlatform(hw.cpu?.name);
-  const ddr = detectDdr(hw.ram?.type);
 
   if ((key === "cpu" || key === "motherboard") && platform) {
     const table = key === "cpu" ? CPU_PICKS : MOBO_PICKS;
@@ -281,10 +289,34 @@ function tailorCategory(
       note: `Matched to your ${platform === "amd" ? "AMD" : "Intel"} platform`,
     };
   }
-  if (key === "ram" && ddr) {
-    const p = RAM_PICKS[ddr];
-    return { entry: { ...entry, bangForBuck: p.bang, highEnd: p.high }, note: `Matched to your ${ddr}` };
+
+  if (key === "ram") {
+    const gen = detectDdr(hw.ram?.type);
+    const cur = Math.round(hw.ram?.total_gb ?? 0);
+    const genStr = gen ? `${gen} ` : "";
+    // Capacity ladder differs by generation (DDR5 adds 96 GB 2x48 kits).
+    const tiers = gen === "DDR5" ? [16, 32, 64, 96, 128] : [16, 32, 64, 128];
+    const bangCap = tiers.find((t) => t > cur);
+    if (!bangCap) {
+      // Already at/above the top consumer capacity — no real upgrade to offer.
+      return {
+        entry,
+        note: `Your ${cur} GB ${genStr}is already at the ceiling for consumer boards — no RAM upgrade needed.`,
+        wellEquipped: true,
+      };
+    }
+    const highCap = tiers.find((t) => t > bangCap) ?? bangCap;
+    const wellEquipped = cur >= 32; // 32 GB+ is plenty for the vast majority of use
+    const note = wellEquipped
+      ? `You already run ${cur} GB ${genStr}— plenty for gaming and productivity; add capacity only for heavy VMs, rendering, or large datasets.`
+      : `Matched to your ${gen ?? "memory"} — a genuine step up from your ${cur} GB.`;
+    return {
+      entry: { ...entry, bangForBuck: ramPick(gen, bangCap, "value"), highEnd: ramPick(gen, highCap, "premium") },
+      note,
+      wellEquipped,
+    };
   }
+
   return { entry, note: null };
 }
 
@@ -350,20 +382,27 @@ export default function UpgradesTab() {
   }, []);
 
   // Tailor each category to the detected hardware, then sort so the most
-  // relevant upgrade for THIS system shows first.
-  const { categories, notes } = useMemo(() => {
-    if (!manifest) return { categories: [] as [string, ComponentUpgrade][], notes: {} as Record<string, string | null> };
-    let entries = Object.entries(manifest.componentUpgrades);
+  // relevant upgrade for THIS system shows first (well-equipped categories sink).
+  const { categories, notes, wellEquipped } = useMemo(() => {
+    if (!manifest)
+      return {
+        categories: [] as [string, ComponentUpgrade][],
+        notes: {} as Record<string, string | null>,
+        wellEquipped: {} as Record<string, boolean>,
+      };
     const noteMap: Record<string, string | null> = {};
-    entries = entries.map(([key, entry]) => {
+    const wellMap: Record<string, boolean> = {};
+    let entries = Object.entries(manifest.componentUpgrades).map(([key, entry]) => {
       const t = tailorCategory(key, entry, hw);
       noteMap[key] = t.note;
+      wellMap[key] = !!t.wellEquipped;
       return [key, t.entry] as [string, ComponentUpgrade];
     });
     if (hw) {
-      entries = [...entries].sort((a, b) => (hw.relevance[b[0]] ?? 0) - (hw.relevance[a[0]] ?? 0));
+      const score = (k: string) => (hw.relevance[k] ?? 0) - (wellMap[k] ? 1000 : 0);
+      entries = [...entries].sort((a, b) => score(b[0]) - score(a[0]));
     }
-    return { categories: entries, notes: noteMap };
+    return { categories: entries, notes: noteMap, wellEquipped: wellMap };
   }, [manifest, hw]);
 
   const currentParts = hw?.current ?? {};
@@ -400,7 +439,7 @@ export default function UpgradesTab() {
 
       {manifest && (
         <>
-          <UpgradeCarousel categories={categories} currentParts={currentParts} notes={notes} />
+          <UpgradeCarousel categories={categories} currentParts={currentParts} notes={notes} wellEquipped={wellEquipped} />
 
           <div className="grid gap-4 pt-2 lg:grid-cols-3">
             <div className="lg:col-span-2">

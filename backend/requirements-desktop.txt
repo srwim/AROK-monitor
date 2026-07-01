@@ -1,3 +1,6 @@
 pywebview>=5.0
 pystray>=0.19
 pillow>=10.0
+# Hardware inventory (GPU, motherboard, RAM type/speed) via WMI on Windows.
+wmi>=1.5.1
+pywin32>=306

@@ -8,8 +8,8 @@ import json
 import os
 import urllib.request
 
-VERSION = "1.1.0"
-DISPLAY_VERSION = "v1.1.0"
+VERSION = "1.1.1"
+DISPLAY_VERSION = "v1.1.1"
 REPO = os.environ.get("AROK_REPO", "srwim/AROK-monitor")
 
 
