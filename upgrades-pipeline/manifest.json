@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-01T00:38:14Z",
+  "generatedAt": "2026-07-01T11:49:49Z",
   "disclosure": "As an Amazon Associate I earn from qualifying purchases.",
   "componentUpgrades": {
     "cpu": {
@@ -14,7 +14,8 @@
         "title": "AMD Ryzen 7 7800X3D",
         "price": "~$359",
         "url": "https://www.amazon.com/s?k=AMD+Ryzen+7+7800X3D&tag=lifeupgrad02b-20"
-      }
+      },
+      "linkCheckedAt": "2026-07-01T11:49:49Z"
     },
     "gpu": {
       "label": "Graphics Card (GPU)",
@@ -27,7 +28,8 @@
         "title": "NVIDIA GeForce RTX 4080 SUPER",
         "price": "~$999",
         "url": "https://www.amazon.com/s?k=NVIDIA+GeForce+RTX+4080+SUPER&tag=lifeupgrad02b-20"
-      }
+      },
+      "linkCheckedAt": "2026-07-01T11:49:49Z"
     },
     "ram": {
       "label": "Memory (RAM)",
@@ -40,7 +42,8 @@
         "title": "G.Skill Trident Z5 DDR5 64GB 6400",
         "price": "~$229",
         "url": "https://www.amazon.com/s?k=G.Skill+Trident+Z5+DDR5+64GB+6400&tag=lifeupgrad02b-20"
-      }
+      },
+      "linkCheckedAt": "2026-07-01T11:49:49Z"
     },
     "storage": {
       "label": "SSD / Storage",
@@ -53,7 +56,8 @@
         "title": "Samsung 990 PRO 2TB NVMe",
         "price": "~$169",
         "url": "https://www.amazon.com/s?k=Samsung+990+PRO+2TB+NVMe&tag=lifeupgrad02b-20"
-      }
+      },
+      "linkCheckedAt": "2026-07-01T11:49:49Z"
     },
     "motherboard": {
       "label": "Motherboard",
@@ -66,7 +70,8 @@
         "title": "ASUS ROG Strix X670E-E Gaming",
         "price": "~$469",
         "url": "https://www.amazon.com/s?k=ASUS+ROG+Strix+X670E-E+Gaming&tag=lifeupgrad02b-20"
-      }
+      },
+      "linkCheckedAt": "2026-07-01T11:49:49Z"
     },
     "psu": {
       "label": "Power Supply (PSU)",
@@ -79,7 +84,8 @@
         "title": "Corsair RM1000x 1000W 80+ Gold",
         "price": "~$189",
         "url": "https://www.amazon.com/s?k=Corsair+RM1000x+1000W+80%2B+Gold&tag=lifeupgrad02b-20"
-      }
+      },
+      "linkCheckedAt": "2026-07-01T11:49:49Z"
     },
     "cooler": {
       "label": "CPU Cooler",
@@ -92,7 +98,8 @@
         "title": "ARCTIC Liquid Freezer III 360",
         "price": "~$119",
         "url": "https://www.amazon.com/s?k=ARCTIC+Liquid+Freezer+III+360&tag=lifeupgrad02b-20"
-      }
+      },
+      "linkCheckedAt": "2026-07-01T11:49:49Z"
     }
   },
   "featuredSystems": [
