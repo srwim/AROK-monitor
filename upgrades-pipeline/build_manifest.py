@@ -56,7 +56,7 @@ CURATED: dict[str, dict] = {
     },
     "storage": {
         "label": "SSD / Storage",
-        "bangForBuck": {"title": "Samsung 990 EVO 1TB NVMe", "asin": "B0CYKDStorage", "price": "~$79"},
+        "bangForBuck": {"title": "Samsung 990 EVO 1TB NVMe", "asin": "", "price": "~$79"},
         "highEnd": {"title": "Samsung 990 PRO 2TB NVMe", "asin": "B0BHJJ9Y77", "price": "~$169"},
     },
     "motherboard": {
