@@ -25,5 +25,6 @@ models/
 .DS_Store
 Thumbs.db
 
-# Ignore a specific file
+# Ignore specific files (local-only docs)
 CLAUDE.md
+REVIEW-*.md
