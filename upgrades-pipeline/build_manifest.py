@@ -38,41 +38,45 @@ OUT = HERE / "manifest.json"
 # Each pick: title, asin (drives a clean /dp link), price hint, image URL.
 # Leave asin empty to fall back to a tagged Amazon search for the title.
 # ---------------------------------------------------------------------------
+# Last curated review: 2026-07-03 (Tom's Hardware / TechSpot / PC Gamer roundups).
+# Prices are hints only — links are searches, so they never go stale, but the
+# titles and price hints should be re-reviewed roughly monthly. Note: DDR5 is
+# in a genuine shortage (mid-2026); RAM price hints are accurate, not typos.
 CURATED: dict[str, dict] = {
     "cpu": {
         "label": "Processor (CPU)",
-        "bangForBuck": {"title": "AMD Ryzen 5 7600", "asin": "B0BMQGKMTV", "price": "~$199"},
-        "highEnd": {"title": "AMD Ryzen 7 7800X3D", "asin": "B0BTZB7F88", "price": "~$359"},
+        "bangForBuck": {"title": "AMD Ryzen 5 9600X", "asin": "", "price": "~$180"},
+        "highEnd": {"title": "AMD Ryzen 7 9800X3D", "asin": "", "price": "~$440"},
     },
     "gpu": {
         "label": "Graphics Card (GPU)",
-        "bangForBuck": {"title": "NVIDIA GeForce RTX 4060", "asin": "B0C9TZJ3X4", "price": "~$289"},
-        "highEnd": {"title": "NVIDIA GeForce RTX 4080 SUPER", "asin": "B0CSP6F1RR", "price": "~$999"},
+        "bangForBuck": {"title": "AMD Radeon RX 9060 XT 16GB", "asin": "", "price": "~$349"},
+        "highEnd": {"title": "AMD Radeon RX 9070 XT", "asin": "", "price": "~$599"},
     },
     "ram": {
         "label": "Memory (RAM)",
-        "bangForBuck": {"title": "Corsair Vengeance DDR5 32GB (2x16) 6000", "asin": "B0BWP9YGNT", "price": "~$94"},
-        "highEnd": {"title": "G.Skill Trident Z5 DDR5 64GB 6400", "asin": "B0BG6QXNQH", "price": "~$229"},
+        "bangForBuck": {"title": "Corsair Vengeance DDR5 32GB (2x16) 6000 CL30", "asin": "", "price": "~$380"},
+        "highEnd": {"title": "G.Skill Trident Z5 Neo DDR5 64GB (2x32) 6000", "asin": "", "price": "~$700"},
     },
     "storage": {
         "label": "SSD / Storage",
-        "bangForBuck": {"title": "Samsung 990 EVO 1TB NVMe", "asin": "", "price": "~$79"},
-        "highEnd": {"title": "Samsung 990 PRO 2TB NVMe", "asin": "B0BHJJ9Y77", "price": "~$169"},
+        "bangForBuck": {"title": "WD Black SN850X 1TB NVMe", "asin": "", "price": "~$100"},
+        "highEnd": {"title": "Samsung 990 PRO 2TB NVMe", "asin": "", "price": "~$200"},
     },
     "motherboard": {
         "label": "Motherboard",
-        "bangForBuck": {"title": "MSI B650 Gaming Plus WiFi", "asin": "B0BWGGPJTF", "price": "~$179"},
-        "highEnd": {"title": "ASUS ROG Strix X670E-E Gaming", "asin": "B0BDRWG6HM", "price": "~$469"},
+        "bangForBuck": {"title": "Gigabyte B650 Aorus Elite AX", "asin": "", "price": "~$170"},
+        "highEnd": {"title": "MSI MAG B850 Tomahawk MAX WiFi", "asin": "", "price": "~$250"},
     },
     "psu": {
         "label": "Power Supply (PSU)",
-        "bangForBuck": {"title": "Corsair RM750e 750W 80+ Gold", "asin": "B0BWMQZ3F8", "price": "~$99"},
-        "highEnd": {"title": "Corsair RM1000x 1000W 80+ Gold", "asin": "B09Q3RML8B", "price": "~$189"},
+        "bangForBuck": {"title": "be quiet! Pure Power 12 M 750W 80+ Gold", "asin": "", "price": "~$80"},
+        "highEnd": {"title": "Corsair RM1000x 1000W 80+ Gold", "asin": "", "price": "~$190"},
     },
     "cooler": {
         "label": "CPU Cooler",
-        "bangForBuck": {"title": "Thermalright Peerless Assassin 120 SE", "asin": "B09NQDX3KD", "price": "~$36"},
-        "highEnd": {"title": "ARCTIC Liquid Freezer III 360", "asin": "B0CP9T1HJN", "price": "~$119"},
+        "bangForBuck": {"title": "Thermalright Peerless Assassin 120 SE", "asin": "", "price": "~$36"},
+        "highEnd": {"title": "ARCTIC Liquid Freezer III 360", "asin": "", "price": "~$120"},
     },
 }
 
@@ -215,21 +219,48 @@ def _scrape_build(sess, url: str) -> dict:
     return {"name": name, "source": "pcpartpicker", "sourceUrl": url, "components": uniq}
 
 
-# Curated fallback build so the section is never empty on first run / block.
+# Curated fallback builds so the section is never empty on first run / block.
+# Reviewed 2026-07-03. Three archetypes: budget 1080p, balanced 1440p, high-end 4K.
 FALLBACK_SYSTEMS = [
+    {
+        "name": "Budget 1080p Gaming Build",
+        "source": "curated",
+        "components": [
+            {"type": "CPU", "name": "AMD Ryzen 5 9600X", "url": search_link("AMD Ryzen 5 9600X")},
+            {"type": "GPU", "name": "NVIDIA GeForce RTX 5060", "url": search_link("NVIDIA GeForce RTX 5060")},
+            {"type": "Memory", "name": "Corsair Vengeance DDR5 32GB 6000 CL30", "url": search_link("Corsair Vengeance DDR5 32GB 6000 CL30")},
+            {"type": "Storage", "name": "WD Black SN850X 1TB NVMe", "url": search_link("WD Black SN850X 1TB NVMe")},
+            {"type": "Motherboard", "name": "Gigabyte B650 Aorus Elite AX", "url": search_link("Gigabyte B650 Aorus Elite AX")},
+            {"type": "PSU", "name": "be quiet! Pure Power 12 M 750W", "url": search_link("be quiet! Pure Power 12 M 750W")},
+            {"type": "Cooler", "name": "Thermalright Peerless Assassin 120 SE", "url": search_link("Thermalright Peerless Assassin 120 SE")},
+        ],
+    },
     {
         "name": "Balanced 1440p Gaming Build",
         "source": "curated",
         "components": [
-            {"type": "CPU", "name": "AMD Ryzen 5 7600", "url": search_link("AMD Ryzen 5 7600")},
-            {"type": "GPU", "name": "NVIDIA GeForce RTX 4060", "url": search_link("NVIDIA GeForce RTX 4060")},
-            {"type": "Memory", "name": "Corsair Vengeance DDR5 32GB 6000", "url": search_link("Corsair Vengeance DDR5 32GB 6000")},
-            {"type": "Storage", "name": "Samsung 990 PRO 2TB NVMe", "url": search_link("Samsung 990 PRO 2TB NVMe")},
-            {"type": "Motherboard", "name": "MSI B650 Gaming Plus WiFi", "url": search_link("MSI B650 Gaming Plus WiFi")},
-            {"type": "PSU", "name": "Corsair RM750e 750W", "url": search_link("Corsair RM750e 750W")},
+            {"type": "CPU", "name": "AMD Ryzen 7 9700X", "url": search_link("AMD Ryzen 7 9700X")},
+            {"type": "GPU", "name": "AMD Radeon RX 9070 16GB", "url": search_link("AMD Radeon RX 9070 16GB")},
+            {"type": "Memory", "name": "Corsair Vengeance DDR5 32GB 6000 CL30", "url": search_link("Corsair Vengeance DDR5 32GB 6000 CL30")},
+            {"type": "Storage", "name": "Samsung 990 EVO Plus 2TB NVMe", "url": search_link("Samsung 990 EVO Plus 2TB NVMe")},
+            {"type": "Motherboard", "name": "MSI MAG B850 Tomahawk MAX WiFi", "url": search_link("MSI MAG B850 Tomahawk MAX WiFi")},
+            {"type": "PSU", "name": "Montech Century II 850W 80+ Gold", "url": search_link("Montech Century II 850W 80+ Gold")},
             {"type": "Cooler", "name": "Thermalright Peerless Assassin 120 SE", "url": search_link("Thermalright Peerless Assassin 120 SE")},
         ],
-    }
+    },
+    {
+        "name": "High-End 4K Build",
+        "source": "curated",
+        "components": [
+            {"type": "CPU", "name": "AMD Ryzen 7 9800X3D", "url": search_link("AMD Ryzen 7 9800X3D")},
+            {"type": "GPU", "name": "NVIDIA GeForce RTX 5080", "url": search_link("NVIDIA GeForce RTX 5080")},
+            {"type": "Memory", "name": "G.Skill Trident Z5 Neo DDR5 64GB 6000", "url": search_link("G.Skill Trident Z5 Neo DDR5 64GB 6000")},
+            {"type": "Storage", "name": "Samsung 990 PRO 2TB NVMe", "url": search_link("Samsung 990 PRO 2TB NVMe")},
+            {"type": "Motherboard", "name": "ASUS ROG Strix X870E-E Gaming WiFi", "url": search_link("ASUS ROG Strix X870E-E Gaming WiFi")},
+            {"type": "PSU", "name": "Corsair RM1000x 1000W 80+ Gold", "url": search_link("Corsair RM1000x 1000W 80+ Gold")},
+            {"type": "Cooler", "name": "ARCTIC Liquid Freezer III 360", "url": search_link("ARCTIC Liquid Freezer III 360")},
+        ],
+    },
 ]
 
 
@@ -247,10 +278,14 @@ def main() -> int:
 
     featured = scrape_pcpartpicker()
     if not featured:
-        # Keep last good data if we have it; otherwise use curated fallback.
-        if prev and prev.get("featuredSystems"):
-            featured = prev["featuredSystems"]
-            print("[manifest] scrape empty; reusing previous featuredSystems", file=sys.stderr)
+        # Reuse the previous manifest only if it holds real scraped builds.
+        # If the previous fallback was itself curated, prefer the (possibly
+        # newer) curated list in this file — otherwise a stale curated build
+        # persists forever once the scrape starts failing.
+        prev_systems = (prev or {}).get("featuredSystems") or []
+        if any(s.get("source") == "pcpartpicker" for s in prev_systems):
+            featured = prev_systems
+            print("[manifest] scrape empty; reusing previous scraped featuredSystems", file=sys.stderr)
         else:
             featured = FALLBACK_SYSTEMS
             print("[manifest] scrape empty; using curated fallback", file=sys.stderr)

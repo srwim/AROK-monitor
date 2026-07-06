@@ -160,7 +160,33 @@ export type SnapshotResult = {
   procs: ProcSnapItem[];
 };
 
+export type SensorDisk = {
+  name: string;
+  media: string;
+  health: string; // Healthy | Warning | Unhealthy | Unknown
+  size_gb: number | null;
+  temp_c: number | null;
+  wear_pct: number | null;
+};
+
+export type Sensors = {
+  ts: number;
+  cpu: { temp_c: number | null; source: string };
+  disks: SensorDisk[];
+  elevated: boolean;
+  supported: { cpu_temp: boolean; disk_health: boolean };
+};
+
+export type SensorFinding = {
+  kind: string;
+  severity: string;
+  message: string;
+  disk?: string;
+  temp_c?: number;
+};
+
 export type HardwareInventory = {
+  sensors?: Sensors;
   os: string;
   wmi: boolean;
   cpu: { name: string; cores_physical: number | null; cores_logical: number | null };
@@ -238,6 +264,7 @@ export const api = {
   snapshot: (ts: number, resource: "cpu" | "mem" = "cpu") =>
     get<SnapshotResult>(`/api/snapshot?ts=${ts}&resource=${resource}`),
   hardware: () => get<HardwareInventory>("/api/hardware"),
+  sensors: () => get<Sensors & { findings: SensorFinding[] }>("/api/sensors"),
   // Cleanup tab
   cleanupRestorePoint: () => post<CleanupResult>("/api/cleanup/restore-point"),
   tronInfo: () => get<{ thread: string; repo: string; note: string }>("/api/cleanup/tron"),

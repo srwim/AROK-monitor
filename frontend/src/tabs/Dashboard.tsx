@@ -3,6 +3,7 @@ import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from "rec
 import { api, type DetailData } from "../api";
 import { usePolling, useLiveStats, fmtBytes, fmtTime } from "../hooks";
 import { Panel, Gauge, Badge, Modal, NumberTicker } from "../components/ui";
+import NetworkMap from "../components/NetworkMap";
 
 // ── Detail modal ─────────────────────────────────────────────────────────────
 
@@ -339,6 +340,7 @@ export default function DashboardTab() {
   const history = usePolling(() => api.analytics(900), 6000);
   const alerts = usePolling(() => api.alerts(), 6000);
   const insight = usePolling(() => api.insights(), 30000);
+  const conns = usePolling(() => api.network(60), 6000);
   const [open, setOpen] = useState<Metric | null>(null);
 
   const chart = (history ?? []).map((h) => ({
@@ -380,7 +382,7 @@ export default function DashboardTab() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="space-y-4 lg:col-span-2">
           <Panel title="CPU & Memory — last 15 minutes">
             <div className="h-56">
               <ResponsiveContainer>
@@ -404,6 +406,8 @@ export default function DashboardTab() {
               </ResponsiveContainer>
             </div>
           </Panel>
+
+          <NetworkMap conns={conns ?? []} />
         </div>
 
         <div className="space-y-4">

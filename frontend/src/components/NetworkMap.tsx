@@ -112,7 +112,7 @@ type Ripple = { x: number; y: number; t: number };
 export default function NetworkMap({ conns }: { conns: Conn[] }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [tooltip, setTooltip] = useState<{ x: number; y: number; e: Endpoint } | null>(null);
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; e: Endpoint; below: boolean } | null>(null);
 
   const { endpoints, localCount } = useMemo(() => buildEndpoints(conns), [conns]);
   const epRef = useRef(endpoints);
@@ -384,8 +384,19 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
         }
       }
       hover = best;
-      if (best) setTooltip({ x: ev.clientX - rect.left, y: ev.clientY - rect.top, e: best.e });
-      else setTooltip(null);
+      if (best) {
+        const x = ev.clientX - rect.left;
+        const y = ev.clientY - rect.top;
+        setTooltip({
+          // clamp so the centred tooltip can't spill past the container's
+          // left/right edge (the wrapper is overflow-hidden)
+          x: Math.min(Math.max(x, 90), Math.max(90, rect.width - 90)),
+          y,
+          e: best.e,
+          // near the top of the map there's no room above the cursor — flip below
+          below: y < 96,
+        });
+      } else setTooltip(null);
     };
     const onLeave = () => {
       hover = null;
@@ -498,7 +509,9 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
       {/* tooltip */}
       {tooltip && (
         <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-[130%] rounded-lg border border-slate-700 bg-slate-950/90 px-3 py-2 text-xs shadow-xl"
+          className={`pointer-events-none absolute z-10 -translate-x-1/2 rounded-lg border border-slate-700 bg-slate-950/90 px-3 py-2 text-xs shadow-xl ${
+            tooltip.below ? "translate-y-4" : "-translate-y-[130%]"
+          }`}
           style={{ left: tooltip.x, top: tooltip.y }}
         >
           <div className="font-semibold text-slate-100">{tooltip.e.label}</div>

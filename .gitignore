@@ -28,3 +28,7 @@ Thumbs.db
 # Ignore specific files (local-only docs)
 CLAUDE.md
 REVIEW-*.md
+LAUNCH-*.md
+
+# Raw screen-recording sources (only the converted gif/png ship)
+docs/screenshots/*.mp4

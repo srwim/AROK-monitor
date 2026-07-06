@@ -237,25 +237,27 @@ function detectDdr(ramType?: string | null): Ddr {
   return null;
 }
 
+// Reviewed 2026-07-03 — keep in step with upgrades-pipeline/build_manifest.py
+// CURATED (these override the manifest when the user's platform is known).
 const CPU_PICKS: Record<"amd" | "intel", { bang: Pick; high: Pick }> = {
   amd: {
-    bang: { title: "AMD Ryzen 5 7600", price: "~$199", url: amazonSearch("AMD Ryzen 5 7600 CPU") },
-    high: { title: "AMD Ryzen 7 7800X3D", price: "~$359", url: amazonSearch("AMD Ryzen 7 7800X3D CPU") },
+    bang: { title: "AMD Ryzen 5 9600X", price: "~$180", url: amazonSearch("AMD Ryzen 5 9600X CPU") },
+    high: { title: "AMD Ryzen 7 9800X3D", price: "~$440", url: amazonSearch("AMD Ryzen 7 9800X3D CPU") },
   },
   intel: {
-    bang: { title: "Intel Core i5-14600K", price: "~$279", url: amazonSearch("Intel Core i5-14600K CPU") },
-    high: { title: "Intel Core i7-14700K", price: "~$389", url: amazonSearch("Intel Core i7-14700K CPU") },
+    bang: { title: "Intel Core Ultra 5 250K Plus", price: "~$280", url: amazonSearch("Intel Core Ultra 5 250K Plus CPU") },
+    high: { title: "Intel Core Ultra 7 270K Plus", price: "~$400", url: amazonSearch("Intel Core Ultra 7 270K Plus CPU") },
   },
 };
 
 const MOBO_PICKS: Record<"amd" | "intel", { bang: Pick; high: Pick }> = {
   amd: {
-    bang: { title: "MSI B650 Gaming Plus WiFi (AM5)", price: "~$179", url: amazonSearch("MSI B650 Gaming Plus WiFi AM5") },
-    high: { title: "ASUS ROG Strix X670E-E Gaming", price: "~$469", url: amazonSearch("ASUS ROG Strix X670E-E Gaming") },
+    bang: { title: "Gigabyte B650 Aorus Elite AX (AM5)", price: "~$170", url: amazonSearch("Gigabyte B650 Aorus Elite AX AM5") },
+    high: { title: "MSI MAG B850 Tomahawk MAX WiFi", price: "~$250", url: amazonSearch("MSI MAG B850 Tomahawk MAX WiFi") },
   },
   intel: {
-    bang: { title: "MSI PRO B760-P WiFi (LGA1700)", price: "~$159", url: amazonSearch("MSI PRO B760-P WiFi LGA1700") },
-    high: { title: "ASUS ROG Strix Z790-E Gaming", price: "~$449", url: amazonSearch("ASUS ROG Strix Z790-E Gaming WiFi") },
+    bang: { title: "MSI PRO B860-P WiFi (LGA1851)", price: "~$170", url: amazonSearch("MSI PRO B860-P WiFi LGA1851") },
+    high: { title: "ASUS ROG Strix Z890-E Gaming", price: "~$450", url: amazonSearch("ASUS ROG Strix Z890-E Gaming WiFi") },
   },
 };
 
@@ -333,6 +335,13 @@ function HwRow({ icon, label, value }: { icon: ReactNode; label: string; value: 
   );
 }
 
+function healthTone(health: string): "green" | "amber" | "red" | "slate" {
+  if (health === "Healthy") return "green";
+  if (health === "Warning") return "amber";
+  if (health === "Unhealthy") return "red";
+  return "slate";
+}
+
 function SystemHardware({ hw }: { hw: HardwareInventory | null }) {
   if (!hw) {
     return (
@@ -345,10 +354,13 @@ function SystemHardware({ hw }: { hw: HardwareInventory | null }) {
     `${hw.ram.total_gb} GB` +
     (hw.ram.type ? ` ${hw.ram.type}` : "") +
     (hw.ram.speed_mhz ? ` @ ${hw.ram.speed_mhz} MHz` : "");
+  const cpuTemp = hw.sensors?.cpu.temp_c;
   const cpuStr =
     hw.cpu.name +
     (hw.cpu.cores_physical ? ` · ${hw.cpu.cores_physical}C` : "") +
-    (hw.cpu.cores_logical ? `/${hw.cpu.cores_logical}T` : "");
+    (hw.cpu.cores_logical ? `/${hw.cpu.cores_logical}T` : "") +
+    (cpuTemp != null ? ` · ${cpuTemp}°C` : "");
+  const disks = hw.sensors?.disks ?? [];
   return (
     <Panel
       title="Your system"
@@ -361,6 +373,23 @@ function SystemHardware({ hw }: { hw: HardwareInventory | null }) {
         <HwRow icon={<HardDrive size={15} />} label="Storage" value={hw.disk.total_gb ? `${hw.disk.total_gb} GB total` : "—"} />
         <HwRow icon={<CircuitBoard size={15} />} label="Motherboard" value={hw.motherboard.name ?? "—"} />
       </div>
+      {disks.length > 0 && (
+        <div className="mt-3">
+          <div className="mb-1 text-[10px] uppercase tracking-wider text-slate-500">Drive health</div>
+          <ul className="space-y-1.5">
+            {disks.map((d, i) => (
+              <li key={i} className="flex items-center justify-between gap-2">
+                <span className="min-w-0 truncate text-xs text-slate-400" title={d.name}>
+                  {d.name}
+                  {d.wear_pct != null && <span className="text-slate-600"> · {d.wear_pct}% wear</span>}
+                  {d.temp_c != null && <span className="text-slate-600"> · {d.temp_c}°C</span>}
+                </span>
+                <Badge tone={healthTone(d.health)}>{d.health}</Badge>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       {!hw.wmi && (
         <p className="mt-3 text-xs text-slate-600">
           Limited detail available on this system — connect details improve with WMI on Windows.

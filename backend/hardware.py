@@ -18,6 +18,7 @@ import psutil
 
 import db
 import monitor
+import sensors
 
 IS_WINDOWS = sys.platform == "win32"
 
@@ -154,7 +155,24 @@ def inventory() -> dict:
         "cooler": util["cpu"] * 0.4,
     }
 
+    # sensor-driven boosts: a hot CPU makes the cooler relevant; a failing or
+    # worn disk makes storage urgent. Detection is deterministic (sensors.py);
+    # this only re-ranks what the Upgrades tab already shows.
+    sens = sensors.read()
+    cpu_temp = (sens.get("cpu") or {}).get("temp_c")
+    if cpu_temp is not None:
+        if cpu_temp >= 85.0:
+            relevance["cooler"] = max(relevance["cooler"], 90.0)
+        elif cpu_temp >= 75.0:
+            relevance["cooler"] = max(relevance["cooler"], 60.0)
+    disks = sens.get("disks", [])
+    if any(d["health"] not in ("Healthy", "Unknown") for d in disks):
+        relevance["storage"] = 100.0
+    elif any((d.get("wear_pct") or 0) >= 80 for d in disks):
+        relevance["storage"] = max(relevance["storage"], 85.0)
+
     return {
+        "sensors": sens,
         "os": f"{platform.system()} {platform.release()}",
         "wmi": c is not None,
         "cpu": cpu,

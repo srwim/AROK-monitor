@@ -25,10 +25,11 @@ import hardware
 import licensing
 import monitor
 import optimizer
+import sensors
 import upgrade
 import updater
 
-app = FastAPI(title="AROK Monitor", version="1.1.1")
+app = FastAPI(title="AROK Monitor", version="1.2.0")
 
 _stop = threading.Event()
 
@@ -180,6 +181,12 @@ def hardware_inventory():
     return hardware.inventory()
 
 
+@app.get("/api/sensors")
+def sensors_state():
+    """CPU temperature + SMART disk health (best-effort; see sensors.py)."""
+    return {**sensors.read(), "findings": sensors.findings()}
+
+
 # ---------- Cleanup tab ----------
 @app.post("/api/cleanup/restore-point")
 def cleanup_restore_point():
@@ -272,6 +279,11 @@ def insights():
     recs = optimizer.recommendations()
     out = ai.narrate_system(latest, recent, history, recs)
     out["recommendations"] = recs
+    # Deterministic sensor findings (hot CPU, failing/worn disks) join the
+    # narrator's findings list — detection stays outside the model.
+    sensor_msgs = [f["message"] for f in sensors.findings()]
+    if sensor_msgs:
+        out["findings"] = list(out.get("findings") or []) + sensor_msgs
     return out
 
 

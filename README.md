@@ -15,13 +15,9 @@ AROK watches your Windows PC, detects anomalies deterministically, and uses a lo
 
 **[⬇ Download the latest installer](https://github.com/srwim/AROK-monitor/releases/latest)**
 
-<!-- SCREENSHOT: docs/screenshots/dashboard.png — Dashboard tab with the AI Pulse
-     narrative visible. Capture at ~1400px wide, dark theme. -->
-<!-- <img src="docs/screenshots/dashboard.png" alt="AROK dashboard" width="800" /> -->
+<img src="docs/screenshots/network-map.gif" alt="AROK Monitor dashboard — live stats, AI Pulse narration, and the animated world map of network connections" width="820" />
 
-<!-- GIF: docs/screenshots/network-map.gif — 8–12s of the Network tab world map
-     animating live connections. This is the hero shot. -->
-<!-- <img src="docs/screenshots/network-map.gif" alt="Live network map" width="800" /> -->
+<!-- Still version for listings / social previews: docs/screenshots/dashboard.png -->
 
 </div>
 

@@ -286,11 +286,21 @@ def start():
         log("importing webview")
         import webview
         log(f"pywebview {getattr(webview, '__version__', '?')} imported, creating window")
+        # Size to ~80% of the primary screen (clamped) so the dashboard has
+        # room to breathe on big displays without overflowing small ones.
+        width, height = 1440, 900
+        try:
+            scr = webview.screens[0]
+            width = min(1680, max(1200, int(scr.width * 0.80)))
+            height = min(1050, max(760, int(scr.height * 0.85)))
+        except Exception:
+            log("screen probe failed; using default window size")
+        log(f"window size {width}x{height}")
         app.window = webview.create_window(
             "AROK Monitor",
             f"http://{HOST}:{PORT}",
-            width=1280,
-            height=820,
+            width=width,
+            height=height,
             min_size=(960, 640),
             background_color="#07090f",
         )
