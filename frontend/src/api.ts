@@ -191,20 +191,42 @@ async function get<T>(path: string): Promise<T> {
   return r.json();
 }
 
-async function post<T>(path: string, body?: unknown): Promise<T> {
+// State-changing calls carry a per-session token (see backend "Local-origin
+// security"). Fetched once and cached; refetched once on 401/403 in case the
+// server restarted and rotated it.
+let tokenCache: string | null = null;
+
+async function authToken(): Promise<string> {
+  if (tokenCache === null) {
+    const r = await fetch("/api/token");
+    if (!r.ok) throw new Error(`/api/token: ${r.status}`);
+    tokenCache = ((await r.json()) as { token: string }).token;
+  }
+  return tokenCache;
+}
+
+async function send<T>(path: string, method: "POST" | "DELETE", body?: unknown, retry = true): Promise<T> {
+  const headers: Record<string, string> = { "X-AROK-Token": await authToken() };
+  if (body !== undefined) headers["Content-Type"] = "application/json";
   const r = await fetch(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+  if ((r.status === 401 || r.status === 403) && retry) {
+    tokenCache = null; // token rotated (server restart) — fetch a fresh one and retry once
+    return send<T>(path, method, body, false);
+  }
   if (!r.ok) throw new Error(`${path}: ${r.status}`);
   return r.json();
 }
 
-async function del<T>(path: string): Promise<T> {
-  const r = await fetch(path, { method: "DELETE" });
-  if (!r.ok) throw new Error(`${path}: ${r.status}`);
-  return r.json();
+function post<T>(path: string, body?: unknown): Promise<T> {
+  return send<T>(path, "POST", body);
+}
+
+function del<T>(path: string): Promise<T> {
+  return send<T>(path, "DELETE");
 }
 
 export const api = {

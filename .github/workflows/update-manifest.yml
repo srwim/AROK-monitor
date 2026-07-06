@@ -1,6 +1,10 @@
 # Daily refresh of the Hardware Upgrades manifest. Runs the generator and
 # commits manifest.json (+ the bundled frontend fallback) so the app's
 # Upgrades tab gets fresh picks/builds without an app update.
+#
+# NOTE: GitHub disables scheduled workflows after ~60 days without repo
+# activity. The failure step below covers *failing* runs, not disabled ones —
+# if the manifest stops updating with no issue filed, check the Actions tab.
 name: Update Hardware Upgrades manifest
 
 on:
@@ -10,6 +14,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   build:
@@ -45,3 +50,20 @@ jobs:
             git commit -m "chore: daily Hardware Upgrades manifest refresh"
             git push
           fi
+
+      # If anything above failed, file (or bump) an issue so the failure is
+      # never silent — issue creation triggers a normal GitHub notification.
+      - name: Open an issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+            const body = `The daily Hardware Upgrades manifest refresh failed.\n\nRun: ${runUrl}`;
+            const open = await github.rest.issues.listForRepo({owner, repo, state: "open", labels: "manifest-failure"});
+            if (open.data.length) {
+              await github.rest.issues.createComment({owner, repo, issue_number: open.data[0].number, body});
+            } else {
+              await github.rest.issues.create({owner, repo, title: "Manifest refresh workflow failed", body, labels: ["manifest-failure"]});
+            }

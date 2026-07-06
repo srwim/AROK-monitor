@@ -6,11 +6,13 @@ Run: uvicorn main:app --host 127.0.0.1 --port 8420
 """
 import asyncio
 import os
+import secrets
 import sys
 import threading
+from urllib.parse import urlsplit
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -29,6 +31,56 @@ import updater
 app = FastAPI(title="AROK Monitor", version="1.1.1")
 
 _stop = threading.Event()
+
+
+# ---------- Local-origin security ----------
+# The server binds to 127.0.0.1, but a browser on the same machine can still
+# be tricked into sending requests here (cross-site POSTs from a malicious
+# page, DNS rebinding). Two layers of defence:
+#   1. Every HTTP request must carry a localhost Host header (and, when a
+#      browser sends one, a localhost Origin). This defeats DNS rebinding.
+#   2. Every state-changing /api call must present the per-session token.
+#      The UI fetches it from GET /api/token — same-origin pages can read it,
+#      cross-origin pages cannot (we never send CORS headers).
+API_TOKEN = secrets.token_hex(16)
+_ALLOWED_HOSTNAMES = {"127.0.0.1", "localhost", "::1"}
+_TOKEN_EXEMPT = {
+    "/api/desktop/show",     # second-launch window raise: local process, no UI token
+    "/api/upgrade/receive",  # reference webhook: the license key itself is Ed25519-verified
+}
+
+
+def _host_only(value: str) -> str:
+    """Strip the port from a Host header value ('127.0.0.1:8420' → '127.0.0.1')."""
+    host = (value or "").strip()
+    if host.startswith("["):  # IPv6 literal, e.g. [::1]:8420
+        return host.partition("]")[0].lstrip("[")
+    return host.rsplit(":", 1)[0] if ":" in host else host
+
+
+@app.middleware("http")
+async def _local_only(request: Request, call_next):
+    if _host_only(request.headers.get("host", "")) not in _ALLOWED_HOSTNAMES:
+        return JSONResponse({"detail": "forbidden host"}, status_code=403)
+    origin = request.headers.get("origin")
+    if origin and origin != "null":
+        if (urlsplit(origin).hostname or "") not in _ALLOWED_HOSTNAMES:
+            return JSONResponse({"detail": "forbidden origin"}, status_code=403)
+    path = request.url.path
+    if (
+        request.method in ("POST", "PUT", "PATCH", "DELETE")
+        and path.startswith("/api/")
+        and path not in _TOKEN_EXEMPT
+        and request.headers.get("x-arok-token") != API_TOKEN
+    ):
+        return JSONResponse({"detail": "missing or invalid session token"}, status_code=401)
+    return await call_next(request)
+
+
+@app.get("/api/token")
+def api_token():
+    """Per-session token for state-changing calls (rotates on every server start)."""
+    return {"token": API_TOKEN}
 
 
 @app.on_event("startup")
