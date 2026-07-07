@@ -103,8 +103,18 @@ export type Settings = {
   sample_interval: number;
   abs_thresholds: Record<string, number>;
   z_threshold: number;
-  prefs: { close_to_tray: boolean; low_power_tray: boolean };
+  prefs: { close_to_tray: boolean; low_power_tray: boolean; auto_update: boolean };
   desktop: boolean;
+  autostart: boolean;
+};
+
+export type UpdateState = {
+  phase: "idle" | "checking" | "downloading" | "ready" | "error" | "applying";
+  current: string;
+  latest: string | null;
+  progress: number;
+  staged_path: string | null;
+  error: string | null;
 };
 
 export type LicenseStatus = {
@@ -296,12 +306,17 @@ export const api = {
   license: () => get<LicenseStatus>("/api/license"),
   setLicense: (key: string) => post<LicenseStatus & { reason?: string }>("/api/license", { key }),
   updateCheck: () => get<UpdateInfo>("/api/update/check"),
+  updateStatus: () => get<UpdateState>("/api/update/status"),
+  updateDownload: () => post<UpdateState>("/api/update/download"),
+  updateApply: () => post<{ ok: boolean; detail?: string }>("/api/update/apply"),
   settings: () => get<Settings>("/api/settings"),
   setThreshold: (metric: string, value: number) => post("/api/settings/threshold", { metric, value }),
   setRuntime: (patch: Partial<{ demo_mode: boolean; sample_interval: number; z_threshold: number; ai_engine: string }>) =>
     post<Settings>("/api/settings/runtime", patch),
   setPref: (key: string, value: boolean) =>
     post<{ ok: boolean; prefs: Settings["prefs"] }>("/api/settings/pref", { key, value }),
+  setAutostart: (enabled: boolean) =>
+    post<{ ok: boolean; enabled: boolean; detail?: string }>("/api/settings/autostart", { enabled }),
   kill: (pid: number) => post<{ ok: boolean; detail: string }>("/api/control/kill", { pid }),
   serviceAction: (name: string, action: string) => post<{ ok: boolean; detail: string }>("/api/control/service", { name, action }),
   blockIp: (ip: string) => post<{ ok: boolean; detail: string }>("/api/control/block-ip", { ip }),

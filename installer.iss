@@ -1,8 +1,8 @@
 ; AROK Monitor — Inno Setup script
 ; Build the exe first (make_installer.bat does both steps).
 #define AppName "AROK Monitor"
-#define AppVersion "1.2.0"
-#define AppVersionDisplay "v1.2.0"
+#define AppVersion "1.3.0"
+#define AppVersionDisplay "v1.3.0"
 #define AppPublisher "arok.ai"
 #define AppExe "AROK.exe"
 
@@ -25,6 +25,11 @@ WizardImageFile=branding\wizard-large.bmp
 WizardSmallImageFile=branding\wizard-small.bmp
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
+; Auto-update support: the app downloads the new installer and runs it
+; /VERYSILENT; these make in-use files close cleanly during that update.
+CloseApplications=yes
+CloseApplicationsFilter=AROK.exe
+SetupMutex=AROKSetupMutex
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"

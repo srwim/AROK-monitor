@@ -221,6 +221,25 @@ export default function SettingsTab() {
       >
         <div className="space-y-4">
           <PrefRow
+            label="Run AROK Monitor on Windows startup"
+            desc="Registers AROK in your per-user startup apps (no admin needed) so monitoring begins when you sign in. Also visible and removable in Task Manager → Startup apps."
+            checked={settings?.autostart ?? false}
+            onChange={async (v) => {
+              const r = await api.setAutostart(v);
+              setSettings(settings ? { ...settings, autostart: r.enabled } : settings);
+              setSaved(r.ok ? `Run on startup ${r.enabled ? "enabled" : "disabled"}` : `Failed: ${r.detail ?? "unknown error"}`);
+            }}
+          />
+          <PrefRow
+            label="Automatic updates"
+            desc="Check GitHub Releases in the background, download and verify new versions, and offer a one-click 'Relaunch to update' in the sidebar. Nothing installs until you click it."
+            checked={settings?.prefs?.auto_update ?? true}
+            onChange={async (v) => {
+              const r = await api.setPref("auto_update", v);
+              setSettings(settings ? { ...settings, prefs: r.prefs } : settings);
+            }}
+          />
+          <PrefRow
             label="Close to tray"
             desc="Closing the window keeps AROK monitoring in the background — it stays in the system tray, logging metrics and alerts. Right-click the tray icon for quick controls; reopen anytime and Analytics will have the full history."
             checked={settings?.prefs?.close_to_tray ?? true}

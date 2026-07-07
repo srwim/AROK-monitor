@@ -206,7 +206,14 @@ def _scrape_build(sess, url: str) -> dict:
         cname = name_cell.get_text(strip=True)
         if not ctype or not cname:
             continue
-        components.append({"type": ctype, "name": cname, "url": search_link(cname)})
+        comp = {"type": ctype, "name": cname, "url": search_link(cname)}
+        # best-effort per-part price where the build page shows one
+        price_cell = row.select_one(".td__price")
+        if price_cell:
+            ptxt = price_cell.get_text(strip=True)
+            if ptxt.startswith("$"):
+                comp["price"] = ptxt
+        components.append(comp)
 
     # de-dup by (type, name)
     seen, uniq = set(), []
@@ -221,47 +228,117 @@ def _scrape_build(sess, url: str) -> dict:
 
 # Curated fallback builds so the section is never empty on first run / block.
 # Reviewed 2026-07-03. Three archetypes: budget 1080p, balanced 1440p, high-end 4K.
+# Prices are hints (same convention as CURATED); totals are computed.
+def _curated_system(name: str, parts: list[tuple[str, str, int]]) -> dict:
+    total = sum(p for _, _, p in parts)
+    return {
+        "name": name,
+        "source": "curated",
+        "totalPrice": f"~${total:,}",
+        "components": [
+            {"type": t, "name": n, "price": f"~${p}", "url": search_link(n)}
+            for t, n, p in parts
+        ],
+    }
+
+
 FALLBACK_SYSTEMS = [
-    {
-        "name": "Budget 1080p Gaming Build",
-        "source": "curated",
-        "components": [
-            {"type": "CPU", "name": "AMD Ryzen 5 9600X", "url": search_link("AMD Ryzen 5 9600X")},
-            {"type": "GPU", "name": "NVIDIA GeForce RTX 5060", "url": search_link("NVIDIA GeForce RTX 5060")},
-            {"type": "Memory", "name": "Corsair Vengeance DDR5 32GB 6000 CL30", "url": search_link("Corsair Vengeance DDR5 32GB 6000 CL30")},
-            {"type": "Storage", "name": "WD Black SN850X 1TB NVMe", "url": search_link("WD Black SN850X 1TB NVMe")},
-            {"type": "Motherboard", "name": "Gigabyte B650 Aorus Elite AX", "url": search_link("Gigabyte B650 Aorus Elite AX")},
-            {"type": "PSU", "name": "be quiet! Pure Power 12 M 750W", "url": search_link("be quiet! Pure Power 12 M 750W")},
-            {"type": "Cooler", "name": "Thermalright Peerless Assassin 120 SE", "url": search_link("Thermalright Peerless Assassin 120 SE")},
-        ],
-    },
-    {
-        "name": "Balanced 1440p Gaming Build",
-        "source": "curated",
-        "components": [
-            {"type": "CPU", "name": "AMD Ryzen 7 9700X", "url": search_link("AMD Ryzen 7 9700X")},
-            {"type": "GPU", "name": "AMD Radeon RX 9070 16GB", "url": search_link("AMD Radeon RX 9070 16GB")},
-            {"type": "Memory", "name": "Corsair Vengeance DDR5 32GB 6000 CL30", "url": search_link("Corsair Vengeance DDR5 32GB 6000 CL30")},
-            {"type": "Storage", "name": "Samsung 990 EVO Plus 2TB NVMe", "url": search_link("Samsung 990 EVO Plus 2TB NVMe")},
-            {"type": "Motherboard", "name": "MSI MAG B850 Tomahawk MAX WiFi", "url": search_link("MSI MAG B850 Tomahawk MAX WiFi")},
-            {"type": "PSU", "name": "Montech Century II 850W 80+ Gold", "url": search_link("Montech Century II 850W 80+ Gold")},
-            {"type": "Cooler", "name": "Thermalright Peerless Assassin 120 SE", "url": search_link("Thermalright Peerless Assassin 120 SE")},
-        ],
-    },
-    {
-        "name": "High-End 4K Build",
-        "source": "curated",
-        "components": [
-            {"type": "CPU", "name": "AMD Ryzen 7 9800X3D", "url": search_link("AMD Ryzen 7 9800X3D")},
-            {"type": "GPU", "name": "NVIDIA GeForce RTX 5080", "url": search_link("NVIDIA GeForce RTX 5080")},
-            {"type": "Memory", "name": "G.Skill Trident Z5 Neo DDR5 64GB 6000", "url": search_link("G.Skill Trident Z5 Neo DDR5 64GB 6000")},
-            {"type": "Storage", "name": "Samsung 990 PRO 2TB NVMe", "url": search_link("Samsung 990 PRO 2TB NVMe")},
-            {"type": "Motherboard", "name": "ASUS ROG Strix X870E-E Gaming WiFi", "url": search_link("ASUS ROG Strix X870E-E Gaming WiFi")},
-            {"type": "PSU", "name": "Corsair RM1000x 1000W 80+ Gold", "url": search_link("Corsair RM1000x 1000W 80+ Gold")},
-            {"type": "Cooler", "name": "ARCTIC Liquid Freezer III 360", "url": search_link("ARCTIC Liquid Freezer III 360")},
-        ],
-    },
+    _curated_system("Budget 1080p Gaming Build", [
+        ("CPU", "AMD Ryzen 5 9600X", 180),
+        ("GPU", "NVIDIA GeForce RTX 5060", 300),
+        ("Memory", "Corsair Vengeance DDR5 32GB 6000 CL30", 380),
+        ("Storage", "WD Black SN850X 1TB NVMe", 100),
+        ("Motherboard", "Gigabyte B650 Aorus Elite AX", 170),
+        ("PSU", "be quiet! Pure Power 12 M 750W", 80),
+        ("Cooler", "Thermalright Peerless Assassin 120 SE", 36),
+    ]),
+    _curated_system("Balanced 1440p Gaming Build", [
+        ("CPU", "AMD Ryzen 7 9700X", 300),
+        ("GPU", "AMD Radeon RX 9070 16GB", 550),
+        ("Memory", "Corsair Vengeance DDR5 32GB 6000 CL30", 380),
+        ("Storage", "Samsung 990 EVO Plus 2TB NVMe", 160),
+        ("Motherboard", "MSI MAG B850 Tomahawk MAX WiFi", 250),
+        ("PSU", "Montech Century II 850W 80+ Gold", 90),
+        ("Cooler", "Thermalright Peerless Assassin 120 SE", 36),
+    ]),
+    _curated_system("High-End 4K Build", [
+        ("CPU", "AMD Ryzen 7 9800X3D", 440),
+        ("GPU", "NVIDIA GeForce RTX 5080", 1000),
+        ("Memory", "G.Skill Trident Z5 Neo DDR5 64GB 6000", 700),
+        ("Storage", "Samsung 990 PRO 2TB NVMe", 200),
+        ("Motherboard", "ASUS ROG Strix X870E-E Gaming WiFi", 500),
+        ("PSU", "Corsair RM1000x 1000W 80+ Gold", 190),
+        ("Cooler", "ARCTIC Liquid Freezer III 360", 120),
+    ]),
 ]
+
+
+# ---------------------------------------------------------------------------
+# GPU watch — best-effort price/availability for high-demand cards. Same
+# isolation contract as the featured-builds scrape: any failure falls back to
+# the previous manifest's entry (marked stale); nothing here can raise.
+# ---------------------------------------------------------------------------
+GPU_WATCH = [
+    {"model": "NVIDIA GeForce RTX 5080", "query": "RTX 5080"},
+    {"model": "NVIDIA GeForce RTX 5090", "query": "RTX 5090"},
+]
+
+
+def _check_gpu(sess, query: str) -> dict | None:
+    """Lowest listed price from a PCPartPicker search. None on any failure."""
+    try:
+        import re
+        from bs4 import BeautifulSoup
+        r = sess.get("https://pcpartpicker.com/search/", params={"q": query}, timeout=20)
+        if r.status_code != 200:
+            return None
+        soup = BeautifulSoup(r.text, "html.parser")
+        prices: list[float] = []
+        for el in soup.select(".search_results--price, .td__price, .price"):
+            m = re.search(r"\$([\d,]+(?:\.\d{2})?)", el.get_text())
+            if m:
+                v = float(m.group(1).replace(",", ""))
+                if v > 100:  # ignore cables/accessories that match the query
+                    prices.append(v)
+        if not prices:
+            return {"lowestPrice": None, "inStock": False}  # page loaded, no listings
+        return {"lowestPrice": f"${min(prices):,.0f}", "inStock": True}
+    except Exception:
+        return None
+
+
+def gpu_watch(prev: dict | None) -> list[dict]:
+    prev_map = {e.get("model"): e for e in ((prev or {}).get("gpuWatch") or [])}
+    sess = None
+    try:
+        import requests
+        sess = requests.Session()
+        sess.headers.update({"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"})
+    except Exception:
+        pass
+
+    now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    out: list[dict] = []
+    for spec in GPU_WATCH:
+        entry = {
+            "model": spec["model"],
+            "url": search_link(spec["model"]),
+            "lowestPrice": None,
+            "inStock": None,
+            "checkedAt": None,
+            "stale": True,
+        }
+        fresh = _check_gpu(sess, spec["query"]) if sess else None
+        if fresh is not None:
+            entry.update(fresh)
+            entry["checkedAt"] = now
+            entry["stale"] = False
+        elif spec["model"] in prev_map:
+            entry = {**prev_map[spec["model"]], "url": entry["url"], "stale": True}
+        out.append(entry)
+    checked = sum(1 for e in out if not e.get("stale"))
+    print(f"[gpu-watch] {checked}/{len(out)} fresh", file=sys.stderr)
+    return out
 
 
 def load_previous() -> dict | None:
@@ -296,6 +373,7 @@ def main() -> int:
         "disclosure": DISCLOSURE,
         "componentUpgrades": verify_links(build_component_upgrades()),
         "featuredSystems": featured,
+        "gpuWatch": gpu_watch(prev),
     }
 
     OUT.write_text(json.dumps(manifest, indent=2), encoding="utf-8")

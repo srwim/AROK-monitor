@@ -49,8 +49,19 @@ jobs:
       - name: Build installer
         run: iscc installer.iss
 
+      # SHA-256 sidecar so the in-app auto-updater can verify what it downloads.
+      - name: Hash installer
+        shell: pwsh
+        run: |
+          Get-ChildItem installer_out/*.exe | ForEach-Object {
+            (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower() + "  " + $_.Name |
+              Out-File -Encoding ascii "$($_.FullName).sha256"
+          }
+
       - name: Publish release with installer
         uses: softprops/action-gh-release@v2
         with:
-          files: installer_out/*.exe
+          files: |
+            installer_out/*.exe
+            installer_out/*.sha256
           generate_release_notes: true

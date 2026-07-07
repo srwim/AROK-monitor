@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import ai
+import autostart
 import claude_connect
 import cleanup
 import control
@@ -29,7 +30,7 @@ import sensors
 import upgrade
 import updater
 
-app = FastAPI(title="AROK Monitor", version="1.2.0")
+app = FastAPI(title="AROK Monitor", version="1.3.0")
 
 _stop = threading.Event()
 
@@ -114,6 +115,13 @@ def _startup():
     t = threading.Thread(target=monitor.sampler_loop, args=(_stop,), daemon=True)
     t.start()
     threading.Thread(target=optimizer.detector_loop, args=(_stop,), daemon=True).start()
+    # Quiet auto-updater: stages verified installers in the background when
+    # the auto_update pref is on; the UI shows a relaunch pill when ready.
+    threading.Thread(
+        target=updater.auto_update_loop,
+        args=(_stop, lambda: get_pref("auto_update")),
+        daemon=True,
+    ).start()
 
 
 @app.on_event("shutdown")
@@ -397,6 +405,30 @@ def update_check():
     return updater.check()
 
 
+@app.get("/api/update/status")
+def update_status():
+    return updater.status()
+
+
+@app.post("/api/update/download")
+def update_download():
+    """Kick off a check+download in the background; poll /api/update/status."""
+    threading.Thread(target=updater.download_update, daemon=True).start()
+    return updater.status()
+
+
+@app.post("/api/update/apply")
+def update_apply():
+    """Run the staged installer silently and relaunch into the new version."""
+    out = updater.apply_update()
+    if out.get("ok"):
+        db.log_event("update", f"applying staged update (from {updater.DISPLAY_VERSION})")
+        # Give the response time to flush, then exit so the installer can
+        # replace our files. SQLite is crash-safe; the installer relaunches us.
+        threading.Timer(1.5, lambda: os._exit(0)).start()
+    return out
+
+
 # ---------- In-app upgrade ----------
 
 class UpgradeStartReq(BaseModel):
@@ -474,6 +506,7 @@ def ai_set_model(req: ModelParamsReq):
 PREF_DEFAULTS = {
     "close_to_tray": "1",     # closing the window keeps AROK monitoring in the tray
     "low_power_tray": "1",    # 30s sampling while in the tray (just logging)
+    "auto_update": "1",       # stage updates in the background; user applies via relaunch
 }
 
 
@@ -504,6 +537,7 @@ def get_settings():
         "z_threshold": monitor.Z_THRESHOLD,
         "prefs": {k: get_pref(k) for k in PREF_DEFAULTS},
         "desktop": getattr(app.state, "desktop", False),
+        "autostart": autostart.get(),
     }
 
 
@@ -556,6 +590,19 @@ def set_pref(req: PrefReq):
     db.set_setting(f"pref_{req.key}", "1" if req.value else "0")
     db.log_event("settings", f"pref {req.key} -> {'on' if req.value else 'off'}")
     return {"ok": True, "prefs": {k: get_pref(k) for k in PREF_DEFAULTS}}
+
+
+class AutostartReq(BaseModel):
+    enabled: bool
+
+
+@app.post("/api/settings/autostart")
+def set_autostart(req: AutostartReq):
+    """Register/unregister AROK in the per-user Windows startup (Run key)."""
+    out = autostart.set_enabled(req.enabled)
+    if out.get("ok"):
+        db.log_event("settings", f"run on startup -> {'on' if req.enabled else 'off'}")
+    return out
 
 
 class FileDialogReq(BaseModel):

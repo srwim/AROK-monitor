@@ -1,5 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ExternalLink, ChevronLeft, ChevronRight, Gauge, Crown, Cpu, MemoryStick, HardDrive, MonitorCog, CircuitBoard } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  ExternalLink, Gauge, Crown, Cpu, MemoryStick, HardDrive, MonitorCog, CircuitBoard,
+  AlertTriangle, ChevronDown, ShieldCheck,
+} from "lucide-react";
 import { Panel, Badge } from "../components/ui";
 import { api, type HardwareInventory } from "../api";
 
@@ -10,7 +13,7 @@ const amazonSearch = (q: string) =>
 // ── Manifest types ──────────────────────────────────────────────────────────
 type Pick = { title: string; asin?: string; price?: string; image?: string; url: string };
 type ComponentUpgrade = { label: string; bangForBuck: Pick; highEnd: Pick };
-type SystemComponent = { type: string; name: string; url: string };
+type SystemComponent = { type: string; name: string; url: string; price?: string };
 type FeaturedSystem = {
   name: string;
   source?: string;
@@ -18,34 +21,58 @@ type FeaturedSystem = {
   totalPrice?: string;
   components: SystemComponent[];
 };
+type GpuWatchEntry = {
+  model: string;
+  url: string;
+  lowestPrice: string | null;
+  inStock: boolean | null;
+  checkedAt: string | null;
+  stale?: boolean;
+};
 type Manifest = {
   version: number;
   generatedAt: string;
   disclosure: string;
   componentUpgrades: Record<string, ComponentUpgrade>;
   featuredSystems: FeaturedSystem[];
+  gpuWatch?: GpuWatchEntry[];
 };
 
-// Daily-refreshed manifest committed by the GitHub Action. The app fetches this
-// raw URL at runtime so picks/builds stay fresh without an app update. If it is
-// unreachable (offline, first run), we fall back to the copy bundled at
-// /manifest.json that ships with the build.
+// Daily-refreshed manifest committed by the GitHub Action, with a bundled
+// fallback shipped in the build. We fetch BOTH and use whichever is best:
+// the remote can lag an app update that introduced new manifest sections
+// (prices, gpuWatch), and the bundle goes stale between app updates — so
+// prefer the newer format, then the newer generation date.
 const MANIFEST_REMOTE =
   "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/manifest.json";
 const MANIFEST_LOCAL = "/manifest.json";
 
-const ROTATE_MS = 6000; // "slowly rotating" carousel cadence
+function isNewFormat(m: Manifest): boolean {
+  return Array.isArray(m.gpuWatch);
+}
+
+async function fetchManifest(url: string): Promise<Manifest | null> {
+  try {
+    const r = await fetch(url, { cache: "no-cache" });
+    return r.ok ? ((await r.json()) as Manifest) : null;
+  } catch {
+    return null;
+  }
+}
 
 async function loadManifest(): Promise<Manifest> {
-  for (const url of [MANIFEST_REMOTE, MANIFEST_LOCAL]) {
-    try {
-      const r = await fetch(url, { cache: "no-cache" });
-      if (r.ok) return (await r.json()) as Manifest;
-    } catch {
-      /* try next source */
-    }
-  }
-  throw new Error("manifest unavailable");
+  const [remote, local] = await Promise.all([
+    fetchManifest(MANIFEST_REMOTE),
+    fetchManifest(MANIFEST_LOCAL),
+  ]);
+  const candidates = [remote, local].filter((m): m is Manifest => m !== null);
+  if (!candidates.length) throw new Error("manifest unavailable");
+  candidates.sort((a, b) => {
+    const fmt = Number(isNewFormat(b)) - Number(isNewFormat(a));
+    if (fmt !== 0) return fmt;
+    return new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime();
+  });
+  return candidates[0];
 }
 
 // ── Shared affiliate link (tag is already baked into every manifest URL) ──────
@@ -86,149 +113,86 @@ function PickCard({ pick, kind }: { pick: Pick; kind: "value" | "high" }) {
   );
 }
 
-// ── Slowly rotating carousel of per-component upgrade picks ───────────────────
-function UpgradeCarousel({
-  categories,
-  currentParts,
-  notes,
-  wellEquipped,
-}: {
-  categories: [string, ComponentUpgrade][];
-  currentParts: Record<string, string | null>;
-  notes: Record<string, string | null>;
-  wellEquipped: Record<string, boolean>;
-}) {
-  const [i, setI] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const n = categories.length;
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+// ── Socket detection & compatibility ──────────────────────────────────────────
+// An upgrade pick must FIT the machine it's recommended to. CPU picks stay on
+// the user's existing socket (drop-in); motherboard picks match the user's CPU.
+// Dead-end sockets get an honest "platform upgrade" note instead of a part that
+// won't fit.
 
-  useEffect(() => {
-    if (paused || n <= 1) return;
-    timer.current = setInterval(() => setI((x) => (x + 1) % n), ROTATE_MS);
-    return () => {
-      if (timer.current) clearInterval(timer.current);
-    };
-  }, [paused, n]);
+type Socket = "AM4" | "AM5" | "LGA1151" | "LGA1200" | "LGA1700" | "LGA1851" | null;
 
-  if (n === 0) return null;
-  const go = (d: number) => setI((x) => (x + d + n) % n);
-  const [key, current] = categories[i];
-  const currentPart = currentParts[key];
-  const note = notes[key];
-  const isWell = wellEquipped[key];
-
-  return (
-    <div
-      className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-5"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
-            Recommended upgrade {i === 0 && <span className="ml-1 text-emerald-400">· most relevant to your system</span>}
-          </div>
-          <h3 className="text-lg font-bold text-slate-100">{current.label}</h3>
-          {currentPart && (
-            <div className="mt-0.5 text-xs text-slate-500">
-              Your current: <span className="text-slate-300">{currentPart}</span>
-            </div>
-          )}
-          {note && (
-            <div
-              className={`mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                isWell ? "bg-slate-800 text-slate-300" : "bg-emerald-950/50 text-emerald-400"
-              }`}
-            >
-              {isWell ? "•" : "✓"} {note}
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          <button onClick={() => go(-1)} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-800 hover:text-slate-200" aria-label="Previous">
-            <ChevronLeft size={18} />
-          </button>
-          <button onClick={() => go(1)} className="rounded-md p-1.5 text-slate-500 hover:bg-slate-800 hover:text-slate-200" aria-label="Next">
-            <ChevronRight size={18} />
-          </button>
-        </div>
-      </div>
-
-      {/* key forces a soft fade as slides rotate */}
-      <div key={i} className="flex flex-col gap-3 fade-in sm:flex-row">
-        <PickCard pick={current.bangForBuck} kind="value" />
-        <PickCard pick={current.highEnd} kind="high" />
-      </div>
-
-      {/* dots */}
-      <div className="mt-4 flex items-center justify-center gap-1.5">
-        {categories.map(([key], idx) => (
-          <button
-            key={key}
-            onClick={() => setI(idx)}
-            aria-label={`Go to ${key}`}
-            className={`h-1.5 rounded-full transition-all ${idx === i ? "w-5 bg-cyan-400" : "w-1.5 bg-slate-700 hover:bg-slate-600"}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── Featured full systems (cross-referenced to Amazon) ────────────────────────
-function FeaturedSystems({ systems }: { systems: FeaturedSystem[] }) {
-  if (!systems.length) return null;
-  return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      {systems.map((sys, idx) => (
-        <Panel
-          key={idx}
-          title={sys.name}
-          action={sys.totalPrice ? <Badge tone="cyan">{sys.totalPrice}</Badge> : undefined}
-        >
-          <ul className="divide-y divide-slate-800/70">
-            {sys.components.map((c, j) => (
-              <li key={j} className="flex items-center justify-between gap-3 py-2">
-                <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500">{c.type}</div>
-                  <div className="truncate text-sm text-slate-300">{c.name}</div>
-                </div>
-                <AmazonLink url={c.url}>Amazon</AmazonLink>
-              </li>
-            ))}
-          </ul>
-          {sys.sourceUrl && (
-            <a
-              href={sys.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 inline-block text-xs text-slate-600 hover:text-slate-400"
-            >
-              Build source ↗
-            </a>
-          )}
-        </Panel>
-      ))}
-    </div>
-  );
-}
-
-// ── Make picks relevant to the user's actual configuration ────────────────────
-// The manifest is platform-agnostic (AMD/DDR5 curated). When we know the user's
-// CPU vendor or memory generation, swap in platform-appropriate picks so we
-// never suggest an Intel user an AM5 board, or a DDR4 user a DDR5 kit. Links are
-// tagged Amazon searches, so every tailored pick still resolves and earns.
-
-type Platform = "amd" | "intel" | null;
-type Ddr = "DDR4" | "DDR5" | null;
-
-function detectPlatform(cpuName?: string | null): Platform {
+function detectSocket(cpuName?: string | null): Socket {
   const n = (cpuName ?? "").toLowerCase();
-  if (n.includes("amd") || n.includes("ryzen") || n.includes("threadripper")) return "amd";
-  if (n.includes("intel") || n.includes("core i") || /\bi[3579]-/.test(n) || n.includes("xeon") || n.includes("ultra")) return "intel";
+  const ryzen = n.match(/ryzen\s+\d+\s+(\d{4})/);
+  if (ryzen) {
+    // Desktop Ryzen: 1000–5000 = AM4, 7000/8000/9000 = AM5.
+    return parseInt(ryzen[1][0], 10) >= 7 ? "AM5" : "AM4";
+  }
+  if (n.includes("threadripper")) return null; // HEDT — don't guess
+  if (n.includes("core ultra")) return "LGA1851";
+  const intel = n.match(/i[3579][- ](\d{4,5})/);
+  if (intel) {
+    const digits = intel[1];
+    const gen = digits.length === 5 ? parseInt(digits.slice(0, 2), 10) : parseInt(digits[0], 10);
+    if (gen >= 12) return "LGA1700";
+    if (gen >= 10) return "LGA1200";
+    return "LGA1151";
+  }
   return null;
 }
+
+// Reviewed 2026-07-03 — keep in step with upgrades-pipeline/build_manifest.py.
+// Drop-in CPU upgrades per socket.
+const CPU_BY_SOCKET: Partial<Record<NonNullable<Socket>, { bang: Pick; high: Pick; note: string }>> = {
+  AM5: {
+    bang: { title: "AMD Ryzen 5 9600X", price: "~$180", url: amazonSearch("AMD Ryzen 5 9600X CPU") },
+    high: { title: "AMD Ryzen 7 9800X3D", price: "~$440", url: amazonSearch("AMD Ryzen 7 9800X3D CPU") },
+    note: "Drop-in upgrades for your AM5 socket — no new motherboard needed",
+  },
+  AM4: {
+    bang: { title: "AMD Ryzen 5 5600", price: "~$120", url: amazonSearch("AMD Ryzen 5 5600 CPU") },
+    high: { title: "AMD Ryzen 7 5700X3D", price: "~$230", url: amazonSearch("AMD Ryzen 7 5700X3D CPU") },
+    note: "Drop-in upgrades for your AM4 socket — no new motherboard needed",
+  },
+  LGA1700: {
+    bang: { title: "Intel Core i5-14600K", price: "~$250", url: amazonSearch("Intel Core i5-14600K CPU") },
+    high: { title: "Intel Core i7-14700K", price: "~$350", url: amazonSearch("Intel Core i7-14700K CPU") },
+    note: "Drop-in upgrades for your LGA1700 socket — no new motherboard needed",
+  },
+  LGA1851: {
+    bang: { title: "Intel Core Ultra 5 250K Plus", price: "~$280", url: amazonSearch("Intel Core Ultra 5 250K Plus CPU") },
+    high: { title: "Intel Core Ultra 7 270K Plus", price: "~$400", url: amazonSearch("Intel Core Ultra 7 270K Plus CPU") },
+    note: "Drop-in upgrades for your LGA1851 socket — no new motherboard needed",
+  },
+};
+
+// Motherboards that match the user's existing CPU socket.
+const MOBO_BY_SOCKET: Partial<Record<NonNullable<Socket>, { bang: Pick; high: Pick; note: string }>> = {
+  AM5: {
+    bang: { title: "Gigabyte B650 Aorus Elite AX (AM5)", price: "~$170", url: amazonSearch("Gigabyte B650 Aorus Elite AX AM5") },
+    high: { title: "MSI MAG B850 Tomahawk MAX WiFi", price: "~$250", url: amazonSearch("MSI MAG B850 Tomahawk MAX WiFi") },
+    note: "AM5 boards — compatible with your current CPU",
+  },
+  AM4: {
+    bang: { title: "ASUS TUF Gaming B550-PLUS WiFi II (AM4)", price: "~$130", url: amazonSearch("ASUS TUF Gaming B550-PLUS WiFi II AM4") },
+    high: { title: "MSI MAG B550 Tomahawk (AM4)", price: "~$170", url: amazonSearch("MSI MAG B550 Tomahawk AM4") },
+    note: "AM4 boards — compatible with your current CPU",
+  },
+  LGA1700: {
+    bang: { title: "MSI PRO B760-P WiFi (LGA1700)", price: "~$150", url: amazonSearch("MSI PRO B760-P WiFi LGA1700") },
+    high: { title: "ASUS ROG Strix Z790-E Gaming (LGA1700)", price: "~$400", url: amazonSearch("ASUS ROG Strix Z790-E Gaming WiFi") },
+    note: "LGA1700 boards — compatible with your current CPU",
+  },
+  LGA1851: {
+    bang: { title: "MSI PRO B860-P WiFi (LGA1851)", price: "~$170", url: amazonSearch("MSI PRO B860-P WiFi LGA1851") },
+    high: { title: "ASUS ROG Strix Z890-E Gaming (LGA1851)", price: "~$450", url: amazonSearch("ASUS ROG Strix Z890-E Gaming WiFi") },
+    note: "LGA1851 boards — compatible with your current CPU",
+  },
+};
+
+const DEAD_END_SOCKETS: Socket[] = ["LGA1151", "LGA1200"];
+
+type Ddr = "DDR4" | "DDR5" | null;
 
 function detectDdr(ramType?: string | null): Ddr {
   const t = (ramType ?? "").toUpperCase();
@@ -236,30 +200,6 @@ function detectDdr(ramType?: string | null): Ddr {
   if (t.includes("DDR4")) return "DDR4";
   return null;
 }
-
-// Reviewed 2026-07-03 — keep in step with upgrades-pipeline/build_manifest.py
-// CURATED (these override the manifest when the user's platform is known).
-const CPU_PICKS: Record<"amd" | "intel", { bang: Pick; high: Pick }> = {
-  amd: {
-    bang: { title: "AMD Ryzen 5 9600X", price: "~$180", url: amazonSearch("AMD Ryzen 5 9600X CPU") },
-    high: { title: "AMD Ryzen 7 9800X3D", price: "~$440", url: amazonSearch("AMD Ryzen 7 9800X3D CPU") },
-  },
-  intel: {
-    bang: { title: "Intel Core Ultra 5 250K Plus", price: "~$280", url: amazonSearch("Intel Core Ultra 5 250K Plus CPU") },
-    high: { title: "Intel Core Ultra 7 270K Plus", price: "~$400", url: amazonSearch("Intel Core Ultra 7 270K Plus CPU") },
-  },
-};
-
-const MOBO_PICKS: Record<"amd" | "intel", { bang: Pick; high: Pick }> = {
-  amd: {
-    bang: { title: "Gigabyte B650 Aorus Elite AX (AM5)", price: "~$170", url: amazonSearch("Gigabyte B650 Aorus Elite AX AM5") },
-    high: { title: "MSI MAG B850 Tomahawk MAX WiFi", price: "~$250", url: amazonSearch("MSI MAG B850 Tomahawk MAX WiFi") },
-  },
-  intel: {
-    bang: { title: "MSI PRO B860-P WiFi (LGA1851)", price: "~$170", url: amazonSearch("MSI PRO B860-P WiFi LGA1851") },
-    high: { title: "ASUS ROG Strix Z890-E Gaming", price: "~$450", url: amazonSearch("ASUS ROG Strix Z890-E Gaming WiFi") },
-  },
-};
 
 // A RAM pick for a given generation + capacity, as a tagged Amazon search so it
 // always resolves and matches the user's actual DDR generation.
@@ -274,22 +214,39 @@ function ramPick(gen: Ddr, capGB: number, tier: "value" | "premium"): Pick {
 type Tailored = { entry: ComponentUpgrade; note: string | null; wellEquipped?: boolean };
 
 /**
- * Returns a config-matched version of a category plus a short note. Beyond
- * platform/generation matching, RAM is now *capacity-aware*: it never suggests
- * less memory than you already have, matches your DDR generation, and flags when
- * you're already well-equipped so we don't push a pointless upgrade.
+ * Config-matched version of a category plus a short note. CPU and motherboard
+ * are socket-aware (see above); RAM is generation- and capacity-aware.
  */
 function tailorCategory(key: string, entry: ComponentUpgrade, hw: HardwareInventory | null): Tailored {
   if (!hw) return { entry, note: null };
-  const platform = detectPlatform(hw.cpu?.name);
+  const socket = detectSocket(hw.cpu?.name);
 
-  if ((key === "cpu" || key === "motherboard") && platform) {
-    const table = key === "cpu" ? CPU_PICKS : MOBO_PICKS;
-    const p = table[platform];
-    return {
-      entry: { ...entry, bangForBuck: p.bang, highEnd: p.high },
-      note: `Matched to your ${platform === "amd" ? "AMD" : "Intel"} platform`,
-    };
+  if (key === "cpu") {
+    const table = socket ? CPU_BY_SOCKET[socket] : undefined;
+    if (table) {
+      return { entry: { ...entry, bangForBuck: table.bang, highEnd: table.high }, note: table.note };
+    }
+    if (socket && DEAD_END_SOCKETS.includes(socket)) {
+      return {
+        entry,
+        note: `Your ${socket} socket has no meaningfully faster CPUs — a CPU upgrade means a new motherboard too. These picks assume that platform upgrade.`,
+      };
+    }
+    return { entry, note: null };
+  }
+
+  if (key === "motherboard") {
+    const table = socket ? MOBO_BY_SOCKET[socket] : undefined;
+    if (table) {
+      return { entry: { ...entry, bangForBuck: table.bang, highEnd: table.high }, note: table.note };
+    }
+    if (socket && DEAD_END_SOCKETS.includes(socket)) {
+      return {
+        entry,
+        note: `A new board won't fit your current ${socket} CPU — these current-gen boards pair with the CPU picks as a platform upgrade.`,
+      };
+    }
+    return { entry, note: null };
   }
 
   if (key === "ram") {
@@ -300,7 +257,6 @@ function tailorCategory(key: string, entry: ComponentUpgrade, hw: HardwareInvent
     const tiers = gen === "DDR5" ? [16, 32, 64, 96, 128] : [16, 32, 64, 128];
     const bangCap = tiers.find((t) => t > cur);
     if (!bangCap) {
-      // Already at/above the top consumer capacity — no real upgrade to offer.
       return {
         entry,
         note: `Your ${cur} GB ${genStr}is already at the ceiling for consumer boards — no RAM upgrade needed.`,
@@ -320,6 +276,256 @@ function tailorCategory(key: string, entry: ComponentUpgrade, hw: HardwareInvent
   }
 
   return { entry, note: null };
+}
+
+// ── Deterministic findings from the machine's own telemetry ───────────────────
+type Severity = "critical" | "warn" | "info";
+type Finding = { category: string; severity: Severity; title: string; detail: string };
+
+function buildFindings(hw: HardwareInventory | null): Finding[] {
+  if (!hw) return [];
+  const out: Finding[] = [];
+  const util = hw.utilization ?? {};
+  const sens = hw.sensors;
+
+  for (const d of sens?.disks ?? []) {
+    if (d.health !== "Healthy" && d.health !== "Unknown") {
+      out.push({
+        category: "storage", severity: "critical",
+        title: `${d.name} reports ${d.health}`,
+        detail: "SMART reports this drive is failing. Back it up now and plan a replacement — this is the one upgrade that shouldn't wait.",
+      });
+    } else if ((d.wear_pct ?? 0) >= 80) {
+      out.push({
+        category: "storage", severity: "warn",
+        title: `${d.name} is at ${d.wear_pct}% rated wear`,
+        detail: "This SSD has used most of its rated endurance. It still works, but replacing it soon avoids data loss later.",
+      });
+    }
+  }
+  if ((util.disk ?? 0) >= 90) {
+    out.push({
+      category: "storage", severity: "warn",
+      title: `Storage ${util.disk}% full`,
+      detail: "Windows slows down noticeably past ~90% full — an added or larger drive is the cheapest real-world speedup available to you right now.",
+    });
+  } else if ((util.disk ?? 0) >= 80) {
+    out.push({
+      category: "storage", severity: "info",
+      title: `Storage ${util.disk}% used`,
+      detail: "Not urgent yet, but you're heading toward the slowdown zone. Worth planning capacity.",
+    });
+  }
+
+  const t = sens?.cpu.temp_c;
+  if (t != null && t >= 85) {
+    out.push({
+      category: "cooler", severity: "warn",
+      title: `CPU running at ${t}°C`,
+      detail: "Sustained high temperatures cause thermal throttling — better cooling restores performance you already paid for.",
+    });
+  } else if (t != null && t >= 75) {
+    out.push({
+      category: "cooler", severity: "info",
+      title: `CPU at ${t}°C`,
+      detail: "Within spec, but extra cooler headroom improves boost clocks and noise.",
+    });
+  }
+
+  if ((util.mem ?? 0) >= 85) {
+    out.push({
+      category: "ram", severity: "warn",
+      title: `Memory pressure at ${util.mem}%`,
+      detail: "RAM has been near its ceiling over the last hour (blend of average and peak). More memory is the most direct fix for multitasking stutter.",
+    });
+  } else if ((util.mem ?? 0) >= 70) {
+    out.push({
+      category: "ram", severity: "info",
+      title: `Memory pressure ${util.mem}%`,
+      detail: "Regularly elevated. If things slow down with many tabs and apps open, RAM is the likely constraint.",
+    });
+  }
+
+  if ((util.cpu ?? 0) >= 80) {
+    out.push({
+      category: "cpu", severity: "warn",
+      title: `CPU load ${util.cpu}% over the last hour`,
+      detail: "Sustained high CPU load suggests the processor is the bottleneck for your workload.",
+    });
+  }
+
+  const order: Record<Severity, number> = { critical: 0, warn: 1, info: 2 };
+  return out.sort((a, b) => order[a.severity] - order[b.severity]);
+}
+
+// ── Advisor cards (diagnosis → prescription) ──────────────────────────────────
+function AdvisorCard({
+  finding, entry, currentPart, note, defaultOpen,
+}: {
+  finding: Finding;
+  entry: ComponentUpgrade;
+  currentPart: string | null;
+  note: string | null;
+  defaultOpen: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const sev = finding.severity;
+  const border = sev === "critical" ? "border-red-800/70" : sev === "warn" ? "border-amber-800/70" : "border-slate-700";
+  const iconColor = sev === "critical" ? "text-red-400" : sev === "warn" ? "text-amber-400" : "text-cyan-400";
+  const badgeTone: "red" | "amber" | "cyan" = sev === "critical" ? "red" : sev === "warn" ? "amber" : "cyan";
+  return (
+    <div className={`rounded-2xl border ${border} bg-slate-900/50`}>
+      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center gap-3 p-4 text-left">
+        <AlertTriangle size={16} className={`shrink-0 ${iconColor}`} />
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold text-slate-200">{finding.title}</div>
+          <div className="mt-0.5 truncate text-xs text-slate-500">
+            {entry.label}
+            {currentPart ? <> — current: <span className="text-slate-400">{currentPart}</span></> : null}
+          </div>
+        </div>
+        <Badge tone={badgeTone}>{sev}</Badge>
+        <ChevronDown size={16} className={`shrink-0 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && (
+        <div className="border-t border-slate-800 p-4">
+          <p className="mb-3 text-xs leading-relaxed text-slate-400">{finding.detail}</p>
+          {note && <p className="mb-3 text-xs text-emerald-400">✓ {note}</p>}
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <PickCard pick={entry.bangForBuck} kind="value" />
+            <PickCard pick={entry.highEnd} kind="high" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Compact browse cards ──────────────────────────────────────────────────────
+function PickRow({ pick, kind }: { pick: Pick; kind: "value" | "high" }) {
+  return (
+    <div className="flex items-center justify-between gap-2 py-1.5">
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          {kind === "value" ? <Gauge size={12} className="shrink-0 text-emerald-400" /> : <Crown size={12} className="shrink-0 text-amber-400" />}
+          <span className="truncate text-xs text-slate-300" title={pick.title}>{pick.title}</span>
+        </div>
+        {pick.price && <div className="pl-[18px] text-[11px] text-slate-600">{pick.price}</div>}
+      </div>
+      <AmazonLink url={pick.url}>Amazon</AmazonLink>
+    </div>
+  );
+}
+
+function BrowseCard({
+  label, entry, currentPart, note, wellEquipped, flagged,
+}: {
+  label: string;
+  entry: ComponentUpgrade;
+  currentPart: string | null;
+  note: string | null;
+  wellEquipped: boolean;
+  flagged?: Severity;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <h4 className="text-sm font-semibold text-slate-200">{label}</h4>
+        {flagged ? (
+          <Badge tone={flagged === "critical" ? "red" : flagged === "warn" ? "amber" : "cyan"}>see advisor</Badge>
+        ) : wellEquipped ? (
+          <Badge tone="slate">well equipped</Badge>
+        ) : null}
+      </div>
+      {currentPart && (
+        <div className="mb-1 truncate text-xs text-slate-500" title={currentPart}>
+          Current: <span className="text-slate-400">{currentPart}</span>
+        </div>
+      )}
+      {note && <div className="mb-2 text-[11px] leading-snug text-slate-600">{note}</div>}
+      <div className="divide-y divide-slate-800/60">
+        <PickRow pick={entry.bangForBuck} kind="value" />
+        <PickRow pick={entry.highEnd} kind="high" />
+      </div>
+    </div>
+  );
+}
+
+// ── Featured full systems (cross-referenced to Amazon) ────────────────────────
+function FeaturedSystems({ systems }: { systems: FeaturedSystem[] }) {
+  if (!systems.length) return null;
+  return (
+    <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+      {systems.map((sys, idx) => (
+        <Panel
+          key={idx}
+          title={sys.name}
+          action={sys.totalPrice ? <Badge tone="cyan">{sys.totalPrice}</Badge> : undefined}
+        >
+          <ul className="divide-y divide-slate-800/70">
+            {sys.components.map((c, j) => (
+              <li key={j} className="flex items-center justify-between gap-3 py-2">
+                <div className="min-w-0">
+                  <div className="text-[10px] uppercase tracking-wider text-slate-500">{c.type}</div>
+                  <div className="truncate text-sm text-slate-300">{c.name}</div>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  {c.price && <span className="text-xs tabular-nums text-slate-500">{c.price}</span>}
+                  <AmazonLink url={c.url}>Amazon</AmazonLink>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {sys.sourceUrl && (
+            <a
+              href={sys.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-block text-xs text-slate-600 hover:text-slate-400"
+            >
+              Build source ↗
+            </a>
+          )}
+        </Panel>
+      ))}
+    </div>
+  );
+}
+
+// ── GPU watch (daily best-effort price/availability) ──────────────────────────
+function GpuWatch({ entries }: { entries: GpuWatchEntry[] }) {
+  if (!entries.length) return null;
+  return (
+    <Panel title="GPU watch" action={<Badge tone="slate">checked daily</Badge>}>
+      <ul className="divide-y divide-slate-800/70">
+        {entries.map((g) => (
+          <li key={g.model} className="flex items-center justify-between gap-3 py-2.5">
+            <div className="min-w-0">
+              <div className="truncate text-sm font-medium text-slate-200">{g.model}</div>
+              <div className="mt-0.5 text-xs text-slate-500">
+                {g.lowestPrice ? (
+                  <>lowest listed <span className="tabular-nums text-slate-300">{g.lowestPrice}</span></>
+                ) : (
+                  "no listings found"
+                )}
+                {g.checkedAt && <> · {new Date(g.checkedAt).toLocaleDateString()}</>}
+                {g.stale && <span className="text-amber-500"> · stale</span>}
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Badge tone={g.inStock ? "green" : g.inStock === false ? "red" : "slate"}>
+                {g.inStock ? "listed" : g.inStock === false ? "not listed" : "unknown"}
+              </Badge>
+              <AmazonLink url={g.url}>Amazon</AmazonLink>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[11px] leading-snug text-slate-600">
+        Lowest price seen on the daily aggregator check — treat as an indicator, not a quote.
+      </p>
+    </Panel>
+  );
 }
 
 // ── User's detected system hardware ───────────────────────────────────────────
@@ -350,6 +556,7 @@ function SystemHardware({ hw }: { hw: HardwareInventory | null }) {
       </Panel>
     );
   }
+  const socket = detectSocket(hw.cpu?.name);
   const ramStr =
     `${hw.ram.total_gb} GB` +
     (hw.ram.type ? ` ${hw.ram.type}` : "") +
@@ -359,6 +566,7 @@ function SystemHardware({ hw }: { hw: HardwareInventory | null }) {
     hw.cpu.name +
     (hw.cpu.cores_physical ? ` · ${hw.cpu.cores_physical}C` : "") +
     (hw.cpu.cores_logical ? `/${hw.cpu.cores_logical}T` : "") +
+    (socket ? ` · ${socket}` : "") +
     (cpuTemp != null ? ` · ${cpuTemp}°C` : "");
   const disks = hw.sensors?.disks ?? [];
   return (
@@ -399,10 +607,38 @@ function SystemHardware({ hw }: { hw: HardwareInventory | null }) {
   );
 }
 
+// ── Segmented view switcher ───────────────────────────────────────────────────
+const VIEWS = ["advisor", "components", "builds"] as const;
+type View = (typeof VIEWS)[number];
+
+function Segmented({ view, setView, findingCount }: { view: View; setView: (v: View) => void; findingCount: number }) {
+  const items: { id: View; label: string }[] = [
+    { id: "advisor", label: findingCount > 0 ? `Advisor (${findingCount})` : "Advisor" },
+    { id: "components", label: "Components" },
+    { id: "builds", label: "Full builds" },
+  ];
+  return (
+    <div className="inline-flex rounded-lg border border-slate-800 bg-slate-900/60 p-0.5">
+      {items.map((it) => (
+        <button
+          key={it.id}
+          onClick={() => setView(it.id)}
+          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            view === it.id ? "bg-cyan-950/80 text-cyan-300" : "text-slate-400 hover:text-slate-200"
+          }`}
+        >
+          {it.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function UpgradesTab() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [error, setError] = useState(false);
   const [hw, setHw] = useState<HardwareInventory | null>(null);
+  const [view, setView] = useState<View>("advisor");
 
   useEffect(() => {
     loadManifest().then(setManifest).catch(() => setError(true));
@@ -410,8 +646,7 @@ export default function UpgradesTab() {
     api.hardware().then(setHw).catch(() => {});
   }, []);
 
-  // Tailor each category to the detected hardware, then sort so the most
-  // relevant upgrade for THIS system shows first (well-equipped categories sink).
+  // Tailor each category to the detected hardware, sorted by relevance.
   const { categories, notes, wellEquipped } = useMemo(() => {
     if (!manifest)
       return {
@@ -434,22 +669,42 @@ export default function UpgradesTab() {
     return { categories: entries, notes: noteMap, wellEquipped: wellMap };
   }, [manifest, hw]);
 
+  // Diagnosis: one finding per category (highest severity wins).
+  const findings = useMemo(() => {
+    const all = buildFindings(hw);
+    const seen = new Set<string>();
+    return all.filter((f) => {
+      if (!manifest?.componentUpgrades[f.category] || seen.has(f.category)) return false;
+      seen.add(f.category);
+      return true;
+    });
+  }, [hw, manifest]);
+  const findingSeverity = useMemo(() => {
+    const m: Record<string, Severity> = {};
+    findings.forEach((f) => (m[f.category] = f.severity));
+    return m;
+  }, [findings]);
+
   const currentParts = hw?.current ?? {};
+  const entryMap = useMemo(() => Object.fromEntries(categories), [categories]);
 
   return (
     <div className="space-y-4">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-slate-200">Hardware Upgrades</h2>
           <p className="mt-0.5 text-sm text-slate-500">
-            Best-value and high-end picks for every component, plus complete featured builds — refreshed daily.
+            Recommendations diagnosed from your own telemetry — refreshed daily, matched to your socket and platform.
           </p>
         </div>
-        {manifest && (
-          <span className="text-xs text-slate-600">
-            Updated {new Date(manifest.generatedAt).toLocaleDateString()}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          <Segmented view={view} setView={setView} findingCount={findings.length} />
+          {manifest && (
+            <span className="text-xs text-slate-600">
+              Updated {new Date(manifest.generatedAt).toLocaleDateString()}
+            </span>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -466,26 +721,67 @@ export default function UpgradesTab() {
         </div>
       )}
 
-      {manifest && (
-        <>
-          <UpgradeCarousel categories={categories} currentParts={currentParts} notes={notes} wellEquipped={wellEquipped} />
-
-          <div className="grid gap-4 pt-2 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">Featured full systems</h3>
-              <FeaturedSystems systems={manifest.featuredSystems} />
-            </div>
-            <div>
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">System hardware</h3>
-              <SystemHardware hw={hw} />
-            </div>
+      {manifest && view === "advisor" && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="space-y-3 lg:col-span-2">
+            {findings.length === 0 ? (
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
+                <ShieldCheck size={18} className="shrink-0 text-emerald-400" />
+                <p className="text-sm text-slate-400">
+                  Nothing urgent — your system is running within healthy bounds. See{" "}
+                  <button className="text-cyan-400 underline underline-offset-2" onClick={() => setView("components")}>
+                    Components
+                  </button>{" "}
+                  if you're planning ahead.
+                </p>
+              </div>
+            ) : (
+              findings.map((f, i) =>
+                entryMap[f.category] ? (
+                  <AdvisorCard
+                    key={f.category}
+                    finding={f}
+                    entry={entryMap[f.category]}
+                    currentPart={currentParts[f.category] ?? null}
+                    note={notes[f.category]}
+                    defaultOpen={i === 0}
+                  />
+                ) : null
+              )
+            )}
           </div>
+          <div className="space-y-4">
+            <SystemHardware hw={hw} />
+            <GpuWatch entries={manifest.gpuWatch ?? []} />
+          </div>
+        </div>
+      )}
 
-          {/* FTC-required affiliate disclosure */}
-          <p className="border-t border-slate-800 pt-3 text-xs leading-relaxed text-slate-600">
-            {manifest.disclosure} Prices and availability shown on Amazon at time of click.
-          </p>
-        </>
+      {manifest && view === "components" && (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map(([key, entry]) => (
+            <BrowseCard
+              key={key}
+              label={entry.label}
+              entry={entry}
+              currentPart={currentParts[key] ?? null}
+              note={notes[key]}
+              wellEquipped={!!wellEquipped[key]}
+              flagged={findingSeverity[key]}
+            />
+          ))}
+        </div>
+      )}
+
+      {manifest && view === "builds" && (
+        <FeaturedSystems systems={manifest.featuredSystems} />
+      )}
+
+      {manifest && (
+        /* FTC-required affiliate disclosure */
+        <p className="border-t border-slate-800 pt-3 text-xs leading-relaxed text-slate-600">
+          {manifest.disclosure} Prices and availability shown on Amazon at time of click.
+        </p>
       )}
     </div>
   );

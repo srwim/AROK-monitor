@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Activity, Cpu, Network, Cog, BarChart3, Sparkles, Bell, Settings as SettingsIcon, Gamepad2, ArrowUpCircle, Trash2,
+  Activity, Cpu, Network, Cog, BarChart3, Sparkles, Bell, Settings as SettingsIcon, Gamepad2, ArrowUpCircle, Trash2, RefreshCw,
 } from "lucide-react";
 import { usePolling } from "./hooks";
 import { api, type GamingStatus } from "./api";
@@ -50,6 +50,21 @@ export default function App() {
       setGaming(await api.setGaming(!(g?.enabled ?? false)));
     } finally {
       setGamingBusy(false);
+    }
+  };
+
+  // quiet auto-update pill (Claude-style: staged in background, applied on relaunch)
+  const update = usePolling(() => api.updateStatus(), 60000);
+  const [relaunching, setRelaunching] = useState(false);
+  const relaunch = async () => {
+    if (relaunching) return;
+    setRelaunching(true);
+    try {
+      const r = await api.updateApply();
+      if (!r.ok) setRelaunching(false);
+      // on ok the process exits and the installer relaunches the new build
+    } catch {
+      setRelaunching(false);
     }
   };
 
@@ -104,6 +119,21 @@ export default function App() {
           ))}
         </nav>
         <div className="border-t border-slate-800 px-3 py-3">
+          {update?.phase === "ready" && (
+            <button
+              onClick={relaunch}
+              disabled={relaunching}
+              title={`Update to ${update.latest} — downloaded and verified, applies in seconds`}
+              className="mb-2 flex w-full items-center gap-3 rounded-lg border border-emerald-900/70 bg-emerald-950/50 px-3 py-2 text-left text-sm font-medium text-emerald-300 transition-colors hover:bg-emerald-950/80 disabled:opacity-60"
+            >
+              <RefreshCw size={15} className={relaunching ? "animate-spin" : ""} />
+              <span className="min-w-0 flex-1">
+                {relaunching ? "Updating…" : "Relaunch to update"}
+                <span className="block text-[10px] font-normal text-emerald-500/80">{update.latest}</span>
+              </span>
+              {!relaunching && <span className="text-emerald-500">→</span>}
+            </button>
+          )}
           <button
             onClick={toggleGaming}
             disabled={gamingBusy}
@@ -174,11 +204,11 @@ export default function App() {
             <button
               className="ml-2 text-xs underline opacity-60 hover:opacity-100"
               onClick={() => {
-                api.ackAlert(t.id);
+                api.clearAlert(t.id);
                 setToasts((x) => x.filter((y) => y.id !== t.id));
               }}
             >
-              ack
+              clear
             </button>
           </div>
         ))}

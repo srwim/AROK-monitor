@@ -39,10 +39,27 @@
               "properties": {
                 "type": { "type": "string" },
                 "name": { "type": "string" },
+                "price": { "type": "string" },
                 "url": { "type": "string", "pattern": "tag=" }
               }
             }
           }
+        }
+      }
+    },
+    "gpuWatch": {
+      "type": "array",
+      "description": "Best-effort daily price/availability check for watched GPUs. stale=true means the check failed and the entry carries the last-known values (or nulls).",
+      "items": {
+        "type": "object",
+        "required": ["model", "url"],
+        "properties": {
+          "model": { "type": "string" },
+          "url": { "type": "string", "pattern": "tag=" },
+          "lowestPrice": { "type": ["string", "null"] },
+          "inStock": { "type": ["boolean", "null"] },
+          "checkedAt": { "type": ["string", "null"] },
+          "stale": { "type": "boolean" }
         }
       }
     }
