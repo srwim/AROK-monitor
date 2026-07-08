@@ -150,7 +150,15 @@ def download_update() -> dict:
         latest, exe_url, sha_url = _release_assets()
         _set(latest=latest)
         if not latest or _parse(latest) <= _parse(VERSION):
-            _set(phase="idle")
+            # Up to date: clear any previously staged installers so a stale
+            # download can never resurface the relaunch pill.
+            try:
+                for f in os.listdir(_updates_dir()):
+                    if f.endswith((".exe", ".part", ".cmd")):
+                        os.remove(os.path.join(_updates_dir(), f))
+            except Exception:
+                pass
+            _set(phase="idle", staged_path=None)
             return status()
         if not exe_url:
             _set(phase="error", error="release has no installer asset")
@@ -187,14 +195,25 @@ def apply_update() -> dict:
     installer = st["staged_path"]
     _set(phase="applying")
     try:
+        log = os.path.join(_updates_dir(), "install.log")
+        flags = f'/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /FORCECLOSEAPPLICATIONS /LOG="{log}"'
+        lines = ["@echo off", "timeout /t 2 /nobreak >nul"]
         if getattr(sys, "frozen", False):
             exe = sys.executable
-            # cmd runs the installer to completion, then starts the new build.
-            cmd = f'"{installer}" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART & start "" "{exe}"'
+            # /DIR pins the install to wherever THIS build actually runs from
+            # (custom install dirs, or a per-user vs per-machine registry
+            # mismatch, otherwise make silent setup install to a fresh default
+            # location and the relaunch starts the old exe).
+            lines.append(f'"{installer}" {flags} /DIR="{os.path.dirname(exe)}"')
+            lines.append(f'start "" "{exe}"')
         else:
-            cmd = f'"{installer}" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART'
+            lines.append(f'"{installer}" {flags}')
+        # A real script file avoids cmd /c quote-mangling with nested quotes.
+        script = os.path.join(_updates_dir(), "apply_update.cmd")
+        with open(script, "w", encoding="ascii", errors="replace") as f:
+            f.write("\r\n".join(lines) + "\r\n")
         subprocess.Popen(
-            ["cmd", "/c", cmd],
+            ["cmd", "/c", script],
             creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
             close_fds=True,
         )
