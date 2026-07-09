@@ -1,0 +1,64 @@
+# Reports thumbnail coverage for the Hardware Upgrades builds: which parts have a
+# brand+MPN in parts_catalog.json and (when Icecat creds are set) which actually
+# resolve to an Open Icecat image. It never fails the build — it posts a summary
+# and keeps a single tracking issue up to date with the parts still needing an MPN.
+name: Verify thumbnail coverage
+
+on:
+  push:
+    paths:
+      - "upgrades-pipeline/build_manifest.py"
+      - "upgrades-pipeline/parts_catalog.json"
+      - "upgrades-pipeline/icecat.py"
+      - "upgrades-pipeline/verify_thumbnails.py"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        working-directory: upgrades-pipeline
+        run: pip install -r requirements.txt
+
+      - name: Verify thumbnail coverage
+        id: verify
+        working-directory: upgrades-pipeline
+        env:
+          ICECAT_SHOPNAME: ${{ secrets.ICECAT_SHOPNAME }}
+          ICECAT_API_TOKEN: ${{ secrets.ICECAT_API_TOKEN }}
+        run: python verify_thumbnails.py
+
+      - name: Open or update the gaps tracking issue
+        if: steps.verify.outputs.has_gaps == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const body = fs.readFileSync("upgrades-pipeline/thumbnail_report.md", "utf8");
+            const { owner, repo } = context.repo;
+            const open = await github.rest.issues.listForRepo({
+              owner, repo, state: "open", labels: "thumbnail-gaps",
+            });
+            if (open.data.length) {
+              await github.rest.issues.update({
+                owner, repo, issue_number: open.data[0].number, body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner, repo,
+                title: "Thumbnail coverage: parts need a brand + MPN",
+                body,
+                labels: ["thumbnail-gaps"],
+              });
+            }

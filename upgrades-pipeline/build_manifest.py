@@ -28,10 +28,12 @@ import json
 import sys
 from pathlib import Path
 
-from affiliate import DISCLOSURE, search_link
+from affiliate import DISCLOSURE, search_link, store_link
+from icecat import image_for
 
 HERE = Path(__file__).parent
 OUT = HERE / "manifest.json"
+CATALOG_PATH = HERE / "parts_catalog.json"
 
 # ---------------------------------------------------------------------------
 # Curated carousel catalog. Edit these to change what the carousel rotates.
@@ -227,19 +229,53 @@ def _scrape_build(sess, url: str) -> dict:
 
 
 # Curated fallback builds so the section is never empty on first run / block.
-# Reviewed 2026-07-03. Three archetypes: budget 1080p, balanced 1440p, high-end 4K.
-# Prices are hints (same convention as CURATED); totals are computed.
-def _curated_system(name: str, parts: list[tuple[str, str, int]]) -> dict:
-    total = sum(p for _, _, p in parts)
-    return {
-        "name": name,
-        "source": "curated",
-        "totalPrice": f"~${total:,}",
-        "components": [
-            {"type": t, "name": n, "price": f"~${p}", "url": search_link(n)}
-            for t, n, p in parts
-        ],
-    }
+# Reviewed 2026-07-03. Four archetypes: budget 1080p, balanced 1440p, high-end
+# 4K, and a Bleeding Edge flagship (picks to follow). Prices are hints (same
+# convention as CURATED); totals are computed.
+#
+# Each part tuple is (type, name, price[, store]). Store defaults to "Amazon"
+# (tagged affiliate link); pass another known store (see affiliate.STORE_SEARCH)
+# for parts Amazon doesn't carry — those get a plain, untagged link. A build
+# with no parts renders as "coming soon" using its note.
+def _curated_system(name: str, parts: list[tuple], note: str | None = None,
+                    source_url: str | None = None) -> dict:
+    # Collapse duplicate parts (same type+name+store) into one row with a qty,
+    # so listing a part twice (e.g. two identical SSDs) renders as "x2" with the
+    # unit price rather than a repeated line. Price stays per-unit; the build
+    # total counts every tuple, so quantity is reflected automatically.
+    comps: list[dict] = []
+    by_key: dict[tuple, dict] = {}
+    for p in parts:
+        t, n, price = p[0], p[1], p[2]
+        # 4th tuple element: a store name (str, back-compat) or an options dict
+        # {store, image, brand, mpn}. image = tier-1 manual thumbnail; brand+mpn
+        # = tier-2 Icecat inputs (resolved later, in resolve_images()).
+        opts = p[3] if len(p) > 3 else {}
+        if isinstance(opts, str):
+            opts = {"store": opts}
+        store = opts.get("store", "Amazon")
+        key = (t, n, store)
+        if key in by_key:
+            by_key[key]["qty"] = by_key[key].get("qty", 1) + 1
+            continue
+        comp = {"type": t, "name": n, "price": f"~${price}", "url": store_link(n, store)}
+        if store != "Amazon":
+            comp["store"] = store
+        if opts.get("image"):
+            comp["image"] = opts["image"]
+        elif opts.get("brand") and opts.get("mpn"):
+            comp["_brand"], comp["_mpn"] = opts["brand"], opts["mpn"]
+        by_key[key] = comp
+        comps.append(comp)
+
+    system: dict = {"name": name, "source": "curated", "components": comps}
+    if parts:
+        system["totalPrice"] = f"~${sum(p[2] for p in parts):,}"
+    if note:
+        system["note"] = note
+    if source_url:
+        system["sourceUrl"] = source_url
+    return system
 
 
 FALLBACK_SYSTEMS = [
@@ -251,6 +287,7 @@ FALLBACK_SYSTEMS = [
         ("Motherboard", "Gigabyte B650 Aorus Elite AX", 170),
         ("PSU", "be quiet! Pure Power 12 M 750W", 80),
         ("Cooler", "Thermalright Peerless Assassin 120 SE", 36),
+        ("Case", "Montech AIR 903 MAX", 75),
     ]),
     _curated_system("Balanced 1440p Gaming Build", [
         ("CPU", "AMD Ryzen 7 9700X", 300),
@@ -260,6 +297,7 @@ FALLBACK_SYSTEMS = [
         ("Motherboard", "MSI MAG B850 Tomahawk MAX WiFi", 250),
         ("PSU", "Montech Century II 850W 80+ Gold", 90),
         ("Cooler", "Thermalright Peerless Assassin 120 SE", 36),
+        ("Case", "Corsair 4000D Airflow", 95),
     ]),
     _curated_system("High-End 4K Build", [
         ("CPU", "AMD Ryzen 7 9800X3D", 440),
@@ -269,76 +307,87 @@ FALLBACK_SYSTEMS = [
         ("Motherboard", "ASUS ROG Strix X870E-E Gaming WiFi", 500),
         ("PSU", "Corsair RM1000x 1000W 80+ Gold", 190),
         ("Cooler", "ARCTIC Liquid Freezer III 360", 120),
+        ("Case", "Lian Li O11 Dynamic EVO", 170),
     ]),
+    # 4th build: flagship, no-compromise (curated from a compatibility-checked
+    # PCPartPicker list). Dual 8TB Gen5 SSDs, 128GB DDR5, RTX 5090.
+    _curated_system("Bleeding Edge", [
+        ("CPU", "AMD Ryzen 9 9950X3D", 670),
+        ("GPU", "ASUS ROG Astral OC GeForce RTX 5090 32GB", 4330),
+        ("Memory", "Corsair Dominator Platinum RGB 64GB (2x32) DDR5-5200 CL40", 973),
+        ("Memory", "Corsair Dominator Platinum RGB 64GB (2x32) DDR5-5200 CL40", 973),
+        ("Storage", "Samsung 9100 PRO 8TB NVMe PCIe 5.0", 2000),
+        ("Storage", "Samsung 9100 PRO 8TB NVMe PCIe 5.0", 2000),
+        ("Motherboard", "ASUS ROG Crosshair X870E GLACIAL EATX", 1300),
+        ("PSU", "Corsair HX1500i 1500W 80+ Platinum", 350),
+        ("Cooler", "Corsair iCUE LINK TITAN 360 RX LCD", 220),
+        ("Case", "HYTE Y70 Touch Infinite", 350),
+    ], source_url="https://pcpartpicker.com/list/NBpjn2"),
 ]
 
 
 # ---------------------------------------------------------------------------
-# GPU watch — best-effort price/availability for high-demand cards. Same
-# isolation contract as the featured-builds scrape: any failure falls back to
-# the previous manifest's entry (marked stale); nothing here can raise.
+# GPU watch — a curated watch-list of high-demand cards with a launch-reference
+# MSRP and a tagged Amazon search link. Deliberately NOT scraped: Amazon and
+# PCPartPicker block headless requests and their ToS forbids scraping (and we
+# are an Amazon Associate — automated access risks the affiliate account). The
+# MSRP is a static deal-benchmark; the user compares it to live Amazon listings.
 # ---------------------------------------------------------------------------
 GPU_WATCH = [
-    {"model": "NVIDIA GeForce RTX 5080", "query": "RTX 5080"},
-    {"model": "NVIDIA GeForce RTX 5090", "query": "RTX 5090"},
+    {"model": "NVIDIA GeForce RTX 5080", "msrp": "$999"},
+    {"model": "NVIDIA GeForce RTX 5090", "msrp": "$1,999"},
 ]
 
 
-def _check_gpu(sess, query: str) -> dict | None:
-    """Lowest listed price from a PCPartPicker search. None on any failure."""
+def gpu_watch() -> list[dict]:
+    """Curated watch-list entries: model, launch-reference MSRP, and a tagged
+    Amazon search link. No network — nothing to fail, nothing to go stale."""
+    return [
+        {"model": s["model"], "msrp": s["msrp"], "url": search_link(s["model"])}
+        for s in GPU_WATCH
+    ]
+
+
+def load_catalog() -> dict:
+    """Part-metadata registry: name -> {brand, mpn, image, ...}. A missing or
+    broken file yields an empty catalog, so enrichment simply does nothing."""
     try:
-        import re
-        from bs4 import BeautifulSoup
-        r = sess.get("https://pcpartpicker.com/search/", params={"q": query}, timeout=20)
-        if r.status_code != 200:
-            return None
-        soup = BeautifulSoup(r.text, "html.parser")
-        prices: list[float] = []
-        for el in soup.select(".search_results--price, .td__price, .price"):
-            m = re.search(r"\$([\d,]+(?:\.\d{2})?)", el.get_text())
-            if m:
-                v = float(m.group(1).replace(",", ""))
-                if v > 100:  # ignore cables/accessories that match the query
-                    prices.append(v)
-        if not prices:
-            return {"lowestPrice": None, "inStock": False}  # page loaded, no listings
-        return {"lowestPrice": f"${min(prices):,.0f}", "inStock": True}
+        data = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+        return (data or {}).get("parts", {})
     except Exception:
-        return None
+        return {}
 
 
-def gpu_watch(prev: dict | None) -> list[dict]:
-    prev_map = {e.get("model"): e for e in ((prev or {}).get("gpuWatch") or [])}
-    sess = None
-    try:
-        import requests
-        sess = requests.Session()
-        sess.headers.update({"User-Agent": UA, "Accept-Language": "en-US,en;q=0.9"})
-    except Exception:
-        pass
+def enrich_from_catalog(systems: list[dict], catalog: dict) -> list[dict]:
+    """Attach thumbnail metadata from the catalog by exact component name. A
+    catalog 'image' becomes the tier-1 thumbnail; otherwise brand+mpn are stashed
+    as tier-2 (Icecat) inputs. Values already set inline on the component win."""
+    for system in systems:
+        for comp in system.get("components", []):
+            meta = catalog.get(comp["name"])
+            if not meta or "image" in comp or "_mpn" in comp:
+                continue
+            if meta.get("image"):
+                comp["image"] = meta["image"]
+            elif meta.get("brand") and meta.get("mpn"):
+                comp["_brand"], comp["_mpn"] = meta["brand"], meta["mpn"]
+    return systems
 
-    now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    out: list[dict] = []
-    for spec in GPU_WATCH:
-        entry = {
-            "model": spec["model"],
-            "url": search_link(spec["model"]),
-            "lowestPrice": None,
-            "inStock": None,
-            "checkedAt": None,
-            "stale": True,
-        }
-        fresh = _check_gpu(sess, spec["query"]) if sess else None
-        if fresh is not None:
-            entry.update(fresh)
-            entry["checkedAt"] = now
-            entry["stale"] = False
-        elif spec["model"] in prev_map:
-            entry = {**prev_map[spec["model"]], "url": entry["url"], "stale": True}
-        out.append(entry)
-    checked = sum(1 for e in out if not e.get("stale"))
-    print(f"[gpu-watch] {checked}/{len(out)} fresh", file=sys.stderr)
-    return out
+
+def resolve_images(systems: list[dict]) -> list[dict]:
+    """Tier-2 thumbnail fill. For any component that has no manually curated
+    image but carries a brand+MPN, ask Open Icecat for one. The private lookup
+    keys (_brand/_mpn) are always stripped so they never reach the manifest.
+    Icecat is inert without credentials, so this is a no-op until they're set."""
+    for system in systems:
+        for comp in system.get("components", []):
+            if "image" not in comp and comp.get("_mpn"):
+                url = image_for(comp.get("_brand", ""), comp.get("_mpn", ""))
+                if url:
+                    comp["image"] = url
+            comp.pop("_brand", None)
+            comp.pop("_mpn", None)
+    return systems
 
 
 def load_previous() -> dict | None:
@@ -367,13 +416,16 @@ def main() -> int:
             featured = FALLBACK_SYSTEMS
             print("[manifest] scrape empty; using curated fallback", file=sys.stderr)
 
+    featured = enrich_from_catalog(featured, load_catalog())
+    featured = resolve_images(featured)
+
     manifest = {
         "version": 1,
         "generatedAt": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "disclosure": DISCLOSURE,
         "componentUpgrades": verify_links(build_component_upgrades()),
         "featuredSystems": featured,
-        "gpuWatch": gpu_watch(prev),
+        "gpuWatch": gpu_watch(),
     }
 
     OUT.write_text(json.dumps(manifest, indent=2), encoding="utf-8")

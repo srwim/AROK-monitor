@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ExternalLink, Gauge, Crown, Cpu, MemoryStick, HardDrive, MonitorCog, CircuitBoard,
-  AlertTriangle, ChevronDown, ShieldCheck,
+  AlertTriangle, ChevronDown, ShieldCheck, Microchip, Power, Fan, Computer, Package,
+  type LucideIcon,
 } from "lucide-react";
 import { Panel, Badge } from "../components/ui";
 import { api, type HardwareInventory } from "../api";
@@ -13,21 +14,19 @@ const amazonSearch = (q: string) =>
 // ── Manifest types ──────────────────────────────────────────────────────────
 type Pick = { title: string; asin?: string; price?: string; image?: string; url: string };
 type ComponentUpgrade = { label: string; bangForBuck: Pick; highEnd: Pick };
-type SystemComponent = { type: string; name: string; url: string; price?: string };
+type SystemComponent = { type: string; name: string; url: string; price?: string; store?: string; qty?: number; image?: string };
 type FeaturedSystem = {
   name: string;
   source?: string;
   sourceUrl?: string;
   totalPrice?: string;
+  note?: string;
   components: SystemComponent[];
 };
 type GpuWatchEntry = {
   model: string;
   url: string;
-  lowestPrice: string | null;
-  inStock: boolean | null;
-  checkedAt: string | null;
-  stale?: boolean;
+  msrp?: string | null;
 };
 type Manifest = {
   version: number;
@@ -90,6 +89,25 @@ function AmazonLink({ url, children, primary }: { url: string; children: ReactNo
     >
       {children}
       <ExternalLink size={primary ? 14 : 12} />
+    </a>
+  );
+}
+
+// Store-aware purchase link. Amazon carries our affiliate tag, so rel includes
+// "sponsored"; non-Amazon stores have no affiliate program yet, so they get a
+// plain link (no "sponsored") and show the store's name.
+function StoreLink({ url, store }: { url: string; store?: string }) {
+  const label = store ?? "Amazon";
+  const affiliated = label === "Amazon";
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel={affiliated ? "sponsored nofollow noopener noreferrer" : "nofollow noopener noreferrer"}
+      className="inline-flex items-center gap-1 text-xs text-cyan-400 underline-offset-2 hover:text-cyan-300 hover:underline"
+    >
+      {label}
+      <ExternalLink size={12} />
     </a>
   );
 }
@@ -452,6 +470,34 @@ function BrowseCard({
 }
 
 // ── Featured full systems (cross-referenced to Amazon) ────────────────────────
+// Thumbnail tiers: show the manifest image (curated, else Icecat) when present,
+// otherwise a category icon. Cases render larger — the case is the visual anchor.
+const COMPONENT_ICONS: Record<string, LucideIcon> = {
+  CPU: Cpu, GPU: Microchip, Memory: MemoryStick, Storage: HardDrive,
+  Motherboard: CircuitBoard, PSU: Power, Cooler: Fan, Case: Computer,
+};
+
+function ComponentThumb({ c }: { c: SystemComponent }) {
+  const big = c.type === "Case";
+  const box = big ? "h-12 w-12" : "h-9 w-9";
+  if (c.image) {
+    return (
+      <img
+        src={c.image}
+        alt={c.name}
+        loading="lazy"
+        className={`${box} shrink-0 rounded-md bg-white/5 object-contain p-0.5`}
+      />
+    );
+  }
+  const Icon = COMPONENT_ICONS[c.type] ?? Package;
+  return (
+    <div className={`${box} grid shrink-0 place-items-center rounded-md bg-slate-800/60 text-slate-500`}>
+      <Icon size={big ? 22 : 16} />
+    </div>
+  );
+}
+
 function FeaturedSystems({ systems }: { systems: FeaturedSystem[] }) {
   if (!systems.length) return null;
   return (
@@ -462,20 +508,38 @@ function FeaturedSystems({ systems }: { systems: FeaturedSystem[] }) {
           title={sys.name}
           action={sys.totalPrice ? <Badge tone="cyan">{sys.totalPrice}</Badge> : undefined}
         >
-          <ul className="divide-y divide-slate-800/70">
-            {sys.components.map((c, j) => (
-              <li key={j} className="flex items-center justify-between gap-3 py-2">
-                <div className="min-w-0">
-                  <div className="text-[10px] uppercase tracking-wider text-slate-500">{c.type}</div>
-                  <div className="truncate text-sm text-slate-300">{c.name}</div>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  {c.price && <span className="text-xs tabular-nums text-slate-500">{c.price}</span>}
-                  <AmazonLink url={c.url}>Amazon</AmazonLink>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {sys.components.length === 0 ? (
+            <p className="py-3 text-sm text-slate-500">
+              {sys.note ?? "Component picks coming soon."}
+            </p>
+          ) : (
+            <ul className="divide-y divide-slate-800/70">
+              {sys.components.map((c, j) => (
+                <li key={j} className="flex items-center gap-3 py-2">
+                  <ComponentThumb c={c} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[10px] uppercase tracking-wider text-slate-500">{c.type}</div>
+                    <div className="truncate text-sm text-slate-300">
+                      {c.name}
+                      {c.qty && c.qty > 1 ? (
+                        <span className="ml-1.5 rounded bg-slate-700/70 px-1 py-0.5 text-[10px] font-medium tabular-nums text-slate-300">
+                          ×{c.qty}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    {c.price && (
+                      <span className="text-xs tabular-nums text-slate-500">
+                        {c.price}{c.qty && c.qty > 1 ? " ea" : ""}
+                      </span>
+                    )}
+                    <StoreLink url={c.url} store={c.store} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
           {sys.sourceUrl && (
             <a
               href={sys.sourceUrl}
@@ -492,37 +556,32 @@ function FeaturedSystems({ systems }: { systems: FeaturedSystem[] }) {
   );
 }
 
-// ── GPU watch (daily best-effort price/availability) ──────────────────────────
+// ── GPU watch (curated high-demand cards: reference MSRP + live-listings link) ─
 function GpuWatch({ entries }: { entries: GpuWatchEntry[] }) {
   if (!entries.length) return null;
   return (
-    <Panel title="GPU watch" action={<Badge tone="slate">checked daily</Badge>}>
+    <Panel title="GPU watch">
       <ul className="divide-y divide-slate-800/70">
         {entries.map((g) => (
           <li key={g.model} className="flex items-center justify-between gap-3 py-2.5">
             <div className="min-w-0">
               <div className="truncate text-sm font-medium text-slate-200">{g.model}</div>
               <div className="mt-0.5 text-xs text-slate-500">
-                {g.lowestPrice ? (
-                  <>lowest listed <span className="tabular-nums text-slate-300">{g.lowestPrice}</span></>
+                {g.msrp ? (
+                  <>MSRP <span className="tabular-nums text-slate-300">{g.msrp}</span></>
                 ) : (
-                  "no listings found"
+                  "reference price unavailable"
                 )}
-                {g.checkedAt && <> · {new Date(g.checkedAt).toLocaleDateString()}</>}
-                {g.stale && <span className="text-amber-500"> · stale</span>}
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <Badge tone={g.inStock ? "green" : g.inStock === false ? "red" : "slate"}>
-                {g.inStock ? "listed" : g.inStock === false ? "not listed" : "unknown"}
-              </Badge>
-              <AmazonLink url={g.url}>Amazon</AmazonLink>
+              <AmazonLink url={g.url}>View listings</AmazonLink>
             </div>
           </li>
         ))}
       </ul>
       <p className="mt-2 text-[11px] leading-snug text-slate-600">
-        Lowest price seen on the daily aggregator check — treat as an indicator, not a quote.
+        MSRP is the launch reference price — compare it against live Amazon listings to judge a deal.
       </p>
     </Panel>
   );
@@ -615,7 +674,7 @@ function Segmented({ view, setView, findingCount }: { view: View; setView: (v: V
   const items: { id: View; label: string }[] = [
     { id: "advisor", label: findingCount > 0 ? `Advisor (${findingCount})` : "Advisor" },
     { id: "components", label: "Components" },
-    { id: "builds", label: "Full builds" },
+    { id: "builds", label: "Full Builds" },
   ];
   return (
     <div className="inline-flex rounded-lg border border-slate-800 bg-slate-900/60 p-0.5">

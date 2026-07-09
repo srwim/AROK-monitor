@@ -1,19 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   Activity, Cpu, Network, Cog, BarChart3, Sparkles, Bell, Settings as SettingsIcon, Gamepad2, ArrowUpCircle, Trash2, RefreshCw,
 } from "lucide-react";
 import { usePolling } from "./hooks";
 import { api, type GamingStatus } from "./api";
-import DashboardTab from "./tabs/Dashboard";
-import ProcessesTab from "./tabs/Processes";
-import NetworkTab from "./tabs/Network";
-import ServicesTab from "./tabs/Services";
-import AnalyticsTab from "./tabs/Analytics";
-import InsightsTab from "./tabs/Insights";
-import AlertsTab from "./tabs/Alerts";
-import CleanupTab from "./tabs/Cleanup";
-import UpgradesTab from "./tabs/Upgrades";
-import SettingsTab from "./tabs/Settings";
+// Tabs are lazy-loaded so each is its own chunk (and recharts only ships with
+// the Dashboard/Analytics chunks that use it) — keeps the initial bundle small.
+const DashboardTab = lazy(() => import("./tabs/Dashboard"));
+const ProcessesTab = lazy(() => import("./tabs/Processes"));
+const NetworkTab = lazy(() => import("./tabs/Network"));
+const ServicesTab = lazy(() => import("./tabs/Services"));
+const AnalyticsTab = lazy(() => import("./tabs/Analytics"));
+const InsightsTab = lazy(() => import("./tabs/Insights"));
+const AlertsTab = lazy(() => import("./tabs/Alerts"));
+const CleanupTab = lazy(() => import("./tabs/Cleanup"));
+const UpgradesTab = lazy(() => import("./tabs/Upgrades"));
+const SettingsTab = lazy(() => import("./tabs/Settings"));
 
 const TABS = [
   { id: "dashboard", label: "Dashboard", icon: Activity },
@@ -31,6 +33,14 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 type Toast = { id: number; severity: string; message: string };
+
+function TabFallback() {
+  return (
+    <div className="flex items-center justify-center py-20 text-sm text-slate-500">
+      <RefreshCw size={16} className="mr-2 animate-spin" /> Loading…
+    </div>
+  );
+}
 
 export default function App() {
   const [tab, setTab] = useState<TabId>("dashboard");
@@ -175,16 +185,18 @@ export default function App() {
       </aside>
 
       <main className="flex-1 overflow-y-auto p-6">
-        {tab === "dashboard" && <DashboardTab />}
-        {tab === "processes" && <ProcessesTab />}
-        {tab === "network" && <NetworkTab />}
-        {tab === "services" && <ServicesTab />}
-        {tab === "cleanup" && <CleanupTab />}
-        {tab === "analytics" && <AnalyticsTab />}
-        {tab === "insights" && <InsightsTab />}
-        {tab === "alerts" && <AlertsTab />}
-        {tab === "upgrades" && <UpgradesTab />}
-        {tab === "settings" && <SettingsTab />}
+        <Suspense fallback={<TabFallback />}>
+          {tab === "dashboard" && <DashboardTab />}
+          {tab === "processes" && <ProcessesTab />}
+          {tab === "network" && <NetworkTab />}
+          {tab === "services" && <ServicesTab />}
+          {tab === "cleanup" && <CleanupTab />}
+          {tab === "analytics" && <AnalyticsTab />}
+          {tab === "insights" && <InsightsTab />}
+          {tab === "alerts" && <AlertsTab />}
+          {tab === "upgrades" && <UpgradesTab />}
+          {tab === "settings" && <SettingsTab />}
+        </Suspense>
       </main>
 
       <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2">

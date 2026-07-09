@@ -106,7 +106,7 @@
     {
       "name": "Budget 1080p Gaming Build",
       "source": "curated",
-      "totalPrice": "~$1,246",
+      "totalPrice": "~$1,321",
       "components": [
         {
           "type": "CPU",
@@ -149,13 +149,19 @@
           "name": "Thermalright Peerless Assassin 120 SE",
           "price": "~$36",
           "url": "https://www.amazon.com/s?k=Thermalright+Peerless+Assassin+120+SE&tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "Case",
+          "name": "Montech AIR 903 MAX",
+          "price": "~$75",
+          "url": "https://www.amazon.com/s?k=Montech+AIR+903+MAX&tag=lifeupgrad02b-20"
         }
       ]
     },
     {
       "name": "Balanced 1440p Gaming Build",
       "source": "curated",
-      "totalPrice": "~$1,766",
+      "totalPrice": "~$1,861",
       "components": [
         {
           "type": "CPU",
@@ -198,13 +204,19 @@
           "name": "Thermalright Peerless Assassin 120 SE",
           "price": "~$36",
           "url": "https://www.amazon.com/s?k=Thermalright+Peerless+Assassin+120+SE&tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "Case",
+          "name": "Corsair 4000D Airflow",
+          "price": "~$95",
+          "url": "https://www.amazon.com/s?k=Corsair+4000D+Airflow&tag=lifeupgrad02b-20"
         }
       ]
     },
     {
       "name": "High-End 4K Build",
       "source": "curated",
-      "totalPrice": "~$3,150",
+      "totalPrice": "~$3,320",
       "components": [
         {
           "type": "CPU",
@@ -247,26 +259,84 @@
           "name": "ARCTIC Liquid Freezer III 360",
           "price": "~$120",
           "url": "https://www.amazon.com/s?k=ARCTIC+Liquid+Freezer+III+360&tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "Case",
+          "name": "Lian Li O11 Dynamic EVO",
+          "price": "~$170",
+          "url": "https://www.amazon.com/s?k=Lian+Li+O11+Dynamic+EVO&tag=lifeupgrad02b-20"
         }
       ]
+    },
+    {
+      "name": "Bleeding Edge",
+      "source": "curated",
+      "components": [
+        {
+          "type": "CPU",
+          "name": "AMD Ryzen 9 9950X3D",
+          "price": "~$670",
+          "url": "https://www.amazon.com/s?k=AMD+Ryzen+9+9950X3D&tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "GPU",
+          "name": "ASUS ROG Astral OC GeForce RTX 5090 32GB",
+          "price": "~$4330",
+          "url": "https://www.amazon.com/s?k=ASUS+ROG+Astral+OC+GeForce+RTX+5090+32GB&tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "Memory",
+          "name": "Corsair Dominator Platinum RGB 64GB (2x32) DDR5-5200 CL40",
+          "price": "~$973",
+          "url": "https://www.amazon.com/s?k=Corsair+Dominator+Platinum+RGB+64GB+%282x32%29+DDR5-5200+CL40&tag=lifeupgrad02b-20",
+          "qty": 2
+        },
+        {
+          "type": "Storage",
+          "name": "Samsung 9100 PRO 8TB NVMe PCIe 5.0",
+          "price": "~$2000",
+          "url": "https://www.amazon.com/s?k=Samsung+9100+PRO+8TB+NVMe+PCIe+5.0&tag=lifeupgrad02b-20",
+          "qty": 2
+        },
+        {
+          "type": "Motherboard",
+          "name": "ASUS ROG Crosshair X870E GLACIAL EATX",
+          "price": "~$1300",
+          "url": "https://www.amazon.com/s?k=ASUS+ROG+Crosshair+X870E+GLACIAL+EATX&tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "PSU",
+          "name": "Corsair HX1500i 1500W 80+ Platinum",
+          "price": "~$350",
+          "url": "https://www.amazon.com/s?k=Corsair+HX1500i+1500W+80%2B+Platinum&tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "Cooler",
+          "name": "Corsair iCUE LINK TITAN 360 RX LCD",
+          "price": "~$220",
+          "url": "https://www.amazon.com/s?k=Corsair+iCUE+LINK+TITAN+360+RX+LCD&tag=lifeupgrad02b-20"
+        },
+        {
+          "type": "Case",
+          "name": "HYTE Y70 Touch Infinite",
+          "price": "~$350",
+          "url": "https://www.amazon.com/s?k=HYTE+Y70+Touch+Infinite&tag=lifeupgrad02b-20"
+        }
+      ],
+      "totalPrice": "~$13,166",
+      "sourceUrl": "https://pcpartpicker.com/list/NBpjn2"
     }
   ],
   "gpuWatch": [
     {
       "model": "NVIDIA GeForce RTX 5080",
-      "url": "https://www.amazon.com/s?k=NVIDIA+GeForce+RTX+5080&tag=lifeupgrad02b-20",
-      "lowestPrice": null,
-      "inStock": null,
-      "checkedAt": null,
-      "stale": true
+      "msrp": "$999",
+      "url": "https://www.amazon.com/s?k=NVIDIA+GeForce+RTX+5080&tag=lifeupgrad02b-20"
     },
     {
       "model": "NVIDIA GeForce RTX 5090",
-      "url": "https://www.amazon.com/s?k=NVIDIA+GeForce+RTX+5090&tag=lifeupgrad02b-20",
-      "lowestPrice": null,
-      "inStock": null,
-      "checkedAt": null,
-      "stale": true
+      "msrp": "$1,999",
+      "url": "https://www.amazon.com/s?k=NVIDIA+GeForce+RTX+5090&tag=lifeupgrad02b-20"
     }
   ]
 }

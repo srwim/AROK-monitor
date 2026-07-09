@@ -22,7 +22,7 @@
     },
     "featuredSystems": {
       "type": "array",
-      "description": "Full builds (best-effort from PCPartPicker featured), components cross-referenced to Amazon.",
+      "description": "Full builds. Components link to Amazon (tagged) by default; parts Amazon doesn't carry link to another store (plain, untagged) via the component 'store' field. A build with empty components + a 'note' renders as coming soon.",
       "items": {
         "type": "object",
         "required": ["name", "components"],
@@ -31,6 +31,7 @@
           "source": { "type": "string" },
           "sourceUrl": { "type": "string" },
           "totalPrice": { "type": "string" },
+          "note": { "type": "string" },
           "components": {
             "type": "array",
             "items": {
@@ -40,7 +41,10 @@
                 "type": { "type": "string" },
                 "name": { "type": "string" },
                 "price": { "type": "string" },
-                "url": { "type": "string", "pattern": "tag=" }
+                "qty": { "type": "integer", "minimum": 1, "description": "Quantity of this identical part in the build. Absent means 1. Price stays per-unit; the build total already accounts for quantity." },
+                "store": { "type": "string", "description": "Retailer for this link. Absent/'Amazon' = tagged affiliate link; any other value = non-Amazon store, plain link." },
+                "image": { "type": "string", "description": "Thumbnail URL. Tier 1 = manually curated; tier 2 = resolved from Open Icecat by brand+MPN in the pipeline; absent = app shows a category icon." },
+                "url": { "type": "string" }
               }
             }
           }
@@ -49,17 +53,14 @@
     },
     "gpuWatch": {
       "type": "array",
-      "description": "Best-effort daily price/availability check for watched GPUs. stale=true means the check failed and the entry carries the last-known values (or nulls).",
+      "description": "Curated watch-list of high-demand GPUs: model, launch-reference MSRP, and a tagged Amazon search link. No live scraping.",
       "items": {
         "type": "object",
         "required": ["model", "url"],
         "properties": {
           "model": { "type": "string" },
-          "url": { "type": "string", "pattern": "tag=" },
-          "lowestPrice": { "type": ["string", "null"] },
-          "inStock": { "type": ["boolean", "null"] },
-          "checkedAt": { "type": ["string", "null"] },
-          "stale": { "type": "boolean" }
+          "msrp": { "type": "string" },
+          "url": { "type": "string", "pattern": "tag=" }
         }
       }
     }

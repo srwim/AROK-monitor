@@ -34,7 +34,19 @@ jobs:
         working-directory: upgrades-pipeline
         env:
           AMAZON_TAG: lifeupgrad02b-20
+          ICECAT_SHOPNAME: ${{ secrets.ICECAT_SHOPNAME }}
+          ICECAT_API_TOKEN: ${{ secrets.ICECAT_API_TOKEN }}
         run: python build_manifest.py
+
+      - name: Report thumbnail coverage
+        run: |
+          python - <<'PY'
+          import json
+          m = json.load(open("upgrades-pipeline/manifest.json"))
+          comps = [c for s in m["featuredSystems"] for c in s["components"]]
+          img = sum(1 for c in comps if c.get("image"))
+          print(f"Icecat thumbnails resolved: {img}/{len(comps)} build components")
+          PY
 
       - name: Sync bundled fallback copy
         run: cp upgrades-pipeline/manifest.json frontend/public/manifest.json

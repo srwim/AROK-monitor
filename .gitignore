@@ -20,6 +20,7 @@ installer_out/
 arok.db
 desktop.log
 models/
+upgrades-pipeline/thumbnail_report.md
 
 # OS
 .DS_Store
