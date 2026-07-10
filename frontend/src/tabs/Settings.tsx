@@ -135,18 +135,34 @@ export default function SettingsTab() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Runtime">
           <dl className="space-y-3 text-sm">
-            <Row label="Demo mode">
-              <button
-                onClick={() => applyRuntime({ demo_mode: !settings?.demo_mode }, `Demo mode ${settings?.demo_mode ? "off — actions live" : "on — actions simulated"}`)}
-                disabled={!settings}
-                className="inline-flex items-center gap-2"
-                title="Toggle whether control actions execute for real or are simulated"
+            <Row label="Control mode">
+              <div
+                className="inline-flex overflow-hidden rounded-lg border border-slate-700 text-xs font-semibold"
+                title="Whether control actions (kill, block IP, stop service) execute for real or are simulated"
               >
-                <Badge tone={settings?.demo_mode ? "amber" : "green"}>
-                  {settings?.demo_mode ? "ON — simulated" : "OFF — live"}
-                </Badge>
-                <span className="text-xs text-cyan-500">change</span>
-              </button>
+                <button
+                  onClick={() => settings?.demo_mode && applyRuntime({ demo_mode: false }, "Control mode set to LIVE — actions execute")}
+                  disabled={!settings}
+                  className={`px-3 py-1.5 transition-colors ${
+                    settings && !settings.demo_mode
+                      ? "bg-emerald-600 text-white"
+                      : "bg-slate-900 text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  LIVE
+                </button>
+                <button
+                  onClick={() => !settings?.demo_mode && applyRuntime({ demo_mode: true }, "Demo mode ON — actions simulated")}
+                  disabled={!settings}
+                  className={`px-3 py-1.5 transition-colors ${
+                    settings?.demo_mode
+                      ? "bg-amber-500 text-slate-950"
+                      : "bg-slate-900 text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  Demo Mode
+                </button>
+              </div>
             </Row>
             <Row label="AI engine">
               <select

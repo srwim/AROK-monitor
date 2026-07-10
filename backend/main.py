@@ -25,12 +25,13 @@ import db
 import hardware
 import licensing
 import monitor
+import netsec
 import optimizer
 import sensors
 import upgrade
 import updater
 
-app = FastAPI(title="AROK Monitor", version="1.6.4")
+app = FastAPI(title="AROK Monitor", version="2.0.0")
 
 _stop = threading.Event()
 
@@ -161,6 +162,43 @@ def processes(limit: int = 25):
 @app.get("/api/network")
 def network(limit: int = 50):
     return monitor.connections(limit)
+
+
+@app.get("/api/network/assess")
+def network_assess(limit: int = 100):
+    """Risk-scored connections + suspicious count + safe-list state."""
+    return netsec.assess(monitor.connections(limit))
+
+
+@app.get("/api/network/safelist")
+def network_safelist():
+    return {"safe": netsec.safe_list()}
+
+
+class NetFlagReq(BaseModel):
+    proc: str | None = None
+    ip: str
+    note: str = ""
+
+
+@app.post("/api/network/flag-safe")
+def network_flag_safe(req: NetFlagReq):
+    return netsec.flag_safe(req.proc, req.ip, req.note)
+
+
+class NetUnflagReq(BaseModel):
+    key: str
+
+
+@app.post("/api/network/unflag")
+def network_unflag(req: NetUnflagReq):
+    return netsec.unflag_safe(req.key)
+
+
+@app.get("/api/network/investigate/{ip}")
+def network_investigate(ip: str):
+    """Deep-dive on a remote IP: reverse DNS, service guess, all local peers."""
+    return netsec.investigate(ip)
 
 
 @app.get("/api/services")
@@ -345,6 +383,34 @@ def ai_config_set(req: AiConfigReq):
 @app.post("/api/ai/download")
 def ai_download():
     return ai.start_download()
+
+
+class AiModelReq(BaseModel):
+    model_id: str
+
+
+@app.post("/api/ai/select-model")
+def ai_select_model(req: AiModelReq):
+    return ai.select_model(req.model_id)
+
+
+class AiLocalPathReq(BaseModel):
+    path: str
+
+
+@app.post("/api/ai/local-path")
+def ai_local_path(req: AiLocalPathReq):
+    return ai.set_local_model_path(req.path)
+
+
+class AiChatReq(BaseModel):
+    message: str
+    history: list[dict] | None = None
+
+
+@app.post("/api/ai/chat")
+def ai_chat(req: AiChatReq):
+    return ai.chat(req.message, req.history)
 
 
 class KillReq(BaseModel):

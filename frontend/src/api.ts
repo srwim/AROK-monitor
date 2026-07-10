@@ -26,6 +26,38 @@ export type Conn = {
   status: string;
 };
 
+// Risk-scored connection (from /api/network/assess).
+export type AssessedConn = Conn & {
+  risk: number;              // 0..100
+  severity: "info" | "warn" | "critical";
+  reasons: string[];
+  safe: boolean;
+  key: string;               // proc|remote-ip identity for the safe-list
+};
+
+export type NetAssess = {
+  connections: AssessedConn[];
+  suspicious: number;
+  safeCount: number;
+  threshold: number;
+};
+
+export type SafeEntry = { proc: string; ip: string; note: string; flaggedAt: number };
+
+export type NetInvestigation = {
+  ok: boolean;
+  ip: string;
+  hostname: string | null;
+  public: boolean;
+  safe: boolean;
+  risk: number;
+  reasons: string[];
+  services: string[];
+  ports: number[];
+  connectionCount: number;
+  processes: { proc: string | null; pid: number | null; laddr: string; raddr: string; status: string }[];
+};
+
 export type Service = {
   name: string;
   display_name: string;
@@ -82,6 +114,15 @@ export type Insight = {
   recommendations?: Recommendation[];
 };
 
+export type ModelCatalogEntry = {
+  id: string;
+  name: string;
+  params: string;
+  sizeGB: number;
+  note: string;
+  url: string;
+};
+
 export type AiConfig = {
   enabled: boolean;
   local_enabled: boolean;
@@ -91,9 +132,15 @@ export type AiConfig = {
   local_model_simulated: boolean;
   model_name: string;
   model_url: string;
+  custom_model_path?: string;
+  selected_model_id?: string;
+  catalog?: ModelCatalogEntry[];
   download: { status: string; pct: number; error: string | null };
   engine: string;
 };
+
+export type ChatReply = { ok: boolean; reply: string; engine: string; detail?: string };
+export type ChatTurn = { role: "user" | "assistant"; content: string };
 
 export type Settings = {
   demo_mode: boolean;
@@ -269,6 +316,12 @@ export const api = {
   stats: () => get<Stats>("/api/stats"),
   processes: (limit = 25) => get<Proc[]>(`/api/processes?limit=${limit}`),
   network: (limit = 50) => get<Conn[]>(`/api/network?limit=${limit}`),
+  networkAssess: (limit = 120) => get<NetAssess>(`/api/network/assess?limit=${limit}`),
+  networkSafelist: () => get<{ safe: SafeEntry[] }>("/api/network/safelist"),
+  networkInvestigate: (ip: string) => get<NetInvestigation>(`/api/network/investigate/${encodeURIComponent(ip)}`),
+  networkFlagSafe: (proc: string | null, ip: string, note = "") =>
+    post<{ ok: boolean; key: string }>("/api/network/flag-safe", { proc, ip, note }),
+  networkUnflag: (key: string) => post<{ ok: boolean }>("/api/network/unflag", { key }),
   services: () => get<Service[]>("/api/services"),
   analytics: (seconds = 3600) => get<Stats[]>(`/api/analytics?seconds=${seconds}`),
   snapshot: (ts: number, resource: "cpu" | "mem" = "cpu") =>
@@ -299,6 +352,9 @@ export const api = {
   setAiConfig: (patch: Partial<{ enabled: boolean; local_enabled: boolean; api_enabled: boolean; api_key: string; model_url: string }>) =>
     post<AiConfig>("/api/ai/config", patch),
   aiDownload: () => post<AiConfig["download"]>("/api/ai/download"),
+  aiSelectModel: (model_id: string) => post<{ ok: boolean; config?: AiConfig; detail?: string }>("/api/ai/select-model", { model_id }),
+  aiLocalPath: (path: string) => post<{ ok: boolean; config?: AiConfig; detail?: string }>("/api/ai/local-path", { path }),
+  aiChat: (message: string, history: ChatTurn[]) => post<ChatReply>("/api/ai/chat", { message, history }),
   optimize: (ids?: string[]) => post<OptimizeResult[]>("/api/optimize", { ids: ids ?? null }),
   gaming: () => get<GamingStatus>("/api/gaming"),
   setGaming: (enabled: boolean) => post<GamingStatus>("/api/gaming", { enabled }),

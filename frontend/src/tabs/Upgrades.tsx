@@ -150,7 +150,7 @@ function PickThumb({ pick }: { pick: Pick }) {
     <button
       onClick={() => openLightbox({ src: pick.image!, title: pick.title, href: pick.url, sponsored: true })}
       title={`${pick.title} — click to enlarge`}
-      className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-white/5 p-1 transition-transform hover:scale-105 focus:outline-none"
+      className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100 p-1 shadow-sm ring-1 ring-slate-700/50 transition-transform hover:scale-105 focus:outline-none"
     >
       {/* card shows the tiny rendition; the lightbox loads the full image */}
       <img src={pick.thumb ?? pick.image} alt={pick.title} loading="lazy" decoding="async" className="h-full w-full object-contain" />
@@ -443,15 +443,17 @@ function AdvisorCard({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const sev = finding.severity;
-  const border = sev === "critical" ? "border-red-800/70" : sev === "warn" ? "border-amber-800/70" : "border-slate-700";
+  const border = sev === "critical" ? "border-red-800/60" : sev === "warn" ? "border-amber-800/60" : "border-slate-700/70";
+  const accent = sev === "critical" ? "bg-red-500" : sev === "warn" ? "bg-amber-500" : "bg-cyan-500";
   const iconColor = sev === "critical" ? "text-red-400" : sev === "warn" ? "text-amber-400" : "text-cyan-400";
   const badgeTone: "red" | "amber" | "cyan" = sev === "critical" ? "red" : sev === "warn" ? "amber" : "cyan";
   return (
-    <div className={`rounded-2xl border ${border} bg-slate-900/50`}>
-      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center gap-3 p-4 text-left">
+    <div className={`relative overflow-hidden rounded-2xl border ${border} bg-gradient-to-br from-slate-900/80 to-slate-900/40 shadow-sm`}>
+      <div className={`absolute inset-y-0 left-0 w-1 ${accent}`} />
+      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center gap-3 py-4 pl-5 pr-4 text-left transition-colors hover:bg-slate-800/30">
         <AlertTriangle size={16} className={`shrink-0 ${iconColor}`} />
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold text-slate-200">{finding.title}</div>
+          <div className="text-sm font-semibold text-slate-100">{finding.title}</div>
           <div className="mt-0.5 truncate text-xs text-slate-500">
             {entry.label}
             {currentPart ? <> — current: <span className="text-slate-400">{currentPart}</span></> : null}
@@ -461,7 +463,7 @@ function AdvisorCard({
         <ChevronDown size={16} className={`shrink-0 text-slate-500 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="border-t border-slate-800 p-4">
+        <div className="border-t border-slate-800/70 py-4 pl-5 pr-4">
           <p className="mb-3 text-xs leading-relaxed text-slate-400">{finding.detail}</p>
           {note && <p className="mb-3 text-xs text-emerald-400">✓ {note}</p>}
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -497,8 +499,9 @@ function PickRow({ pick, kind }: { pick: Pick; kind: "value" | "high" }) {
 }
 
 function BrowseCard({
-  label, entry, currentPart, note, wellEquipped, flagged,
+  categoryKey, label, entry, currentPart, note, wellEquipped, flagged,
 }: {
+  categoryKey: string;
   label: string;
   entry: ComponentUpgrade;
   currentPart: string | null;
@@ -506,10 +509,16 @@ function BrowseCard({
   wellEquipped: boolean;
   flagged?: Severity;
 }) {
+  const Icon = CATEGORY_ICONS[categoryKey] ?? Package;
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
-      <div className="mb-1 flex items-center justify-between gap-2">
-        <h4 className="text-sm font-semibold text-slate-200">{label}</h4>
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 transition-colors hover:border-slate-700/80 hover:bg-slate-900/60">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-slate-800/80 text-cyan-500 ring-1 ring-inset ring-slate-700/50">
+            <Icon size={14} />
+          </span>
+          <h4 className="truncate text-sm font-semibold text-slate-200">{label}</h4>
+        </div>
         {flagged ? (
           <Badge tone={flagged === "critical" ? "red" : flagged === "warn" ? "amber" : "cyan"}>see advisor</Badge>
         ) : wellEquipped ? (
@@ -517,12 +526,12 @@ function BrowseCard({
         ) : null}
       </div>
       {currentPart && (
-        <div className="mb-1 truncate text-xs text-slate-500" title={currentPart}>
+        <div className="mb-1 truncate pl-[38px] text-xs text-slate-500" title={currentPart}>
           Current: <span className="text-slate-400">{currentPart}</span>
         </div>
       )}
-      {note && <div className="mb-2 text-[11px] leading-snug text-slate-600">{note}</div>}
-      <div className="divide-y divide-slate-800/60">
+      {note && <div className="mb-2 pl-[38px] text-[11px] leading-snug text-slate-600">{note}</div>}
+      <div className="mt-1 divide-y divide-slate-800/60 border-t border-slate-800/60">
         <PickRow pick={entry.bangForBuck} kind="value" />
         <PickRow pick={entry.highEnd} kind="high" />
       </div>
@@ -536,6 +545,12 @@ function BrowseCard({
 const COMPONENT_ICONS: Record<string, LucideIcon> = {
   CPU: Cpu, GPU: Microchip, Memory: MemoryStick, Storage: HardDrive,
   Motherboard: CircuitBoard, PSU: Power, Cooler: Fan, Case: Computer,
+};
+
+// Same icon set keyed by manifest category id (browse cards).
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  cpu: Cpu, gpu: Microchip, ram: MemoryStick, storage: HardDrive,
+  motherboard: CircuitBoard, psu: Power, cooler: Fan, case: Computer,
 };
 
 function ComponentThumb({ c }: { c: SystemComponent }) {
@@ -554,7 +569,7 @@ function ComponentThumb({ c }: { c: SystemComponent }) {
           })
         }
         title={`${c.name} — click to enlarge`}
-        className={`${box} shrink-0 overflow-hidden rounded-md bg-white/5 p-0.5 transition-transform hover:scale-110 focus:outline-none`}
+        className={`${box} shrink-0 overflow-hidden rounded-md bg-slate-100 p-0.5 shadow-sm ring-1 ring-slate-700/50 transition-transform hover:scale-110 focus:outline-none`}
       >
         {/* row shows the tiny rendition; the lightbox loads the full image */}
         <img src={c.thumb ?? c.image} alt={c.name} loading="lazy" decoding="async" className="h-full w-full object-contain" />
@@ -563,7 +578,7 @@ function ComponentThumb({ c }: { c: SystemComponent }) {
   }
   const Icon = COMPONENT_ICONS[c.type] ?? Package;
   return (
-    <div className={`${box} grid shrink-0 place-items-center rounded-md bg-slate-800/60 text-slate-500`}>
+    <div className={`${box} grid shrink-0 place-items-center rounded-md bg-slate-800/60 text-slate-500 ring-1 ring-inset ring-slate-700/40`}>
       <Icon size={big ? 22 : 16} />
     </div>
   );
@@ -644,14 +659,19 @@ function GpuWatch({ entries }: { entries: GpuWatchEntry[] }) {
       <ul className="divide-y divide-slate-800/70">
         {entries.map((g) => (
           <li key={g.model} className="flex items-center justify-between gap-3 py-2.5">
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium text-slate-200">{g.model}</div>
-              <div className="mt-0.5 text-xs text-slate-500">
-                {g.msrp ? (
-                  <>MSRP <span className="tabular-nums text-slate-300">{g.msrp}</span></>
-                ) : (
-                  "reference price unavailable"
-                )}
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-slate-800/80 text-emerald-400 ring-1 ring-inset ring-slate-700/50">
+                <Microchip size={15} />
+              </span>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-medium text-slate-200">{g.model}</div>
+                <div className="mt-0.5 text-xs text-slate-500">
+                  {g.msrp ? (
+                    <>MSRP <span className="tabular-nums text-slate-300">{g.msrp}</span></>
+                  ) : (
+                    "reference price unavailable"
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
@@ -757,13 +777,15 @@ function Segmented({ view, setView, findingCount }: { view: View; setView: (v: V
     { id: "builds", label: "Full Builds" },
   ];
   return (
-    <div className="inline-flex rounded-lg border border-slate-800 bg-slate-900/60 p-0.5">
+    <div className="inline-flex rounded-lg border border-slate-800 bg-slate-950/60 p-0.5 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]">
       {items.map((it) => (
         <button
           key={it.id}
           onClick={() => setView(it.id)}
-          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-            view === it.id ? "bg-cyan-950/80 text-cyan-300" : "text-slate-400 hover:text-slate-200"
+          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+            view === it.id
+              ? "bg-cyan-950/80 text-cyan-300 shadow-[0_1px_4px_rgba(0,0,0,0.4)] ring-1 ring-inset ring-cyan-500/25"
+              : "text-slate-400 hover:text-slate-200"
           }`}
         >
           {it.label}
@@ -867,15 +889,20 @@ export default function UpgradesTab() {
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="space-y-3 lg:col-span-2">
             {findings.length === 0 ? (
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/40 p-4">
-                <ShieldCheck size={18} className="shrink-0 text-emerald-400" />
-                <p className="text-sm text-slate-400">
-                  Nothing urgent — your system is running within healthy bounds. See{" "}
-                  <button className="text-cyan-400 underline underline-offset-2" onClick={() => setView("components")}>
-                    Components
-                  </button>{" "}
-                  if you're planning ahead.
-                </p>
+              <div className="flex items-center gap-3.5 rounded-2xl border border-emerald-900/40 bg-gradient-to-br from-emerald-950/30 to-slate-900/40 p-5">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-950/70 text-emerald-400 ring-1 ring-inset ring-emerald-500/25">
+                  <ShieldCheck size={20} />
+                </span>
+                <div>
+                  <div className="text-sm font-semibold text-emerald-300">All clear</div>
+                  <p className="mt-0.5 text-sm text-slate-400">
+                    Nothing urgent — your system is running within healthy bounds. See{" "}
+                    <button className="text-cyan-400 underline underline-offset-2 hover:text-cyan-300" onClick={() => setView("components")}>
+                      Components
+                    </button>{" "}
+                    if you're planning ahead.
+                  </p>
+                </div>
               </div>
             ) : (
               findings.map((f, i) =>
@@ -904,6 +931,7 @@ export default function UpgradesTab() {
           {categories.map(([key, entry]) => (
             <BrowseCard
               key={key}
+              categoryKey={key}
               label={entry.label}
               entry={entry}
               currentPart={currentParts[key] ?? null}

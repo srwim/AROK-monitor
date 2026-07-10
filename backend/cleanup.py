@@ -76,6 +76,26 @@ def tron_info() -> dict:
     }
 
 
+import re as _re
+
+
+def _normalize_sha256(raw: str) -> str:
+    """Extract a clean 64-hex SHA-256 from a pasted string.
+
+    People paste checksums copied from forum posts, which arrive with a
+    'SHA-256:' label, surrounding whitespace/newlines, the filename appended
+    ('<hash>  Tron.exe'), or internal spaces. Pull out the first 64-hex run so
+    verification isn't defeated by formatting. Returns '' if none is present.
+    """
+    m = _re.search(r"\b[a-fA-F0-9]{64}\b", raw or "")
+    if m:
+        return m.group(0).lower()
+    # Fallback: strip every non-hex char, then take 64 if that's all that's left
+    # (handles a hash broken by internal spaces, e.g. copied from a table).
+    hexonly = _re.sub(r"[^a-fA-F0-9]", "", raw or "")
+    return hexonly.lower() if len(hexonly) == 64 else ""
+
+
 def verify_file_sha256(path: str, expected_sha256: str) -> dict:
     import hashlib
     if not path or not os.path.isfile(path):
@@ -88,9 +108,21 @@ def verify_file_sha256(path: str, expected_sha256: str) -> dict:
         digest = h.hexdigest().lower()
     except Exception as e:
         return {"ok": False, "detail": f"Could not read file: {e}"}
-    exp = (expected_sha256 or "").strip().lower()
-    match = bool(exp) and digest == exp
-    return {"ok": match, "digest": digest, "expected": exp, "detail": "Checksum match." if match else "Checksum DOES NOT match — do not run this file."}
+    exp = _normalize_sha256(expected_sha256)
+    if not exp:
+        return {
+            "ok": False, "digest": digest, "expected": "",
+            "detail": "No valid SHA-256 found in the pasted text — it should contain 64 hex characters.",
+        }
+    match = digest == exp
+    detail = (
+        "Checksum match — file is authentic."
+        if match
+        else "Checksum DOES NOT match — do not run this file. "
+             "Tip: Tron's official checksum is for the downloaded Tron .exe pack; "
+             "point AROK at that file, not tron.bat inside the extracted folder."
+    )
+    return {"ok": match, "digest": digest, "expected": exp, "detail": detail}
 
 
 def launch_tron(tron_bat_path: str, make_restore_point: bool = True) -> dict:

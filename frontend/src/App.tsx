@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
-  Activity, Cpu, Network, Cog, BarChart3, Sparkles, Bell, Settings as SettingsIcon, Gamepad2, ArrowUpCircle, Trash2, RefreshCw,
+  Activity, Cpu, Network, Cog, BarChart3, Sparkles, Settings as SettingsIcon, Gamepad2, ArrowUpCircle, Trash2, RefreshCw,
 } from "lucide-react";
 import { usePolling } from "./hooks";
 import { api, type GamingStatus } from "./api";
@@ -12,7 +12,6 @@ const NetworkTab = lazy(() => import("./tabs/Network"));
 const ServicesTab = lazy(() => import("./tabs/Services"));
 const AnalyticsTab = lazy(() => import("./tabs/Analytics"));
 const InsightsTab = lazy(() => import("./tabs/Insights"));
-const AlertsTab = lazy(() => import("./tabs/Alerts"));
 const CleanupTab = lazy(() => import("./tabs/Cleanup"));
 const UpgradesTab = lazy(() => import("./tabs/Upgrades"));
 const SettingsTab = lazy(() => import("./tabs/Settings"));
@@ -25,7 +24,6 @@ const TABS = [
   { id: "cleanup", label: "Cleanup", icon: Trash2 },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "insights", label: "AI Insights", icon: Sparkles },
-  { id: "alerts", label: "Alerts", icon: Bell },
   { id: "upgrades", label: "Upgrades", icon: ArrowUpCircle },
   { id: "settings", label: "Settings", icon: SettingsIcon },
 ] as const;
@@ -122,7 +120,7 @@ export default function App() {
             >
               <Icon size={16} />
               {label}
-              {id === "alerts" && unacked > 0 && (
+              {id === "analytics" && unacked > 0 && (
                 <span className="ml-auto rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white">{unacked}</span>
               )}
             </button>
@@ -184,19 +182,21 @@ export default function App() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-6">
-        <Suspense fallback={<TabFallback />}>
-          {tab === "dashboard" && <DashboardTab />}
-          {tab === "processes" && <ProcessesTab />}
-          {tab === "network" && <NetworkTab />}
-          {tab === "services" && <ServicesTab />}
-          {tab === "cleanup" && <CleanupTab />}
-          {tab === "analytics" && <AnalyticsTab />}
-          {tab === "insights" && <InsightsTab />}
-          {tab === "alerts" && <AlertsTab />}
-          {tab === "upgrades" && <UpgradesTab />}
-          {tab === "settings" && <SettingsTab />}
-        </Suspense>
+      <main className="flex flex-1 flex-col overflow-y-auto">
+        <div className="flex-1 p-6">
+          <Suspense fallback={<TabFallback />}>
+            {tab === "dashboard" && <DashboardTab />}
+            {tab === "processes" && <ProcessesTab />}
+            {tab === "network" && <NetworkTab />}
+            {tab === "services" && <ServicesTab />}
+            {tab === "cleanup" && <CleanupTab />}
+            {tab === "analytics" && <AnalyticsTab />}
+            {tab === "insights" && <InsightsTab />}
+            {tab === "upgrades" && <UpgradesTab />}
+            {tab === "settings" && <SettingsTab />}
+          </Suspense>
+        </div>
+        <AppFooter />
       </main>
 
       <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2">
@@ -226,5 +226,34 @@ export default function App() {
         ))}
       </div>
     </div>
+  );
+}
+
+// App-wide footer: attribution + license.
+function AppFooter() {
+  const year = new Date().getFullYear();
+  return (
+    <footer className="border-t border-slate-800/70 px-6 py-3 text-[11px] text-slate-600">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span>
+          © {year}{" "}
+          <a href="https://sol-tek.us" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-cyan-400">
+            Sol-Tek
+          </a>{" "}
+          · powered by{" "}
+          <a href="https://arok.ai/arok-monitor" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-cyan-400">
+            Arok.ai
+          </a>
+        </span>
+        <a
+          href="https://github.com/srwim/AROK-monitor/blob/main/LICENSE"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-slate-600 hover:text-cyan-400"
+        >
+          MIT License
+        </a>
+      </div>
+    </footer>
   );
 }

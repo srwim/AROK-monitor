@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Sparkles, RefreshCw, Download, Cloud, HardDrive, Power, Wrench,
-  Check, X, ExternalLink, Key, ChevronRight,
+  Check, X, ExternalLink, Key, ChevronRight, FolderOpen, Send,
 } from "lucide-react";
-import { api, type Insight, type OptimizeResult, type CloudConnection } from "../api";
+import { api, type Insight, type OptimizeResult, type CloudConnection, type AiConfig, type ChatTurn } from "../api";
 import { usePolling, fmtTime } from "../hooks";
 import { Panel, Badge } from "../components/ui";
 
@@ -100,17 +100,23 @@ function RecommendationsPanel({ insight }: { insight: Insight | null }) {
 // ── Local model panel ─────────────────────────────────────────────────────────
 
 function LocalModelPanel({
-  config, expanded, onToggle, onDownload,
+  config, expanded, onToggle, onDownload, onSelectModel, onBrowse, busy,
 }: {
-  config: { local_enabled: boolean; local_model_ready: boolean; local_model_simulated: boolean; download: { status: string; pct: number; error: string | null } } | null;
+  config: AiConfig | null;
   expanded: boolean;
   onToggle: (v: boolean) => void;
   onDownload: () => void;
+  onSelectModel: (id: string) => void;
+  onBrowse: () => void;
+  busy?: boolean;
 }) {
   const downloading = config?.download.status === "downloading";
+  const modelName = config?.model_name ?? "a local model";
+  const catalog = config?.catalog ?? [];
+  const selectedId = config?.selected_model_id ?? "gemma-2-2b";
+  const selected = catalog.find((m) => m.id === selectedId);
 
   if (!expanded) {
-    // Minimised: compact card
     return (
       <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-900/30 p-4">
         <div className="flex items-center gap-3">
@@ -118,15 +124,11 @@ function LocalModelPanel({
           <div>
             <div className="text-sm font-medium text-slate-400">Local Model</div>
             <div className="text-xs text-slate-600">
-              {config?.local_model_ready ? "Gemma 2 2B installed" : "Not downloaded"}
+              {config?.local_model_ready ? `${modelName} installed` : "Not downloaded"}
             </div>
           </div>
         </div>
-        <Toggle
-          checked={config?.local_enabled ?? false}
-          disabled={!config?.local_model_ready}
-          onChange={onToggle}
-        />
+        <Toggle checked={config?.local_enabled ?? false} disabled={!config?.local_model_ready} onChange={onToggle} />
       </div>
     );
   }
@@ -137,19 +139,16 @@ function LocalModelPanel({
       action={
         <div className="flex items-center gap-3">
           <HardDrive size={14} className="text-slate-500" />
-          <Toggle
-            checked={config?.local_enabled ?? false}
-            disabled={!config?.local_model_ready}
-            onChange={onToggle}
-          />
+          <Toggle checked={config?.local_enabled ?? false} disabled={!config?.local_model_ready} onChange={onToggle} />
         </div>
       }
     >
       {config?.local_model_ready ? (
         <div className="space-y-3">
           <p className="text-sm text-slate-400">
-            Gemma 2 2B is installed
+            <span className="font-medium text-slate-300">{modelName}</span> is installed
             {config.local_model_simulated ? " (simulated download — demo mode)" : ""}.
+            {config.custom_model_path ? " (your own model file)" : ""}
             {config.local_enabled
               ? " Narration runs entirely on this machine — no API key, no network."
               : " Toggle on to use it for narration."}
@@ -157,39 +156,182 @@ function LocalModelPanel({
           {config.local_enabled && (
             <div className="rounded-lg bg-slate-800/60 px-4 py-3 text-sm text-slate-300">
               <span className="font-medium text-emerald-400">● Active</span> — All inference runs locally.
-              Max context: 2 048 tokens · Temperature: 0.3 (fixed for deterministic narration).
+              Context 2 048 tokens · narration temperature 0.3.
             </div>
           )}
+          <details className="text-xs text-slate-500">
+            <summary className="cursor-pointer hover:text-slate-300">Change model</summary>
+            <div className="mt-3">
+              <ModelPicker catalog={catalog} selectedId={selectedId} onSelect={onSelectModel} onBrowse={onBrowse}
+                onDownload={onDownload} downloadLabel={`Re-download ${selected?.name ?? "model"}`} busy={busy} />
+            </div>
+          </details>
         </div>
       ) : downloading ? (
         <div>
           <div className="mb-1.5 flex justify-between text-xs text-slate-500">
-            <span>Downloading Gemma 2 2B (~1.7 GB)…</span>
+            <span>Downloading {modelName}…</span>
             <span className="tabular-nums">{config?.download.pct.toFixed(0)}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 transition-all duration-300"
-              style={{ width: `${config?.download.pct ?? 0}%` }}
-            />
+            <div className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 transition-all duration-300"
+              style={{ width: `${config?.download.pct ?? 0}%` }} />
           </div>
           <p className="mt-2 text-xs text-slate-600">Runs in the background — keep using AROK normally.</p>
         </div>
       ) : (
         <div className="space-y-3">
           <p className="text-sm text-slate-400">
-            Download the model once (~1.7 GB) and narration never leaves this machine. No account,
-            no API key, no network needed afterwards.
+            Pick an open-source model to download, or point AROK at a GGUF you already have. Once local,
+            narration never leaves this machine — no account, no API key, no network.
           </p>
-          <button
-            onClick={onDownload}
-            className="flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-200 hover:bg-slate-700"
-          >
-            <Download size={14} /> Download Gemma 2 2B
-          </button>
+          <ModelPicker catalog={catalog} selectedId={selectedId} onSelect={onSelectModel} onBrowse={onBrowse}
+            onDownload={onDownload} downloadLabel={`Download ${selected?.name ?? "model"}${selected ? ` (~${selected.sizeGB} GB)` : ""}`} busy={busy} />
           {config?.download.status === "error" && (
             <p className="text-xs text-red-400">Download failed: {config.download.error}</p>
           )}
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+// Curated model menu + browse-to-your-own + download.
+function ModelPicker({
+  catalog, selectedId, onSelect, onBrowse, onDownload, downloadLabel, busy,
+}: {
+  catalog: AiConfig["catalog"];
+  selectedId: string;
+  onSelect: (id: string) => void;
+  onBrowse: () => void;
+  onDownload: () => void;
+  downloadLabel: string;
+  busy?: boolean;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        {(catalog ?? []).map((m) => {
+          const on = m.id === selectedId;
+          return (
+            <button
+              key={m.id}
+              onClick={() => onSelect(m.id)}
+              className={`flex w-full items-center gap-3 rounded-lg border p-2.5 text-left transition-colors ${
+                on ? "border-cyan-700/60 bg-cyan-950/40" : "border-slate-800 bg-slate-900/40 hover:border-slate-700"
+              }`}
+            >
+              <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full border ${on ? "border-cyan-400" : "border-slate-600"}`}>
+                {on && <span className="h-2 w-2 rounded-full bg-cyan-400" />}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-slate-200">{m.name}</span>
+                  <Badge tone="slate">{m.params}</Badge>
+                </span>
+                <span className="mt-0.5 block text-[11px] leading-snug text-slate-500">{m.note}</span>
+              </span>
+              <span className="shrink-0 text-xs tabular-nums text-slate-500">~{m.sizeGB} GB</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          onClick={onDownload}
+          disabled={busy}
+          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-cyan-600 to-blue-700 px-3 py-1.5 text-sm font-semibold text-white hover:from-cyan-500 hover:to-blue-600 disabled:opacity-50"
+        >
+          <Download size={14} /> {downloadLabel}
+        </button>
+        <button
+          onClick={onBrowse}
+          disabled={busy}
+          className="inline-flex items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-300 ring-1 ring-inset ring-slate-600/30 hover:bg-slate-700 disabled:opacity-50"
+        >
+          <FolderOpen size={14} /> Use my own GGUF…
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Chat with the loaded model ────────────────────────────────────────────────
+function ChatPanel({ engine }: { engine: string }) {
+  const [open, setOpen] = useState(false);
+  const [turns, setTurns] = useState<ChatTurn[]>([]);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [turns, busy]);
+
+  const send = async () => {
+    const msg = input.trim();
+    if (!msg || busy) return;
+    const next = [...turns, { role: "user" as const, content: msg }];
+    setTurns(next);
+    setInput("");
+    setBusy(true);
+    try {
+      const r = await api.aiChat(msg, next);
+      setTurns([...next, { role: "assistant", content: r.reply || "(no reply)" }]);
+    } catch {
+      setTurns([...next, { role: "assistant", content: "Chat request failed." }]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Panel
+      title="Chat with the model"
+      action={
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-slate-600">{engine}</span>
+          <Toggle checked={open} onChange={setOpen} />
+        </div>
+      }
+    >
+      {!open ? (
+        <p className="text-sm text-slate-500">
+          Toggle on to chat directly with the active engine. Runs on whichever model is loaded — local stays on your machine.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          <div className="max-h-72 space-y-2 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+            {turns.length === 0 ? (
+              <p className="py-6 text-center text-xs text-slate-600">Ask anything — e.g. “what should I check if my PC feels slow?”</p>
+            ) : (
+              turns.map((t, i) => (
+                <div key={i} className={`flex ${t.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
+                    t.role === "user" ? "bg-cyan-950/70 text-cyan-100" : "bg-slate-800/80 text-slate-200"
+                  }`}>
+                    {t.content}
+                  </div>
+                </div>
+              ))
+            )}
+            {busy && <div className="flex justify-start"><div className="rounded-2xl bg-slate-800/80 px-3 py-2 text-sm text-slate-500">thinking…</div></div>}
+            <div ref={endRef} />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") send(); }}
+              placeholder="Type a message…"
+              className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:border-cyan-700 focus:outline-none"
+            />
+            <button
+              onClick={send}
+              disabled={busy || !input.trim()}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-950 px-3 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-900 disabled:opacity-40"
+            >
+              <Send size={14} /> Send
+            </button>
+          </div>
         </div>
       )}
     </Panel>
@@ -482,10 +624,32 @@ export default function InsightsTab() {
     }
   };
 
+  const [modelBusy, setModelBusy] = useState(false);
+
   const patch = async (p: Parameters<typeof api.setAiConfig>[0]) => {
     await api.setAiConfig(p);
     refetchConfig();
     setManual(await api.insights());
+  };
+
+  const selectModel = async (id: string) => {
+    setModelBusy(true);
+    try { await api.aiSelectModel(id); refetchConfig(); } finally { setModelBusy(false); }
+  };
+
+  const browseModel = async () => {
+    setModelBusy(true);
+    try {
+      const r = await api.pickFile(["gguf"]);
+      if (r.ok && r.path) { await api.aiLocalPath(r.path); refetchConfig(); }
+    } finally { setModelBusy(false); }
+  };
+
+  const localProps = {
+    onSelectModel: selectModel,
+    onBrowse: browseModel,
+    onDownload: () => api.aiDownload().then(refetchConfig),
+    busy: modelBusy,
   };
 
   const onConnectionChange = () => {
@@ -558,7 +722,7 @@ export default function InsightsTab() {
             config={config}
             expanded
             onToggle={(v) => patch({ local_enabled: v })}
-            onDownload={() => api.aiDownload().then(refetchConfig)}
+            {...localProps}
           />
           <CloudModelPanel
             config={config}
@@ -582,7 +746,7 @@ export default function InsightsTab() {
             config={config}
             expanded={false}
             onToggle={(v) => patch({ local_enabled: v })}
-            onDownload={() => api.aiDownload().then(refetchConfig)}
+            {...localProps}
           />
         </div>
       ) : (
@@ -592,7 +756,7 @@ export default function InsightsTab() {
             config={config}
             expanded
             onToggle={(v) => patch({ local_enabled: v })}
-            onDownload={() => api.aiDownload().then(refetchConfig)}
+            {...localProps}
           />
           <CloudModelPanel
             config={config}
@@ -603,6 +767,9 @@ export default function InsightsTab() {
           />
         </div>
       )}
+
+      {/* Chat with whichever engine is active */}
+      {(localActive || cloudActive) && <ChatPanel engine={config?.engine ?? "local"} />}
 
       {/* Narrative */}
       <Panel

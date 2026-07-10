@@ -26,6 +26,31 @@ MODEL_FILE = os.path.join(MODEL_DIR, "gemma-2-2b-it-q4.gguf")
 MODEL_NAME = "Gemma 2 2B"
 MODEL_SIZE = 1_708_582_752  # gemma-2-2b-it Q4_K_M, exact bytes
 
+# Curated menu of small, open-source, ungated Q4_K_M GGUF models the user can
+# download in-app. All narrate fine on CPU; larger ones read more fluently but
+# take longer. sizeGB is the on-disk download size. The user can also point AROK
+# at a GGUF already on disk (set_local_model_path) instead of downloading.
+MODEL_CATALOG = [
+    {"id": "qwen2.5-1.5b", "name": "Qwen2.5 1.5B Instruct", "params": "1.5B", "sizeGB": 1.1,
+     "note": "Smallest & fastest — good on low-end machines.",
+     "url": "https://huggingface.co/bartowski/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/Qwen2.5-1.5B-Instruct-Q4_K_M.gguf"},
+    {"id": "gemma-2-2b", "name": "Gemma 2 2B Instruct", "params": "2B", "sizeGB": 1.7,
+     "note": "AROK's default — balanced quality and size.",
+     "url": "https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf"},
+    {"id": "llama-3.2-3b", "name": "Llama 3.2 3B Instruct", "params": "3B", "sizeGB": 2.0,
+     "note": "Strong general reasoning for its size.",
+     "url": "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf"},
+    {"id": "qwen2.5-3b", "name": "Qwen2.5 3B Instruct", "params": "3B", "sizeGB": 2.0,
+     "note": "Excellent instruction following.",
+     "url": "https://huggingface.co/bartowski/Qwen2.5-3B-Instruct-GGUF/resolve/main/Qwen2.5-3B-Instruct-Q4_K_M.gguf"},
+    {"id": "phi-3.5-mini", "name": "Phi-3.5 Mini Instruct", "params": "3.8B", "sizeGB": 2.4,
+     "note": "Microsoft's compact model — sharp on structured tasks.",
+     "url": "https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf"},
+    {"id": "mistral-7b", "name": "Mistral 7B Instruct v0.3", "params": "7B", "sizeGB": 4.4,
+     "note": "Most fluent — needs ~6 GB free RAM and is slower on CPU.",
+     "url": "https://huggingface.co/bartowski/Mistral-7B-Instruct-v0.3-GGUF/resolve/main/Mistral-7B-Instruct-v0.3-Q4_K_M.gguf"},
+]
+
 # Real, public, ungated GGUF (HuggingFace) so the in-app download works out of
 # the box — no longer a demo simulation. Override with AROK_MODEL_URL or the
 # stored "ai_model_url" setting (Settings → AI engine) to use a different model.
@@ -59,17 +84,33 @@ def _api_key() -> str:
     return db.get_setting("ai_api_key", "") or os.environ.get("AROK_ANTHROPIC_KEY", "")
 
 
+def _custom_path() -> str:
+    """A user-selected GGUF already on disk, if set and present."""
+    p = db.get_setting("ai_local_model_path", "") or ""
+    return p if (p and os.path.exists(p)) else ""
+
+
+def _effective_model_file() -> str:
+    """The local model AROK should load: a user-picked file wins over the
+    in-app downloaded one."""
+    return _custom_path() or MODEL_FILE
+
+
 def model_ready() -> bool:
-    return os.path.exists(MODEL_FILE)
+    return bool(_custom_path()) or os.path.exists(MODEL_FILE)
 
 
 def _model_simulated() -> bool:
-    return model_ready() and os.path.getsize(MODEL_FILE) < 10_000_000
+    """True only for the tiny placeholder written by the demo download."""
+    if _custom_path():
+        return False
+    return os.path.exists(MODEL_FILE) and os.path.getsize(MODEL_FILE) < 10_000_000
 
 
 def get_config() -> dict:
     with _dl_lock:
         dl = dict(_download)
+    custom = _custom_path()
     return {
         "enabled": _flag("ai_enabled"),
         "local_enabled": _flag("ai_local_enabled"),
@@ -77,11 +118,49 @@ def get_config() -> dict:
         "api_key_set": bool(_api_key()),
         "local_model_ready": model_ready(),
         "local_model_simulated": _model_simulated(),
-        "model_name": MODEL_NAME,
+        "model_name": db.get_setting("ai_model_name", "") or MODEL_NAME,
         "model_url": model_url(),
+        "custom_model_path": custom,
+        "selected_model_id": db.get_setting("ai_model_id", "") or "gemma-2-2b",
+        "catalog": MODEL_CATALOG,
         "download": dl,
         "engine": engine_name(),
     }
+
+
+def select_model(model_id: str) -> dict:
+    """Choose which catalogued model the in-app download will fetch. Clears any
+    custom path so the downloaded model becomes the active one."""
+    entry = next((m for m in MODEL_CATALOG if m["id"] == model_id), None)
+    if not entry:
+        return {"ok": False, "detail": "unknown model id"}
+    db.set_setting("ai_model_url", entry["url"])
+    db.set_setting("ai_model_name", entry["name"])
+    db.set_setting("ai_model_id", entry["id"])
+    db.set_setting("ai_local_model_path", "")  # downloading supersedes a custom file
+    db.log_event("ai", f"selected model {entry['name']}")
+    return {"ok": True, "config": get_config()}
+
+
+def set_local_model_path(path: str) -> dict:
+    """Point AROK at a GGUF already on disk instead of downloading. Basic
+    validation only; llama-cpp reports load errors at narration time."""
+    global _local_llm
+    path = (path or "").strip().strip('"')
+    if not path:
+        db.set_setting("ai_local_model_path", "")
+        _local_llm = None
+        db.log_event("ai", "custom model path cleared")
+        return {"ok": True, "config": get_config()}
+    if not os.path.exists(path):
+        return {"ok": False, "detail": "file not found"}
+    if not path.lower().endswith(".gguf"):
+        return {"ok": False, "detail": "not a .gguf file"}
+    db.set_setting("ai_local_model_path", path)
+    db.set_setting("ai_model_name", os.path.basename(path))
+    _local_llm = None  # reload from the new path on next use
+    db.log_event("ai", f"using local model file: {os.path.basename(path)}")
+    return {"ok": True, "config": get_config()}
 
 
 def set_config(enabled=None, local_enabled=None, api_enabled=None, api_key=None, model_url=None) -> dict:
@@ -185,7 +264,7 @@ def _try_local():
     if model_ready() and not _model_simulated():
         try:
             from llama_cpp import Llama
-            _local_llm = Llama(model_path=MODEL_FILE, n_ctx=2048, verbose=False)
+            _local_llm = Llama(model_path=_effective_model_file(), n_ctx=2048, verbose=False)
         except Exception:
             _local_llm = False
     else:
@@ -228,6 +307,49 @@ def _narrate_with_model(prompt: str) -> str | None:
         except Exception:
             pass
     return None
+
+
+def chat(message: str, history: list | None = None) -> dict:
+    """Free-form chat with the active AI engine (local model, else cloud).
+    Returns {ok, reply, engine}. Never raises; degrades to a clear message
+    when no engine is available."""
+    message = (message or "").strip()
+    if not message:
+        return {"ok": False, "reply": "", "engine": engine_name(), "detail": "empty message"}
+    if not _flag("ai_enabled"):
+        return {"ok": False, "reply": "AI insights are off — enable them to chat.", "engine": "off"}
+
+    system = ("You are AROK, a concise assistant embedded in a Windows system "
+              "monitor. Answer briefly and practically. You cannot see live "
+              "metrics in this chat unless the user pastes them.")
+
+    # local model: use its chat template when available
+    if _flag("ai_local_enabled"):
+        llm = _try_local()
+        if llm:
+            try:
+                msgs = [{"role": "system", "content": system}]
+                for turn in (history or [])[-8:]:
+                    role = "assistant" if turn.get("role") == "assistant" else "user"
+                    msgs.append({"role": role, "content": str(turn.get("content", ""))})
+                msgs.append({"role": "user", "content": message})
+                out = llm.create_chat_completion(messages=msgs, max_tokens=400, temperature=0.4)
+                reply = out["choices"][0]["message"]["content"].strip()
+                return {"ok": True, "reply": reply, "engine": engine_name()}
+            except Exception as e:
+                return {"ok": False, "reply": f"Local model error: {e}", "engine": engine_name()}
+
+    # cloud: reuse the narrator transport with a plain prompt
+    if _flag("ai_api_enabled") and _api_key():
+        convo = "\n".join(f"{t.get('role','user')}: {t.get('content','')}" for t in (history or [])[-8:])
+        prompt = f"{system}\n\n{convo}\nuser: {message}\nassistant:"
+        reply = _narrate_with_model(prompt)
+        if reply:
+            return {"ok": True, "reply": reply.strip(), "engine": engine_name()}
+
+    return {"ok": False, "engine": engine_name(),
+            "reply": "No chat-capable engine is active. Download or select a local model, "
+                     "or connect the Anthropic API, then try again."}
 
 
 def narrate_system(latest: dict, alerts: list, history: list, recs: list | None = None) -> dict:

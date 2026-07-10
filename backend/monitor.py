@@ -98,6 +98,27 @@ def _proc_snapshot_payload(limit: int = 20):
     ]
 
 
+# Suspicious network endpoints already alerted this session (keyed by
+# netsec endpoint key) so a persistent bad connection doesn't re-alert
+# on every scan.
+_net_alerted: set[str] = set()
+NET_SCAN_EVERY = 10  # scan connections every Nth sampler tick
+
+
+def _scan_network_findings():
+    """Deterministic suspicious-connection findings → alerts (netsec module)."""
+    try:
+        import netsec
+        for f in netsec.findings(connections(200)):
+            key = f.get("key") or f.get("message", "")
+            if key in _net_alerted:
+                continue
+            _net_alerted.add(key)
+            db.insert_alert(f["severity"], "network", f["message"], float(f.get("risk", 0)))
+    except Exception:
+        pass
+
+
 def sampler_loop(stop: threading.Event):
     psutil.cpu_percent(interval=None)  # prime
     tick = 0
@@ -109,6 +130,8 @@ def sampler_loop(stop: threading.Event):
         db.insert_metric(snap)
         for severity, metric, message, value in detect_anomalies(snap):
             db.insert_alert(severity, metric, message, value)
+        if tick % NET_SCAN_EVERY == 0:
+            _scan_network_findings()
         if tick % SNAPSHOT_EVERY == 0:
             try:
                 db.insert_proc_snapshot(snap["ts"], _proc_snapshot_payload())

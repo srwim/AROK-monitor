@@ -31,9 +31,9 @@ export function NumberTicker({ value, decimals = 1, suffix = "" }: { value: numb
 
 export function Panel({ title, children, action }: { title: string; children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/50 backdrop-blur">
-      <div className="flex items-center justify-between border-b border-slate-800 px-4 py-2.5">
-        <h3 className="text-sm font-semibold tracking-wide text-slate-300">{title}</h3>
+    <div className="overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/50 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.03),0_10px_30px_-18px_rgba(0,0,0,0.7)] backdrop-blur">
+      <div className="flex items-center justify-between border-b border-slate-800/80 bg-gradient-to-b from-white/[0.03] to-transparent px-4 py-2.5">
+        <h3 className="text-sm font-semibold tracking-wide text-slate-200">{title}</h3>
         {action}
       </div>
       <div className="p-4">{children}</div>
@@ -67,13 +67,13 @@ export function Gauge({ value, label }: { value: number; label: string }) {
 
 export function Badge({ children, tone = "slate" }: { children: ReactNode; tone?: "slate" | "green" | "amber" | "red" | "cyan" }) {
   const tones: Record<string, string> = {
-    slate: "bg-slate-800 text-slate-300",
-    green: "bg-emerald-900/60 text-emerald-300",
-    amber: "bg-amber-900/60 text-amber-300",
-    red: "bg-red-900/60 text-red-300",
-    cyan: "bg-cyan-900/60 text-cyan-300",
+    slate: "bg-slate-800/80 text-slate-300 ring-slate-600/30",
+    green: "bg-emerald-950/70 text-emerald-300 ring-emerald-500/25",
+    amber: "bg-amber-950/70 text-amber-300 ring-amber-500/25",
+    red: "bg-red-950/70 text-red-300 ring-red-500/25",
+    cyan: "bg-cyan-950/70 text-cyan-300 ring-cyan-500/25",
   };
-  return <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>{children}</span>;
+  return <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${tones[tone]}`}>{children}</span>;
 }
 
 export function Button({ children, onClick, danger, disabled }: { children: ReactNode; onClick?: () => void; danger?: boolean; disabled?: boolean }) {
@@ -81,10 +81,10 @@ export function Button({ children, onClick, danger, disabled }: { children: Reac
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-40 ${
+      className={`rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-all active:scale-[0.97] disabled:opacity-40 ${
         danger
-          ? "bg-red-900/50 text-red-300 hover:bg-red-800/60"
-          : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+          ? "bg-red-950/60 text-red-300 ring-red-500/25 hover:bg-red-900/60"
+          : "bg-slate-800/90 text-slate-300 ring-slate-600/30 hover:bg-slate-700/90 hover:text-slate-100"
       }`}
     >
       {children}
@@ -95,8 +95,8 @@ export function Button({ children, onClick, danger, disabled }: { children: Reac
 export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-xl border border-slate-700 bg-slate-900 p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-2xl border border-slate-700/80 bg-slate-900 p-5 shadow-2xl ring-1 ring-white/[0.04]" onClick={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-base font-semibold text-slate-200">{title}</h3>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-300">✕</button>

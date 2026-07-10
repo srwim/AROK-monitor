@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: write
+  actions: write  # lets the final step dispatch the manifest refresh
 
 jobs:
   enrich:
@@ -41,14 +42,27 @@ jobs:
           python process_images.py | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Commit catalog + processed images if changed
+        id: commit
         run: |
           git config user.name  "arok-catalog-bot"
           git config user.email "actions@github.com"
           git add upgrades-pipeline/parts_catalog.json upgrades-pipeline/thumbs
           if git diff --cached --quiet; then
             echo "No catalog changes."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "chore: enrich catalog + compress thumbnail renditions"
             git pull --rebase
             git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # The manifest bakes catalog images in at generation time, so a manifest
+      # built before this run's commit would miss the new thumbnails (the
+      # ordering race we hit on 2026-07-10). Chain the refresh automatically
+      # whenever the catalog actually changed.
+      - name: Refresh the manifest with the new images
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run update-manifest.yml --ref main

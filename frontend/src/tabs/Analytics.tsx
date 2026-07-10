@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-  LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid,
+  LineChart, Line, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, ReferenceDot,
 } from "recharts";
-import { api, type SnapshotResult } from "../api";
+import { api, type SnapshotResult, type Alert } from "../api";
 import { usePolling, fmtTime } from "../hooks";
-import { Panel, Button } from "../components/ui";
+import { Panel, Button, Badge } from "../components/ui";
 
 const WINDOWS = [
   { label: "15 min", seconds: 900 },
@@ -62,11 +62,18 @@ function tooltipFmt(value: number, name: string): [string, string] {
   return [`${value.toFixed(1)}%`, name];
 }
 
+// Which chart series (and pct-axis y-value) an alert's metric maps to.
+const ALERT_METRIC_SERIES: Record<string, SeriesKey> = { cpu: "cpu", mem: "mem", disk: "disk" };
+
 export default function AnalyticsTab() {
   const [win, setWin] = useState(3600);
   const history = usePolling(() => api.analytics(win), 10000);
+  const alerts = usePolling(() => api.alerts(), 6000);
+  const events = usePolling(() => api.events(), 12000);
   const [purgeMsg, setPurgeMsg] = useState<string | null>(null);
   const [visible, setVisible] = useState<Set<SeriesKey>>(new Set(SERIES.map((s) => s.key)));
+  const [cleared, setCleared] = useState<Set<number>>(new Set());
+  const [clearingAll, setClearingAll] = useState(false);
 
   // pinned drill-down state
   const [pinnedTs, setPinnedTs] = useState<number | null>(null);
@@ -102,6 +109,30 @@ export default function AnalyticsTab() {
     procs: h.proc_count,
   }));
 
+  // Alerts that fall inside the current chart window, newest first.
+  const windowStart = data.length ? data[0].ts : 0;
+  const winAlerts = (alerts ?? []).filter((a) => !cleared.has(a.id) && a.ts >= windowStart);
+
+  // Map each spike alert onto the nearest chart point so it can be dotted on
+  // the graph. Only cpu/mem/disk have a matching pct-axis series.
+  const spikeMarkers = useMemo(() => {
+    if (!data.length) return [] as { key: number; x: string; y: number; color: string; a: Alert }[];
+    return winAlerts
+      .map((a) => {
+        const series = ALERT_METRIC_SERIES[a.metric];
+        if (!series || !visible.has(series)) return null;
+        // nearest data point by timestamp
+        let best = data[0], bestD = Infinity;
+        for (const d of data) {
+          const dd = Math.abs(d.ts - a.ts);
+          if (dd < bestD) { bestD = dd; best = d; }
+        }
+        const color = a.severity === "critical" ? "#ef4444" : "#f59e0b";
+        return { key: a.id, x: best.t, y: (best as any)[series] as number, color, a };
+      })
+      .filter((m): m is { key: number; x: string; y: number; color: string; a: Alert } => m !== null);
+  }, [winAlerts, data, visible]);
+
   // click on the chart -> pin that timestamp for drill-down
   const onChartClick = (state: any) => {
     const ts = state?.activePayload?.[0]?.payload?.ts;
@@ -111,6 +142,17 @@ export default function AnalyticsTab() {
   const purge = async () => {
     const r = await api.purge(3600);
     setPurgeMsg(`Purged ${r.metrics_purged} metric rows and ${r.events_purged} events (kept last hour). VACUUM complete.`);
+  };
+
+  const clearOne = async (id: number) => {
+    setCleared((s) => new Set(s).add(id));
+    try { await api.clearAlert(id); } catch { setCleared((s) => { const n = new Set(s); n.delete(id); return n; }); }
+  };
+  const clearAll = async () => {
+    if (clearingAll) return;
+    setClearingAll(true);
+    setCleared((s) => { const n = new Set(s); (alerts ?? []).forEach((a) => n.add(a.id)); return n; });
+    try { await api.clearAllAlerts(); } finally { setClearingAll(false); }
   };
 
   return (
@@ -175,12 +217,28 @@ export default function AnalyticsTab() {
                   />
                 ) : null
               )}
+              {/* Spike-cause markers: a dot on the series where each alert fired */}
+              {spikeMarkers.map((m) => (
+                <ReferenceDot
+                  key={m.key}
+                  yAxisId="pct"
+                  x={m.x}
+                  y={m.y}
+                  r={5}
+                  fill={m.color}
+                  stroke="#0f172a"
+                  strokeWidth={1.5}
+                  ifOverflow="extendDomain"
+                  onClick={() => setPinnedTs(m.a.ts)}
+                  style={{ cursor: "pointer" }}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         {data.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-4 border-t border-slate-800 pt-3">
+          <div className="mt-3 flex flex-wrap items-center gap-4 border-t border-slate-800 pt-3">
             {(["cpu", "mem", "disk"] as const).map((k) => {
               const vals = data.map((d) => d[k]);
               const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
@@ -193,7 +251,77 @@ export default function AnalyticsTab() {
                 </div>
               );
             })}
+            {spikeMarkers.length > 0 && (
+              <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-slate-500">
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-amber-500 ring-2 ring-slate-900" />
+                spike markers — click to see the cause
+              </span>
+            )}
           </div>
+        )}
+      </Panel>
+
+      {/* Anomaly alerts — cause of each spike, moved here from the old Alerts tab */}
+      <Panel
+        title="Anomaly alerts (z-score + absolute threshold)"
+        action={
+          winAlerts.length > 0 ? (
+            <Button onClick={clearAll} disabled={clearingAll}>{clearingAll ? "Clearing…" : "Clear all"}</Button>
+          ) : undefined
+        }
+      >
+        {winAlerts.length === 0 ? (
+          <p className="text-sm text-slate-500">No alerts in this window — system within normal bounds.</p>
+        ) : (
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
+                <th className="pb-2 pr-3">Time</th>
+                <th className="pb-2 pr-3">Severity</th>
+                <th className="pb-2 pr-3">Metric</th>
+                <th className="pb-2 pr-3">Cause</th>
+                <th className="pb-2"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {winAlerts.map((a) => (
+                <tr key={a.id} className="border-b border-slate-800/50 hover:bg-slate-800/30">
+                  <td className="py-1.5 pr-3 tabular-nums text-slate-500">
+                    <button
+                      className="hover:text-cyan-300"
+                      title="Pin this moment for a per-process drill-down"
+                      onClick={() => setPinnedTs(a.ts)}
+                    >
+                      {fmtTime(a.ts)}
+                    </button>
+                  </td>
+                  <td className="py-1.5 pr-3">
+                    <Badge tone={a.severity === "critical" ? "red" : "amber"}>{a.severity}</Badge>
+                  </td>
+                  <td className="py-1.5 pr-3 uppercase text-slate-400">{a.metric}</td>
+                  <td className="py-1.5 pr-3 text-slate-300">{a.message}</td>
+                  <td className="py-1.5 text-right"><Button onClick={() => clearOne(a.id)}>Clear</Button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Panel>
+
+      {/* Event log — control actions & system events */}
+      <Panel title="Event log (control actions & system events)">
+        {(events ?? []).length === 0 ? (
+          <p className="text-sm text-slate-500">No events yet. Control actions (kill, block IP, service stop/start) land here.</p>
+        ) : (
+          <ul className="space-y-1.5">
+            {(events ?? []).slice(0, 40).map((e) => (
+              <li key={e.id} className="flex items-center gap-3 text-sm">
+                <span className="tabular-nums text-xs text-slate-600">{fmtTime(e.ts)}</span>
+                <Badge tone="cyan">{e.kind}</Badge>
+                <span className="text-slate-400">{e.detail}</span>
+              </li>
+            ))}
+          </ul>
         )}
       </Panel>
 
