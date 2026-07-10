@@ -146,44 +146,56 @@
    "mpn": "CMK32GX5M2B6000Z30",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-vengeance-ddr5-32gb-6000-cl30.webp",
    "sourceImage": "https://assets.corsair.com/image/upload/v1689197493/products/Memory/vengeance-ddr5-amd-blk-config/2up/VENGEANCE_DDR5_GREY_AMD_01.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.corsair.com/us/en/p/memory/cmk32gx5m2b6000z30/vengeance-32gb-2x16gb-ddr5-dram-6000mts-cl30-amd-expo-memory-kit-black-cmk32gx5m2b6000z30"
+   "productUrl": "https://www.corsair.com/us/en/p/memory/cmk32gx5m2b6000z30/vengeance-32gb-2x16gb-ddr5-dram-6000mts-cl30-amd-expo-memory-kit-black-cmk32gx5m2b6000z30",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-vengeance-ddr5-32gb-6000-cl30.thumb.webp",
+   "imageHash": "sha1:f97e0732d3704d609af1a5d79ec17bd5668a643a",
+   "imageProcessedAt": "2026-07-10"
   },
   "G.Skill Trident Z5 Neo DDR5 64GB 6000": {
    "brand": "G.Skill",
    "mpn": "F5-6000J3040G32GX2-TZ5N",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/g-skill-trident-z5-neo-ddr5-64gb-6000.webp",
    "sourceImage": "https://www.gskill.com/_upload/images/166502036610.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.gskill.com/product/165/393/1665020366/F5-6000J3040G32GX2-TZ5N"
+   "productUrl": "https://www.gskill.com/product/165/393/1665020366/F5-6000J3040G32GX2-TZ5N",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/g-skill-trident-z5-neo-ddr5-64gb-6000.thumb.webp",
+   "imageHash": "sha1:c3915e207da1d5b2b0ce98b0aaac18a04e68c34d",
+   "imageProcessedAt": "2026-07-10"
   },
   "Corsair Dominator Platinum RGB 64GB (2x32) DDR5-5200 CL40": {
    "brand": "Corsair",
    "mpn": "CMT64GX5M2B5200C40",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-dominator-platinum-rgb-64gb-2x32-ddr5-5200-cl40.webp",
    "sourceImage": "https://res.cloudinary.com/corsair-pwa/image/upload/products/Memory/CMT32GX5M2X5200C38/Gallery/DOMINATOR_RGB_PLATINUM_BLACK_DDR5_01.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.corsair.com/us/en/p/memory/cmt64gx5m2b5200c40/dominatora-platinum-rgb-64gb-2x32gb-ddr5-dram-5200mhz-c40-memory-kit-a-black-cmt64gx5m2b5200c40"
+   "productUrl": "https://www.corsair.com/us/en/p/memory/cmt64gx5m2b5200c40/dominatora-platinum-rgb-64gb-2x32gb-ddr5-dram-5200mhz-c40-memory-kit-a-black-cmt64gx5m2b5200c40",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-dominator-platinum-rgb-64gb-2x32-ddr5-5200-cl40.thumb.webp",
+   "imageHash": "sha1:6d35961bcade354734a5ea072871fd86184cbd69",
+   "imageProcessedAt": "2026-07-10"
   },
   "WD Black SN850X 1TB NVMe": {
    "brand": "Western Digital",
    "mpn": "WDS100T2X0E",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/wd-black-sn850x-1tb-nvme.webp",
    "sourceImage": "https://www.sandisk.com/content/dam/sandisk/en-us/assets/products/internal-storage/wd-black-sn850x-nvme-ssd/gallery/wd-black-sn850x-nvme-ssd-front.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd"
+   "productUrl": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/wd-black-sn850x-1tb-nvme.thumb.webp",
+   "imageHash": "sha1:991a16383beb2063c58b990e8af18000244f5e4c",
+   "imageProcessedAt": "2026-07-10"
   },
   "Samsung 990 EVO Plus 2TB NVMe": {
    "brand": "Samsung",
@@ -274,11 +286,14 @@
    "mpn": "90MB1NQ0-M0VAY0",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/asus-rog-crosshair-x870e-glacial-eatx.webp",
    "sourceImage": "https://dlcdnwebimgs.asus.com/gain/EED05902-600D-4D1F-979B-CE73C4334101",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://rog.asus.com/motherboards/rog-crosshair/rog-crosshair-x870e-glacial/"
+   "productUrl": "https://rog.asus.com/motherboards/rog-crosshair/rog-crosshair-x870e-glacial/",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/asus-rog-crosshair-x870e-glacial-eatx.thumb.webp",
+   "imageHash": "sha1:fd534f7eac51197c92457bc364febfd18e78e5a9",
+   "imageProcessedAt": "2026-07-10"
   },
   "be quiet! Pure Power 12 M 750W": {
    "brand": "be quiet!",
@@ -299,44 +314,56 @@
    "mpn": "CENTURY II 850",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/montech-century-ii-850w-80-gold.webp",
    "sourceImage": "https://www.montechpc.com/images/440190?stamp=1746430096",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.montechpc.com/century-ii-850w"
+   "productUrl": "https://www.montechpc.com/century-ii-850w",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/montech-century-ii-850w-80-gold.thumb.webp",
+   "imageHash": "sha1:964190522ea175eecc849fb398b75f35c7d7be82",
+   "imageProcessedAt": "2026-07-10"
   },
   "Corsair RM1000x 1000W 80+ Gold": {
    "brand": "Corsair",
    "mpn": "CP-9020271-NA",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-rm1000x-1000w-80-gold.webp",
    "sourceImage": "https://assets.corsair.com/image/upload/products/Power-Supply-Units/base-rmx-2024-config/gallery/black/1000/RM1000x_2024_01.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.corsair.com/us/en/p/psu/cp-9020271-na/rmx-series-rm1000x-fully-modular-power-supply-cp-9020271-na"
+   "productUrl": "https://www.corsair.com/us/en/p/psu/cp-9020271-na/rmx-series-rm1000x-fully-modular-power-supply-cp-9020271-na",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-rm1000x-1000w-80-gold.thumb.webp",
+   "imageHash": "sha1:3c32aeff64cfe8806f1dffac57053d19ea0a2e74",
+   "imageProcessedAt": "2026-07-10"
   },
   "Corsair HX1500i 1500W 80+ Platinum": {
    "brand": "Corsair",
    "mpn": "CP-9020261-NA",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-hx1500i-1500w-80-platinum.webp",
    "sourceImage": "https://res.cloudinary.com/corsair-pwa/image/upload/products/Power-Supply-Units/base-hxi-2023-config/1500W/CP-9020261/Gallery/CP-9020261_01.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.corsair.com/us/en/p/psu/cp-9020261-na/hx1500i-fully-modular-ultra-low-noise-platinum-atx-1500-watt-pc-power-supply-cp-9020261-na"
+   "productUrl": "https://www.corsair.com/us/en/p/psu/cp-9020261-na/hx1500i-fully-modular-ultra-low-noise-platinum-atx-1500-watt-pc-power-supply-cp-9020261-na",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-hx1500i-1500w-80-platinum.thumb.webp",
+   "imageHash": "sha1:19bf9ebb2835112cbc31fc7617836ce3660cecaa",
+   "imageProcessedAt": "2026-07-10"
   },
   "Thermalright Peerless Assassin 120 SE": {
    "brand": "Thermalright",
    "mpn": "PA120 SE",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/thermalright-peerless-assassin-120-se.webp",
    "sourceImage": "https://www.thermalright.com/wp-content/uploads/2021/10/PA120-SE-%E4%B8%BB%E5%9B%BE-1.jpg",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.thermalright.com/product/peerless-assassin-120-se/"
+   "productUrl": "https://www.thermalright.com/product/peerless-assassin-120-se/",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/thermalright-peerless-assassin-120-se.thumb.webp",
+   "imageHash": "sha1:f6cb4c56b6bd3f0ae2e7b0dca1afeac930a67c66",
+   "imageProcessedAt": "2026-07-10"
   },
   "ARCTIC Liquid Freezer III 360": {
    "brand": "ARCTIC",
@@ -357,55 +384,70 @@
    "mpn": "CW-9061023-WW",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-icue-link-titan-360-rx-lcd.webp",
    "sourceImage": "https://assets.corsair.com/image/upload/products/Liquid-Cooling/titan-rx-lcd/Gallery/CW-9061023-WW/CW-9061023-WW_01.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.corsair.com/us/en/p/cpu-coolers/cw-9061023-ww/icue-link-titan-360-rx-lcd-liquid-cpu-cooler-cw-9061023-ww"
+   "productUrl": "https://www.corsair.com/us/en/p/cpu-coolers/cw-9061023-ww/icue-link-titan-360-rx-lcd-liquid-cpu-cooler-cw-9061023-ww",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-icue-link-titan-360-rx-lcd.thumb.webp",
+   "imageHash": "sha1:4c8516456110963a54e71ddcd203cbf41e9579bc",
+   "imageProcessedAt": "2026-07-10"
   },
   "Montech AIR 903 MAX": {
    "brand": "Montech",
    "mpn": "AIR 903 MAX",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/montech-air-903-max.webp",
    "sourceImage": "https://www.montechpc.com/images/375589?stamp=1734688166",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.montechpc.com/air-903-max"
+   "productUrl": "https://www.montechpc.com/air-903-max",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/montech-air-903-max.thumb.webp",
+   "imageHash": "sha1:b24765e54e9e2f0d7276c378d4698dacda2b06b6",
+   "imageProcessedAt": "2026-07-10"
   },
   "Corsair 4000D Airflow": {
    "brand": "Corsair",
    "mpn": "CC-9011200-WW",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-4000d-airflow.webp",
    "sourceImage": "https://res.cloudinary.com/corsair-pwa/image/upload/products/Cases/base-4000d-airflow-config/Gallery/4000D_AF_BLACK_01.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://www.corsair.com/us/en/p/pc-cases/cc-9011200-ww/4000d-airflow-tempered-glass-mid-tower-atx-case-black-cc-9011200-ww"
+   "productUrl": "https://www.corsair.com/us/en/p/pc-cases/cc-9011200-ww/4000d-airflow-tempered-glass-mid-tower-atx-case-black-cc-9011200-ww",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-4000d-airflow.thumb.webp",
+   "imageHash": "sha1:7e78856dae7f4082e8eab8ec2f31f7b2e1319751",
+   "imageProcessedAt": "2026-07-10"
   },
   "Lian Li O11 Dynamic EVO": {
    "brand": "Lian Li",
    "mpn": "O11DEX",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/lian-li-o11-dynamic-evo.webp",
    "sourceImage": "https://lian-li.com/wp-content/uploads/2021/12/evo-600-000.jpg",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://lian-li.com/product/o11-dynamic-evo/"
+   "productUrl": "https://lian-li.com/product/o11-dynamic-evo/",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/lian-li-o11-dynamic-evo.thumb.webp",
+   "imageHash": "sha1:c66a2f919a010abe8890d543cdd4fc4b205574d8",
+   "imageProcessedAt": "2026-07-10"
   },
   "HYTE Y70 Touch Infinite": {
    "brand": "HYTE",
    "mpn": "CS-HYTE-Y70TTI-BB",
    "gtin": "",
    "asin": "",
-   "image": "",
+   "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/hyte-y70-touch-infinite.webp",
    "sourceImage": "https://cdn11.bigcommerce.com/s-k28u1tc9ki/product_images/attribute_rule_images/123_source_1716966778.jpg",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://hyte.com/store/y70/cs-hyte-y70tti-bb"
+   "productUrl": "https://hyte.com/store/y70/cs-hyte-y70tti-bb",
+   "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/hyte-y70-touch-infinite.thumb.webp",
+   "imageHash": "sha1:f63bed259f34889194ec1585fab1e36704694a29",
+   "imageProcessedAt": "2026-07-10"
   }
  }
 }
