@@ -61,6 +61,26 @@
    "updatedAt": "",
    "productUrl": "https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9070.html"
   },
+  "AMD Radeon RX 9070 XT": {
+   "brand": "AMD",
+   "mpn": "",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "",
+   "updatedAt": "",
+   "productUrl": "https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9070xt.html"
+  },
+  "AMD Radeon RX 9060 XT 16GB": {
+   "brand": "AMD",
+   "mpn": "",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "",
+   "updatedAt": "",
+   "productUrl": "https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9060xt.html"
+  },
   "NVIDIA GeForce RTX 5080": {
    "brand": "NVIDIA",
    "mpn": "900-1G144-2545-000",

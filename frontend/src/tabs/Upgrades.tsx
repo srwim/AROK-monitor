@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ExternalLink, Gauge, Crown, Cpu, MemoryStick, HardDrive, MonitorCog, CircuitBoard,
   AlertTriangle, ChevronDown, ShieldCheck, Microchip, Power, Fan, Computer, Package,
@@ -112,6 +112,62 @@ function StoreLink({ url, store }: { url: string; store?: string }) {
   );
 }
 
+// ── Thumbnail lightbox ────────────────────────────────────────────────────────
+// Clicking any product thumbnail opens the full-size image with the part name
+// captioned as the same purchase link the card carries. Click outside (or
+// press Escape) to close.
+type LightboxData = { src: string; title: string; href: string; sponsored: boolean };
+const LightboxCtx = createContext<(d: LightboxData) => void>(() => {});
+
+function Lightbox({ data, onClose }: { data: LightboxData; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/85 p-8 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-label={data.title}
+    >
+      <img
+        src={data.src}
+        alt={data.title}
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-[75vh] max-w-[85vw] rounded-2xl bg-white object-contain p-4 shadow-2xl"
+      />
+      <a
+        href={data.href}
+        target="_blank"
+        rel={data.sponsored ? "sponsored nofollow noopener noreferrer" : "nofollow noopener noreferrer"}
+        onClick={(e) => e.stopPropagation()}
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-cyan-400 underline-offset-4 hover:text-cyan-300 hover:underline"
+      >
+        {data.title}
+        <ExternalLink size={14} />
+      </a>
+    </div>
+  );
+}
+
+function PickThumb({ pick }: { pick: Pick }) {
+  const openLightbox = useContext(LightboxCtx);
+  if (!pick.image) return null;
+  return (
+    <button
+      onClick={() => openLightbox({ src: pick.image!, title: pick.title, href: pick.url, sponsored: true })}
+      title={`${pick.title} — click to enlarge`}
+      className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-white/5 p-1 transition-transform hover:scale-105 focus:outline-none"
+    >
+      <img src={pick.image} alt={pick.title} loading="lazy" className="h-full w-full object-contain" />
+    </button>
+  );
+}
+
 function PickCard({ pick, kind }: { pick: Pick; kind: "value" | "high" }) {
   const value = kind === "value";
   return (
@@ -120,8 +176,13 @@ function PickCard({ pick, kind }: { pick: Pick; kind: "value" | "high" }) {
         {value ? <Gauge size={14} className="text-emerald-400" /> : <Crown size={14} className="text-amber-400" />}
         <Badge tone={value ? "green" : "amber"}>{value ? "Best bang for buck" : "High end"}</Badge>
       </div>
-      <div className="flex-1 text-sm font-medium leading-snug text-slate-200">{pick.title}</div>
-      {pick.price && <div className="mt-1 text-xs text-slate-500">{pick.price}</div>}
+      <div className="flex flex-1 items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-sm font-medium leading-snug text-slate-200">{pick.title}</div>
+          {pick.price && <div className="mt-1 text-xs text-slate-500">{pick.price}</div>}
+        </div>
+        <PickThumb pick={pick} />
+      </div>
       <div className="mt-3">
         <AmazonLink url={pick.url} primary>
           View on Amazon
@@ -478,16 +539,25 @@ const COMPONENT_ICONS: Record<string, LucideIcon> = {
 };
 
 function ComponentThumb({ c }: { c: SystemComponent }) {
+  const openLightbox = useContext(LightboxCtx);
   const big = c.type === "Case";
   const box = big ? "h-12 w-12" : "h-9 w-9";
   if (c.image) {
     return (
-      <img
-        src={c.image}
-        alt={c.name}
-        loading="lazy"
-        className={`${box} shrink-0 rounded-md bg-white/5 object-contain p-0.5`}
-      />
+      <button
+        onClick={() =>
+          openLightbox({
+            src: c.image!,
+            title: c.name,
+            href: c.url,
+            sponsored: !c.store || c.store === "Amazon",
+          })
+        }
+        title={`${c.name} — click to enlarge`}
+        className={`${box} shrink-0 overflow-hidden rounded-md bg-white/5 p-0.5 transition-transform hover:scale-110 focus:outline-none`}
+      >
+        <img src={c.image} alt={c.name} loading="lazy" className="h-full w-full object-contain" />
+      </button>
     );
   }
   const Icon = COMPONENT_ICONS[c.type] ?? Package;
@@ -698,6 +768,7 @@ export default function UpgradesTab() {
   const [error, setError] = useState(false);
   const [hw, setHw] = useState<HardwareInventory | null>(null);
   const [view, setView] = useState<View>("advisor");
+  const [lightbox, setLightbox] = useState<LightboxData | null>(null);
 
   useEffect(() => {
     loadManifest().then(setManifest).catch(() => setError(true));
@@ -748,7 +819,9 @@ export default function UpgradesTab() {
   const entryMap = useMemo(() => Object.fromEntries(categories), [categories]);
 
   return (
+    <LightboxCtx.Provider value={setLightbox}>
     <div className="space-y-4">
+      {lightbox && <Lightbox data={lightbox} onClose={() => setLightbox(null)} />}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-slate-200">Hardware Upgrades</h2>
@@ -843,5 +916,6 @@ export default function UpgradesTab() {
         </p>
       )}
     </div>
+    </LightboxCtx.Provider>
   );
 }

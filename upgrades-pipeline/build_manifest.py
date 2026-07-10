@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -358,6 +359,48 @@ def load_catalog() -> dict:
         return {}
 
 
+def _catalog_lookup(catalog: dict, title: str) -> dict | None:
+    """Find a catalog entry for a pick title, tolerating small naming drift:
+    exact match first; then the title with parenthetical kit-counts stripped
+    ("32GB (2x16) 6000" -> "32GB 6000"); then the longest catalog name that is
+    a whole-word prefix of the title ("...750W" matches "...750W 80+ Gold")."""
+    if title in catalog:
+        return catalog[title]
+    stripped = re.sub(r"\s*\([^)]*\)", "", title).strip()
+    stripped = re.sub(r"\s{2,}", " ", stripped)
+    if stripped in catalog:
+        return catalog[stripped]
+    best = None
+    for name in catalog:
+        for t in (title, stripped):
+            if t.startswith(name) and (len(t) == len(name) or t[len(name)] == " "):
+                if best is None or len(name) > len(best):
+                    best = name
+    return catalog[best] if best else None
+
+
+def enrich_picks(component_upgrades: dict, catalog: dict) -> dict:
+    """Same thumbnail ladder for the advisor's value/high-end picks, keyed by
+    the pick title matching a catalog part name (see _catalog_lookup): a
+    catalog 'image' is tier 1, an Icecat brand+MPN lookup is tier 2, no match
+    falls through to the app's category icon."""
+    for spec in component_upgrades.values():
+        for slot in ("bangForBuck", "highEnd"):
+            pick = spec.get(slot)
+            if not pick or pick.get("image"):
+                continue
+            meta = _catalog_lookup(catalog, pick.get("title", ""))
+            if not meta:
+                continue
+            if meta.get("image"):
+                pick["image"] = meta["image"]
+            elif meta.get("brand") and meta.get("mpn"):
+                url = image_for(meta["brand"], meta["mpn"])
+                if url:
+                    pick["image"] = url
+    return component_upgrades
+
+
 def enrich_from_catalog(systems: list[dict], catalog: dict) -> list[dict]:
     """Attach thumbnail metadata from the catalog by exact component name. A
     catalog 'image' becomes the tier-1 thumbnail; otherwise brand+mpn are stashed
@@ -416,14 +459,16 @@ def main() -> int:
             featured = FALLBACK_SYSTEMS
             print("[manifest] scrape empty; using curated fallback", file=sys.stderr)
 
-    featured = enrich_from_catalog(featured, load_catalog())
+    catalog = load_catalog()
+    featured = enrich_from_catalog(featured, catalog)
     featured = resolve_images(featured)
+    component_upgrades = enrich_picks(verify_links(build_component_upgrades()), catalog)
 
     manifest = {
         "version": 1,
         "generatedAt": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "disclosure": DISCLOSURE,
-        "componentUpgrades": verify_links(build_component_upgrades()),
+        "componentUpgrades": component_upgrades,
         "featuredSystems": featured,
         "gpuWatch": gpu_watch(),
     }
