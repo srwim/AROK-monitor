@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-09T11:44:32Z",
+  "generatedAt": "2026-07-10T07:29:54Z",
   "disclosure": "As an Amazon Associate I earn from qualifying purchases.",
   "componentUpgrades": {
     "cpu": {
@@ -15,7 +15,7 @@
         "price": "~$440",
         "url": "https://www.amazon.com/s?k=AMD+Ryzen+7+9800X3D&tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-07-09T11:44:32Z"
+      "linkCheckedAt": "2026-07-10T07:29:54Z"
     },
     "gpu": {
       "label": "Graphics Card (GPU)",
@@ -29,7 +29,7 @@
         "price": "~$599",
         "url": "https://www.amazon.com/s?k=AMD+Radeon+RX+9070+XT&tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-07-09T11:44:32Z"
+      "linkCheckedAt": "2026-07-10T07:29:54Z"
     },
     "ram": {
       "label": "Memory (RAM)",
@@ -43,7 +43,7 @@
         "price": "~$700",
         "url": "https://www.amazon.com/s?k=G.Skill+Trident+Z5+Neo+DDR5+64GB+%282x32%29+6000&tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-07-09T11:44:32Z"
+      "linkCheckedAt": "2026-07-10T07:29:54Z"
     },
     "storage": {
       "label": "SSD / Storage",
@@ -57,7 +57,7 @@
         "price": "~$200",
         "url": "https://www.amazon.com/s?k=Samsung+990+PRO+2TB+NVMe&tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-07-09T11:44:32Z"
+      "linkCheckedAt": "2026-07-10T07:29:54Z"
     },
     "motherboard": {
       "label": "Motherboard",
@@ -71,7 +71,7 @@
         "price": "~$250",
         "url": "https://www.amazon.com/s?k=MSI+MAG+B850+Tomahawk+MAX+WiFi&tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-07-09T11:44:32Z"
+      "linkCheckedAt": "2026-07-10T07:29:54Z"
     },
     "psu": {
       "label": "Power Supply (PSU)",
@@ -85,7 +85,7 @@
         "price": "~$190",
         "url": "https://www.amazon.com/s?k=Corsair+RM1000x+1000W+80%2B+Gold&tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-07-09T11:44:32Z"
+      "linkCheckedAt": "2026-07-10T07:29:54Z"
     },
     "cooler": {
       "label": "CPU Cooler",
@@ -99,7 +99,7 @@
         "price": "~$120",
         "url": "https://www.amazon.com/s?k=ARCTIC+Liquid+Freezer+III+360&tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-07-09T11:44:32Z"
+      "linkCheckedAt": "2026-07-10T07:29:54Z"
     }
   },
   "featuredSystems": [
@@ -135,13 +135,15 @@
           "type": "Motherboard",
           "name": "Gigabyte B650 Aorus Elite AX",
           "price": "~$170",
-          "url": "https://www.amazon.com/s?k=Gigabyte+B650+Aorus+Elite+AX&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Gigabyte+B650+Aorus+Elite+AX&tag=lifeupgrad02b-20",
+          "image": "https://images.icecat.biz/img/gallery_mediums/101891070_5486677454.jpg"
         },
         {
           "type": "PSU",
           "name": "be quiet! Pure Power 12 M 750W",
           "price": "~$80",
-          "url": "https://www.amazon.com/s?k=be+quiet%21+Pure+Power+12+M+750W&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=be+quiet%21+Pure+Power+12+M+750W&tag=lifeupgrad02b-20",
+          "image": "https://images.icecat.biz/img/gallery_mediums/108441153_1114553167.jpg"
         },
         {
           "type": "Cooler",
@@ -184,13 +186,15 @@
           "type": "Storage",
           "name": "Samsung 990 EVO Plus 2TB NVMe",
           "price": "~$160",
-          "url": "https://www.amazon.com/s?k=Samsung+990+EVO+Plus+2TB+NVMe&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Samsung+990+EVO+Plus+2TB+NVMe&tag=lifeupgrad02b-20",
+          "image": "https://images.icecat.biz/img/gallery_mediums/f467a2df1672189a2826a93e9c6545dfe86a40af.jpg"
         },
         {
           "type": "Motherboard",
           "name": "MSI MAG B850 Tomahawk MAX WiFi",
           "price": "~$250",
-          "url": "https://www.amazon.com/s?k=MSI+MAG+B850+Tomahawk+MAX+WiFi&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=MSI+MAG+B850+Tomahawk+MAX+WiFi&tag=lifeupgrad02b-20",
+          "image": "https://images.icecat.biz/img/gallery_mediums/857261b24f032ae06c7abb64a9a6f5798d450937.jpg"
         },
         {
           "type": "PSU",
@@ -239,7 +243,8 @@
           "type": "Storage",
           "name": "Samsung 990 PRO 2TB NVMe",
           "price": "~$200",
-          "url": "https://www.amazon.com/s?k=Samsung+990+PRO+2TB+NVMe&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Samsung+990+PRO+2TB+NVMe&tag=lifeupgrad02b-20",
+          "image": "https://images.icecat.biz/img/gallery_mediums/831c344a70be0f032be8b44b3604dccbb061de83.jpg"
         },
         {
           "type": "Motherboard",
@@ -257,7 +262,8 @@
           "type": "Cooler",
           "name": "ARCTIC Liquid Freezer III 360",
           "price": "~$120",
-          "url": "https://www.amazon.com/s?k=ARCTIC+Liquid+Freezer+III+360&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=ARCTIC+Liquid+Freezer+III+360&tag=lifeupgrad02b-20",
+          "image": "https://images.icecat.biz/img/gallery_mediums/d1475cbe2043f9c0d80c69148569a129.jpg"
         },
         {
           "type": "Case",
@@ -282,7 +288,8 @@
           "type": "GPU",
           "name": "ASUS ROG Astral OC GeForce RTX 5090 32GB",
           "price": "~$4330",
-          "url": "https://www.amazon.com/s?k=ASUS+ROG+Astral+OC+GeForce+RTX+5090+32GB&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=ASUS+ROG+Astral+OC+GeForce+RTX+5090+32GB&tag=lifeupgrad02b-20",
+          "image": "https://images.icecat.biz/img/gallery_mediums/495dbeddecf531862e46b23bb7fbb40e3afcdf2f.jpg"
         },
         {
           "type": "Memory",
