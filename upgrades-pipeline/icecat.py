@@ -90,23 +90,25 @@ def image_for(brand: str, mpn: str, lang: str = "EN") -> str | None:
     try:
         with urllib.request.urlopen(req, timeout=20) as resp:
             data = json.loads(resp.read())
+        if not isinstance(data, dict):
+            return None
+        # Icecat error payloads carry an "Error"/"Message" (e.g. 403 needs app_key).
+        if data.get("Error") or data.get("Message"):
+            return None
+        d = data.get("data", data)
+        if not isinstance(d, dict):
+            return None
+        image = d.get("Image")
+        url = _pick(image) if isinstance(image, dict) else None
+        if url:
+            return url
+        gallery = d.get("Gallery") or []
+        if gallery and isinstance(gallery[0], dict):
+            return _pick(gallery[0])
+        return None
     except Exception:
+        # Any network, decode, or unexpected-shape error -> a safe miss (icon).
         return None
-    if not isinstance(data, dict):
-        return None
-    # Icecat error payloads carry an "Error"/"Message" (e.g. 403 needs app_key).
-    if data.get("Error") or data.get("Message"):
-        return None
-    d = data.get("data", data)
-    if not isinstance(d, dict):
-        return None
-    url = _pick(d.get("Image") or {})
-    if url:
-        return url
-    gallery = d.get("Gallery") or []
-    if gallery and isinstance(gallery[0], dict):
-        return _pick(gallery[0])
-    return None
 
 
 if __name__ == "__main__":

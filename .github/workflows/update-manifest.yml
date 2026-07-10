@@ -58,10 +58,23 @@ jobs:
           git add upgrades-pipeline/manifest.json frontend/public/manifest.json
           if git diff --cached --quiet; then
             echo "No manifest changes."
-          else
-            git commit -m "chore: daily Hardware Upgrades manifest refresh"
-            git push
+            exit 0
           fi
+          git commit -m "chore: daily Hardware Upgrades manifest refresh"
+          # Push with rebase + retry. A scheduled run can overlap a manual one (or
+          # a human can push) and advance main between our checkout and push, which
+          # rejects a naive push. Rebase onto the newer remote — keeping our freshly
+          # generated manifest on any conflict — and retry up to 5 times.
+          for attempt in 1 2 3 4 5; do
+            if git push; then
+              echo "pushed on attempt $attempt"
+              exit 0
+            fi
+            echo "push rejected (attempt $attempt) - rebasing onto newer remote ..."
+            git pull --rebase -X theirs origin main || true
+          done
+          echo "Could not push the manifest refresh after 5 attempts." >&2
+          exit 1
 
       # If anything above failed, file (or bump) an issue so the failure is
       # never silent — issue creation triggers a normal GitHub notification.
