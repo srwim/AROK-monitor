@@ -30,7 +30,7 @@ import sensors
 import upgrade
 import updater
 
-app = FastAPI(title="AROK Monitor", version="1.6.3")
+app = FastAPI(title="AROK Monitor", version="1.6.4")
 
 _stop = threading.Event()
 

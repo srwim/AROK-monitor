@@ -93,23 +93,12 @@ function AmazonLink({ url, children, primary }: { url: string; children: ReactNo
   );
 }
 
-// Store-aware purchase link. Amazon carries our affiliate tag, so rel includes
-// "sponsored"; non-Amazon stores have no affiliate program yet, so they get a
-// plain link (no "sponsored") and show the store's name.
-function StoreLink({ url, store }: { url: string; store?: string }) {
-  const label = store ?? "Amazon";
-  const affiliated = label === "Amazon";
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel={affiliated ? "sponsored nofollow noopener noreferrer" : "nofollow noopener noreferrer"}
-      className="inline-flex items-center gap-1 text-xs text-cyan-400 underline-offset-2 hover:text-cyan-300 hover:underline"
-    >
-      {label}
-      <ExternalLink size={12} />
-    </a>
-  );
+// Store-aware rel: Amazon links carry our affiliate tag ("sponsored");
+// non-Amazon stores have no affiliate program yet, so plain rel.
+function storeRel(store?: string): string {
+  return !store || store === "Amazon"
+    ? "sponsored nofollow noopener noreferrer"
+    : "nofollow noopener noreferrer";
 }
 
 // ── Thumbnail lightbox ────────────────────────────────────────────────────────
@@ -179,15 +168,19 @@ function PickCard({ pick, kind }: { pick: Pick; kind: "value" | "high" }) {
       </div>
       <div className="flex flex-1 items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-sm font-medium leading-snug text-slate-200">{pick.title}</div>
+          <a
+            href={pick.url}
+            target="_blank"
+            rel={storeRel()}
+            title={`View ${pick.title} on Amazon`}
+            className="group inline-flex items-start gap-1 text-sm font-medium leading-snug text-slate-200 transition-colors hover:text-cyan-300"
+          >
+            <span className="underline-offset-2 group-hover:underline">{pick.title}</span>
+            <ExternalLink size={12} className="mt-0.5 shrink-0 text-slate-600 group-hover:text-cyan-400" />
+          </a>
           {pick.price && <div className="mt-1 text-xs text-slate-500">{pick.price}</div>}
         </div>
         <PickThumb pick={pick} />
-      </div>
-      <div className="mt-3">
-        <AmazonLink url={pick.url} primary>
-          View on Amazon
-        </AmazonLink>
       </div>
     </div>
   );
@@ -484,15 +477,21 @@ function AdvisorCard({
 // ── Compact browse cards ──────────────────────────────────────────────────────
 function PickRow({ pick, kind }: { pick: Pick; kind: "value" | "high" }) {
   return (
-    <div className="flex items-center justify-between gap-2 py-1.5">
-      <div className="min-w-0">
-        <div className="flex items-center gap-1.5">
-          {kind === "value" ? <Gauge size={12} className="shrink-0 text-emerald-400" /> : <Crown size={12} className="shrink-0 text-amber-400" />}
-          <span className="truncate text-xs text-slate-300" title={pick.title}>{pick.title}</span>
-        </div>
-        {pick.price && <div className="pl-[18px] text-[11px] text-slate-600">{pick.price}</div>}
+    <div className="py-1.5">
+      <div className="flex items-center gap-1.5">
+        {kind === "value" ? <Gauge size={12} className="shrink-0 text-emerald-400" /> : <Crown size={12} className="shrink-0 text-amber-400" />}
+        <a
+          href={pick.url}
+          target="_blank"
+          rel={storeRel()}
+          title={`View ${pick.title} on Amazon`}
+          className="group inline-flex min-w-0 items-center gap-1 text-xs text-slate-300 transition-colors hover:text-cyan-300"
+        >
+          <span className="truncate underline-offset-2 group-hover:underline">{pick.title}</span>
+          <ExternalLink size={10} className="shrink-0 text-slate-600 group-hover:text-cyan-400" />
+        </a>
       </div>
-      <AmazonLink url={pick.url}>Amazon</AmazonLink>
+      {pick.price && <div className="pl-[18px] text-[11px] text-slate-600">{pick.price}</div>}
     </div>
   );
 }
@@ -590,24 +589,33 @@ function FeaturedSystems({ systems }: { systems: FeaturedSystem[] }) {
                 <li key={j} className="flex items-center gap-3 py-2">
                   <ComponentThumb c={c} />
                   <div className="min-w-0 flex-1">
-                    <div className="text-[10px] uppercase tracking-wider text-slate-500">{c.type}</div>
-                    <div className="truncate text-sm text-slate-300">
-                      {c.name}
+                    <div className="text-[10px] uppercase tracking-wider text-slate-500">
+                      {c.type}
+                      {c.store && c.store !== "Amazon" ? <span className="normal-case tracking-normal text-slate-600"> · via {c.store}</span> : null}
+                    </div>
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <a
+                        href={c.url}
+                        target="_blank"
+                        rel={storeRel(c.store)}
+                        title={`View ${c.name} on ${c.store ?? "Amazon"}`}
+                        className="group inline-flex min-w-0 items-center gap-1 text-sm text-slate-300 transition-colors hover:text-cyan-300"
+                      >
+                        <span className="truncate underline-offset-2 group-hover:underline">{c.name}</span>
+                        <ExternalLink size={11} className="shrink-0 text-slate-600 group-hover:text-cyan-400" />
+                      </a>
                       {c.qty && c.qty > 1 ? (
-                        <span className="ml-1.5 rounded bg-slate-700/70 px-1 py-0.5 text-[10px] font-medium tabular-nums text-slate-300">
+                        <span className="shrink-0 rounded bg-slate-700/70 px-1 py-0.5 text-[10px] font-medium tabular-nums text-slate-300">
                           ×{c.qty}
                         </span>
                       ) : null}
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    {c.price && (
-                      <span className="text-xs tabular-nums text-slate-500">
-                        {c.price}{c.qty && c.qty > 1 ? " ea" : ""}
-                      </span>
-                    )}
-                    <StoreLink url={c.url} store={c.store} />
-                  </div>
+                  {c.price && (
+                    <span className="shrink-0 text-xs tabular-nums text-slate-500">
+                      {c.price}{c.qty && c.qty > 1 ? " ea" : ""}
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

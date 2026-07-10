@@ -147,6 +147,7 @@
    "gtin": "",
    "asin": "",
    "image": "",
+   "sourceImage": "https://assets.corsair.com/image/upload/v1689197493/products/Memory/vengeance-ddr5-amd-blk-config/2up/VENGEANCE_DDR5_GREY_AMD_01.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
    "productUrl": "https://www.corsair.com/us/en/p/memory/cmk32gx5m2b6000z30/vengeance-32gb-2x16gb-ddr5-dram-6000mts-cl30-amd-expo-memory-kit-black-cmk32gx5m2b6000z30"
@@ -157,9 +158,10 @@
    "gtin": "",
    "asin": "",
    "image": "",
+   "sourceImage": "https://www.gskill.com/_upload/images/166502036610.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": ""
+   "productUrl": "https://www.gskill.com/product/165/393/1665020366/F5-6000J3040G32GX2-TZ5N"
   },
   "Corsair Dominator Platinum RGB 64GB (2x32) DDR5-5200 CL40": {
    "brand": "Corsair",
@@ -167,9 +169,10 @@
    "gtin": "",
    "asin": "",
    "image": "",
-   "source": "amazon",
-   "updatedAt": "2026-07-08",
-   "productUrl": ""
+   "sourceImage": "https://res.cloudinary.com/corsair-pwa/image/upload/products/Memory/CMT32GX5M2X5200C38/Gallery/DOMINATOR_RGB_PLATINUM_BLACK_DDR5_01.png",
+   "source": "manual",
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.corsair.com/us/en/p/memory/cmt64gx5m2b5200c40/dominatora-platinum-rgb-64gb-2x32gb-ddr5-dram-5200mhz-c40-memory-kit-a-black-cmt64gx5m2b5200c40"
   },
   "WD Black SN850X 1TB NVMe": {
    "brand": "Western Digital",
@@ -177,9 +180,10 @@
    "gtin": "",
    "asin": "",
    "image": "",
+   "sourceImage": "https://www.sandisk.com/content/dam/sandisk/en-us/assets/products/internal-storage/wd-black-sn850x-nvme-ssd/gallery/wd-black-sn850x-nvme-ssd-front.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": "https://shop.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd"
+   "productUrl": "https://www.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd"
   },
   "Samsung 990 EVO Plus 2TB NVMe": {
    "brand": "Samsung",
@@ -267,13 +271,14 @@
   },
   "ASUS ROG Crosshair X870E GLACIAL EATX": {
    "brand": "ASUS",
-   "mpn": "",
+   "mpn": "90MB1NQ0-M0VAY0",
    "gtin": "",
    "asin": "",
    "image": "",
-   "source": "",
-   "updatedAt": "",
-   "productUrl": ""
+   "sourceImage": "https://dlcdnwebimgs.asus.com/gain/EED05902-600D-4D1F-979B-CE73C4334101",
+   "source": "manual",
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://rog.asus.com/motherboards/rog-crosshair/rog-crosshair-x870e-glacial/"
   },
   "be quiet! Pure Power 12 M 750W": {
    "brand": "be quiet!",
@@ -295,9 +300,10 @@
    "gtin": "",
    "asin": "",
    "image": "",
+   "sourceImage": "https://www.montechpc.com/images/440190?stamp=1746430096",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": ""
+   "productUrl": "https://www.montechpc.com/century-ii-850w"
   },
   "Corsair RM1000x 1000W 80+ Gold": {
    "brand": "Corsair",
@@ -305,6 +311,7 @@
    "gtin": "",
    "asin": "",
    "image": "",
+   "sourceImage": "https://assets.corsair.com/image/upload/products/Power-Supply-Units/base-rmx-2024-config/gallery/black/1000/RM1000x_2024_01.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
    "productUrl": "https://www.corsair.com/us/en/p/psu/cp-9020271-na/rmx-series-rm1000x-fully-modular-power-supply-cp-9020271-na"
@@ -315,9 +322,10 @@
    "gtin": "",
    "asin": "",
    "image": "",
+   "sourceImage": "https://res.cloudinary.com/corsair-pwa/image/upload/products/Power-Supply-Units/base-hxi-2023-config/1500W/CP-9020261/Gallery/CP-9020261_01.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": ""
+   "productUrl": "https://www.corsair.com/us/en/p/psu/cp-9020261-na/hx1500i-fully-modular-ultra-low-noise-platinum-atx-1500-watt-pc-power-supply-cp-9020261-na"
   },
   "Thermalright Peerless Assassin 120 SE": {
    "brand": "Thermalright",
@@ -325,6 +333,7 @@
    "gtin": "",
    "asin": "",
    "image": "",
+   "sourceImage": "https://www.thermalright.com/wp-content/uploads/2021/10/PA120-SE-%E4%B8%BB%E5%9B%BE-1.jpg",
    "source": "manual",
    "updatedAt": "2026-07-10",
    "productUrl": "https://www.thermalright.com/product/peerless-assassin-120-se/"
@@ -345,13 +354,14 @@
   },
   "Corsair iCUE LINK TITAN 360 RX LCD": {
    "brand": "Corsair",
-   "mpn": "",
+   "mpn": "CW-9061023-WW",
    "gtin": "",
    "asin": "",
    "image": "",
-   "source": "",
-   "updatedAt": "",
-   "productUrl": ""
+   "sourceImage": "https://assets.corsair.com/image/upload/products/Liquid-Cooling/titan-rx-lcd/Gallery/CW-9061023-WW/CW-9061023-WW_01.png",
+   "source": "manual",
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.corsair.com/us/en/p/cpu-coolers/cw-9061023-ww/icue-link-titan-360-rx-lcd-liquid-cpu-cooler-cw-9061023-ww"
   },
   "Montech AIR 903 MAX": {
    "brand": "Montech",
@@ -359,9 +369,10 @@
    "gtin": "",
    "asin": "",
    "image": "",
+   "sourceImage": "https://www.montechpc.com/images/375589?stamp=1734688166",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": ""
+   "productUrl": "https://www.montechpc.com/air-903-max"
   },
   "Corsair 4000D Airflow": {
    "brand": "Corsair",
@@ -369,9 +380,10 @@
    "gtin": "",
    "asin": "",
    "image": "",
+   "sourceImage": "https://res.cloudinary.com/corsair-pwa/image/upload/products/Cases/base-4000d-airflow-config/Gallery/4000D_AF_BLACK_01.png",
    "source": "manual",
    "updatedAt": "2026-07-10",
-   "productUrl": ""
+   "productUrl": "https://www.corsair.com/us/en/p/pc-cases/cc-9011200-ww/4000d-airflow-tempered-glass-mid-tower-atx-case-black-cc-9011200-ww"
   },
   "Lian Li O11 Dynamic EVO": {
    "brand": "Lian Li",
@@ -379,19 +391,21 @@
    "gtin": "",
    "asin": "",
    "image": "",
+   "sourceImage": "https://lian-li.com/wp-content/uploads/2021/12/evo-600-000.jpg",
    "source": "manual",
    "updatedAt": "2026-07-10",
    "productUrl": "https://lian-li.com/product/o11-dynamic-evo/"
   },
   "HYTE Y70 Touch Infinite": {
    "brand": "HYTE",
-   "mpn": "CS-HYTE-Y70TI-BB",
+   "mpn": "CS-HYTE-Y70TTI-BB",
    "gtin": "",
    "asin": "",
    "image": "",
-   "source": "icecat",
-   "updatedAt": "2026-07-08",
-   "productUrl": "https://hyte.com/store/y70-touch-infinite"
+   "sourceImage": "https://cdn11.bigcommerce.com/s-k28u1tc9ki/product_images/attribute_rule_images/123_source_1716966778.jpg",
+   "source": "manual",
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://hyte.com/store/y70/cs-hyte-y70tti-bb"
   }
  }
 }
