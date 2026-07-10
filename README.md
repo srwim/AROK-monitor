@@ -33,12 +33,13 @@ AROK watches your Windows PC, detects anomalies deterministically, and uses a lo
 
 Ten tabs, all live against the local backend: **Dashboard · Processes · Network · Services · Cleanup · Analytics · AI Insights · Alerts · Upgrades · Settings**, plus a global **Gaming mode** toggle (with auto-detect).
 
-- **Dashboard** — live CPU/memory/disk/network/process cards with drill-down detail and an AI Pulse narrative.
+- **Dashboard** — live CPU/memory/disk/network/process cards with drill-down detail, the AI Pulse narrative, and the animated world map of your network connections.
 - **Network** — a geographic world map that resolves external connections and animates traffic between you and each endpoint, above a live connections table.
 - **AI Insights** — the narrator: anomaly findings, plain-English system story, and one-click optimization recommendations.
+- **Sensors** — SMART drive health, wear and temperatures feed both the alerting and the upgrade advice; a failing disk tells you to back up *before* it dies.
 - **Cleanup** — temp-file cleaner, conservative registry cleaner (restore point + `.reg` backup first), and a guided, checksum-verified Tron launcher.
-- **Upgrades** — hardware-aware component picks matched to your detected platform (AMD/Intel, DDR4/DDR5), refreshed daily. *Affiliate-funded — every link is tagged and FTC-disclosed.*
-- **Settings** — runtime settings, offline Ed25519 licensing, GitHub-Releases update checks.
+- **Upgrade Advisor** — diagnosis-led recommendations from your own telemetry: findings like "storage 91% full" or "drive at 85% wear" rank what's actually worth upgrading, with picks matched to your CPU socket and memory generation so nothing incompatible is ever suggested. Plus priced full builds and an RTX 50-series GPU watch, refreshed daily. *Affiliate-funded — every link is tagged and FTC-disclosed.*
+- **Settings** — runtime settings, run-on-startup toggle, offline Ed25519 licensing, and quiet background auto-updates: new releases download and verify silently, then a one-click "Relaunch to update" pill applies them — no wizard, no UAC.
 
 ## Real local AI
 
@@ -84,10 +85,11 @@ React dev with hot reload: `cd frontend && npm run dev` (proxies `/api` and `/ws
 ## Files
 
 ```
-backend/   main.py · monitor.py · db.py · ai.py · control.py · hardware.py · cleanup.py · optimizer.py
-           licensing.py · updater.py · desktop.py · index.html (legacy fallback) · arok.spec · requirements*.txt
+backend/   main.py · monitor.py · sensors.py · db.py · ai.py · control.py · hardware.py · cleanup.py
+           optimizer.py · licensing.py · updater.py · autostart.py · desktop.py · arok.spec · requirements*.txt
 frontend/  Vite + React + TS + Tailwind v4 · src/tabs/ (10 tabs) · src/components/ (ui.tsx, NetworkMap.tsx) · src/geo.ts
-upgrades-pipeline/  build_manifest.py · affiliate.py · manifest.json
+upgrades-pipeline/  build_manifest.py · affiliate.py · icecat.py · parts_catalog.json · manifest.json
+scripts/   bump_version.py · release_summary.py · preflight_pipeline.py
 ```
 
 ## License

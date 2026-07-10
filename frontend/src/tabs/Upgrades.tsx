@@ -327,11 +327,11 @@ function buildFindings(hw: HardwareInventory | null): Finding[] {
       title: `Storage ${util.disk}% full`,
       detail: "Windows slows down noticeably past ~90% full — an added or larger drive is the cheapest real-world speedup available to you right now.",
     });
-  } else if ((util.disk ?? 0) >= 80) {
+  } else if ((util.disk ?? 0) >= 50) {
     out.push({
       category: "storage", severity: "info",
       title: `Storage ${util.disk}% used`,
-      detail: "Not urgent yet, but you're heading toward the slowdown zone. Worth planning capacity.",
+      detail: "More than half full. No slowdown yet, but SSDs perform best with free space in reserve — a good moment to plan extra capacity before it becomes urgent.",
     });
   }
 

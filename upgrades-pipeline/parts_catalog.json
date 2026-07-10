@@ -1,35 +1,275 @@
 {
-  "_comment": "Part-metadata registry, keyed by the exact component name used in build_manifest.py. build_manifest merges this by name to drive thumbnails: a manual 'image' is tier 1; 'brand'+'mpn' feed the tier-2 Open Icecat lookup; absent -> the app shows a category icon. Fields gtin/asin exist so a future Amazon PA-API (or other retailer) feed can populate this file automatically keyed on those identifiers. 'source' records where the metadata came from (manual | amazon | icecat | pa-api). Empty mpn = not yet enriched; the verify-thumbnails workflow reports these gaps.",
-  "parts": {
-    "AMD Ryzen 5 9600X": { "brand": "AMD", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "AMD Ryzen 7 9700X": { "brand": "AMD", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "AMD Ryzen 7 9800X3D": { "brand": "AMD", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "AMD Ryzen 9 9950X3D": { "brand": "AMD", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "NVIDIA GeForce RTX 5060": { "brand": "NVIDIA", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "AMD Radeon RX 9070 16GB": { "brand": "AMD", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "NVIDIA GeForce RTX 5080": { "brand": "NVIDIA", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "ASUS ROG Astral OC GeForce RTX 5090 32GB": { "brand": "ASUS", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Corsair Vengeance DDR5 32GB 6000 CL30": { "brand": "Corsair", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "G.Skill Trident Z5 Neo DDR5 64GB 6000": { "brand": "G.Skill", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Corsair Dominator Platinum RGB 64GB (2x32) DDR5-5200 CL40": { "brand": "Corsair", "mpn": "CMT64GX5M2B5200C40", "gtin": "", "asin": "", "image": "", "source": "amazon", "updatedAt": "2026-07-08" },
-    "WD Black SN850X 1TB NVMe": { "brand": "Western Digital", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Samsung 990 EVO Plus 2TB NVMe": { "brand": "Samsung", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Samsung 990 PRO 2TB NVMe": { "brand": "Samsung", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Samsung 9100 PRO 8TB NVMe PCIe 5.0": { "brand": "Samsung", "mpn": "MZ-VAP8T0B/AM", "gtin": "", "asin": "", "image": "", "source": "amazon", "updatedAt": "2026-07-08" },
-    "Gigabyte B650 Aorus Elite AX": { "brand": "Gigabyte", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "MSI MAG B850 Tomahawk MAX WiFi": { "brand": "MSI", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "ASUS ROG Strix X870E-E Gaming WiFi": { "brand": "ASUS", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "ASUS ROG Crosshair X870E GLACIAL EATX": { "brand": "ASUS", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "be quiet! Pure Power 12 M 750W": { "brand": "be quiet!", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Montech Century II 850W 80+ Gold": { "brand": "Montech", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Corsair RM1000x 1000W 80+ Gold": { "brand": "Corsair", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Corsair HX1500i 1500W 80+ Platinum": { "brand": "Corsair", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Thermalright Peerless Assassin 120 SE": { "brand": "Thermalright", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "ARCTIC Liquid Freezer III 360": { "brand": "ARCTIC", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Corsair iCUE LINK TITAN 360 RX LCD": { "brand": "Corsair", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Montech AIR 903 MAX": { "brand": "Montech", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Corsair 4000D Airflow": { "brand": "Corsair", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "Lian Li O11 Dynamic EVO": { "brand": "Lian Li", "mpn": "", "gtin": "", "asin": "", "image": "", "source": "", "updatedAt": "" },
-    "HYTE Y70 Touch Infinite": { "brand": "HYTE", "mpn": "CS-HYTE-Y70TI-BB", "gtin": "", "asin": "", "image": "", "source": "icecat", "updatedAt": "2026-07-08" }
+ "_comment": "Part-metadata registry, keyed by the exact component name used in build_manifest.py. build_manifest merges this by name to drive thumbnails: a manual 'image' is tier 1; 'brand'+'mpn' feed the tier-2 Open Icecat lookup; absent -> the app shows a category icon. Fields gtin/asin exist so a future Amazon PA-API (or other retailer) feed can populate this file automatically keyed on those identifiers. 'source' records where the metadata came from (manual | amazon | icecat | pa-api). Empty mpn = not yet enriched; the verify-thumbnails workflow reports these gaps.",
+ "parts": {
+  "AMD Ryzen 5 9600X": {
+   "brand": "AMD",
+   "mpn": "100-100001405WOF",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "AMD Ryzen 7 9700X": {
+   "brand": "AMD",
+   "mpn": "100-100001404WOF",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "AMD Ryzen 7 9800X3D": {
+   "brand": "AMD",
+   "mpn": "100-100001084WOF",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "AMD Ryzen 9 9950X3D": {
+   "brand": "AMD",
+   "mpn": "100-100001719WOF",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "NVIDIA GeForce RTX 5060": {
+   "brand": "NVIDIA",
+   "mpn": "",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "",
+   "updatedAt": ""
+  },
+  "AMD Radeon RX 9070 16GB": {
+   "brand": "AMD",
+   "mpn": "",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "",
+   "updatedAt": ""
+  },
+  "NVIDIA GeForce RTX 5080": {
+   "brand": "NVIDIA",
+   "mpn": "900-1G144-2545-000",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "ASUS ROG Astral OC GeForce RTX 5090 32GB": {
+   "brand": "ASUS",
+   "mpn": "ROG-ASTRAL-RTX5090-O32G-GAMING",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Corsair Vengeance DDR5 32GB 6000 CL30": {
+   "brand": "Corsair",
+   "mpn": "CMK32GX5M2B6000Z30",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "G.Skill Trident Z5 Neo DDR5 64GB 6000": {
+   "brand": "G.Skill",
+   "mpn": "F5-6000J3040G32GX2-TZ5N",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Corsair Dominator Platinum RGB 64GB (2x32) DDR5-5200 CL40": {
+   "brand": "Corsair",
+   "mpn": "CMT64GX5M2B5200C40",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "amazon",
+   "updatedAt": "2026-07-08"
+  },
+  "WD Black SN850X 1TB NVMe": {
+   "brand": "Western Digital",
+   "mpn": "WDS100T2X0E",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Samsung 990 EVO Plus 2TB NVMe": {
+   "brand": "Samsung",
+   "mpn": "MZ-V9S2T0B/AM",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Samsung 990 PRO 2TB NVMe": {
+   "brand": "Samsung",
+   "mpn": "MZ-V9P2T0B/AM",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Samsung 9100 PRO 8TB NVMe PCIe 5.0": {
+   "brand": "Samsung",
+   "mpn": "MZ-VAP8T0B/AM",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "amazon",
+   "updatedAt": "2026-07-08"
+  },
+  "Gigabyte B650 Aorus Elite AX": {
+   "brand": "Gigabyte",
+   "mpn": "B650 AORUS ELITE AX",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "MSI MAG B850 Tomahawk MAX WiFi": {
+   "brand": "MSI",
+   "mpn": "MAG B850 TOMAHAWK MAX WIFI",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "ASUS ROG Strix X870E-E Gaming WiFi": {
+   "brand": "ASUS",
+   "mpn": "90MB1IB0-MVAAY0",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "ASUS ROG Crosshair X870E GLACIAL EATX": {
+   "brand": "ASUS",
+   "mpn": "",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "",
+   "updatedAt": ""
+  },
+  "be quiet! Pure Power 12 M 750W": {
+   "brand": "be quiet!",
+   "mpn": "BN343",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Montech Century II 850W 80+ Gold": {
+   "brand": "Montech",
+   "mpn": "CENTURY II 850",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Corsair RM1000x 1000W 80+ Gold": {
+   "brand": "Corsair",
+   "mpn": "CP-9020271-NA",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Corsair HX1500i 1500W 80+ Platinum": {
+   "brand": "Corsair",
+   "mpn": "CP-9020261-NA",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Thermalright Peerless Assassin 120 SE": {
+   "brand": "Thermalright",
+   "mpn": "PA120 SE",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "ARCTIC Liquid Freezer III 360": {
+   "brand": "ARCTIC",
+   "mpn": "ACFRE00136A",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Corsair iCUE LINK TITAN 360 RX LCD": {
+   "brand": "Corsair",
+   "mpn": "",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "",
+   "updatedAt": ""
+  },
+  "Montech AIR 903 MAX": {
+   "brand": "Montech",
+   "mpn": "AIR 903 MAX",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Corsair 4000D Airflow": {
+   "brand": "Corsair",
+   "mpn": "CC-9011200-WW",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "Lian Li O11 Dynamic EVO": {
+   "brand": "Lian Li",
+   "mpn": "O11DEX",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "manual",
+   "updatedAt": "2026-07-10"
+  },
+  "HYTE Y70 Touch Infinite": {
+   "brand": "HYTE",
+   "mpn": "CS-HYTE-Y70TI-BB",
+   "gtin": "",
+   "asin": "",
+   "image": "",
+   "source": "icecat",
+   "updatedAt": "2026-07-08"
   }
+ }
 }

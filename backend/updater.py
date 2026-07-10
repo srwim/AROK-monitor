@@ -21,12 +21,15 @@ import threading
 import time
 import urllib.request
 
-VERSION = "1.5.1"
-DISPLAY_VERSION = "v1.5.1"
+VERSION = "1.6.0"
+DISPLAY_VERSION = "v1.6.0"
 REPO = os.environ.get("AROK_REPO", "srwim/AROK-monitor")
 
-CHECK_INTERVAL = 6 * 3600      # background re-check cadence (seconds)
-FIRST_CHECK_DELAY = 90         # let the app settle before the first check
+CHECK_INTERVAL = 6 * 3600      # steady-state re-check cadence (seconds)
+# Launch burst: check almost immediately, then back off exponentially until
+# reaching the steady-state interval. Users see the pill within seconds of
+# launching when an update exists, without hammering the API afterwards.
+CHECK_SCHEDULE = (5, 30, 120, 600, 2700)
 
 _lock = threading.Lock()
 _state: dict = {
@@ -150,7 +153,15 @@ def download_update() -> dict:
         latest, exe_url, sha_url = _release_assets()
         _set(latest=latest)
         if not latest or _parse(latest) <= _parse(VERSION):
-            _set(phase="idle")
+            # Up to date: clear previously staged installers so a stale
+            # download can never resurface the relaunch pill.
+            try:
+                for f in os.listdir(_updates_dir()):
+                    if f.endswith((".exe", ".part", ".cmd")):
+                        os.remove(os.path.join(_updates_dir(), f))
+            except Exception:
+                pass
+            _set(phase="idle", staged_path=None)
             return status()
         if not exe_url:
             _set(phase="error", error="release has no installer asset")
@@ -187,14 +198,27 @@ def apply_update() -> dict:
     installer = st["staged_path"]
     _set(phase="applying")
     try:
+        log = os.path.join(_updates_dir(), "install.log")
+        flags = f'/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /FORCECLOSEAPPLICATIONS /LOG="{log}"'
+        lines = ["@echo off", "timeout /t 2 /nobreak >nul"]
         if getattr(sys, "frozen", False):
             exe = sys.executable
-            # cmd runs the installer to completion, then starts the new build.
-            cmd = f'"{installer}" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART & start "" "{exe}"'
+            # /DIR pins the install to wherever THIS build actually runs from.
+            # Without it, a custom install dir (or a per-user vs per-machine
+            # registry mismatch) makes silent setup install to a fresh default
+            # location while the old copy keeps launching — the "still on the
+            # old version after relaunch" bug.
+            lines.append(f'"{installer}" {flags} /DIR="{os.path.dirname(exe)}"')
+            lines.append(f'start "" "{exe}"')
         else:
-            cmd = f'"{installer}" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART'
+            lines.append(f'"{installer}" {flags}')
+        # A real script file avoids cmd /c quote-mangling with nested quotes,
+        # and /LOG means a silent failure is never invisible again.
+        script = os.path.join(_updates_dir(), "apply_update.cmd")
+        with open(script, "w", encoding="ascii", errors="replace") as f:
+            f.write("\r\n".join(lines) + "\r\n")
         subprocess.Popen(
-            ["cmd", "/c", cmd],
+            ["cmd", "/c", script],
             creationflags=subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP,
             close_fds=True,
         )
@@ -206,14 +230,21 @@ def apply_update() -> dict:
 
 def auto_update_loop(stop, enabled) -> None:
     """Background loop: periodically stage updates when auto-update is on.
-    `stop` is a threading.Event; `enabled` is a callable returning bool."""
-    if stop.wait(FIRST_CHECK_DELAY):
-        return
-    while not stop.is_set():
+    `stop` is a threading.Event; `enabled` is a callable returning bool.
+    Checks follow CHECK_SCHEDULE (fast at launch, exponential backoff), then
+    settle into CHECK_INTERVAL."""
+    def _tick() -> None:
         try:
             if enabled():
                 download_update()
         except Exception:
             pass
+
+    for delay in CHECK_SCHEDULE:
+        if stop.wait(delay):
+            return
+        _tick()
+    while not stop.is_set():
         if stop.wait(CHECK_INTERVAL):
             return
+        _tick()
