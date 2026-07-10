@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-10T13:19:58Z",
+  "generatedAt": "2026-07-10T13:32:27Z",
   "disclosure": "As an Amazon Associate I earn from qualifying purchases.",
   "componentUpgrades": {
     "cpu": {
@@ -19,7 +19,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-ryzen-7-9800x3d.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-ryzen-7-9800x3d.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T13:19:55Z"
+      "linkCheckedAt": "2026-07-10T13:32:27Z"
     },
     "gpu": {
       "label": "Graphics Card (GPU)",
@@ -37,28 +37,34 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-radeon-rx-9070-xt.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-radeon-rx-9070-xt.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T13:19:55Z"
+      "linkCheckedAt": "2026-07-10T13:32:27Z"
     },
     "ram": {
       "label": "Memory (RAM)",
       "bangForBuck": {
         "title": "Corsair Vengeance DDR5 32GB (2x16) 6000 CL30",
         "price": "~$380",
-        "url": "https://www.amazon.com/s?k=Corsair+Vengeance+DDR5+32GB+%282x16%29+6000+CL30&tag=lifeupgrad02b-20"
+        "url": "https://www.amazon.com/s?k=Corsair+Vengeance+DDR5+32GB+%282x16%29+6000+CL30&tag=lifeupgrad02b-20",
+        "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-vengeance-ddr5-32gb-6000-cl30.webp",
+        "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-vengeance-ddr5-32gb-6000-cl30.thumb.webp"
       },
       "highEnd": {
         "title": "G.Skill Trident Z5 Neo DDR5 64GB (2x32) 6000",
         "price": "~$700",
-        "url": "https://www.amazon.com/s?k=G.Skill+Trident+Z5+Neo+DDR5+64GB+%282x32%29+6000&tag=lifeupgrad02b-20"
+        "url": "https://www.amazon.com/s?k=G.Skill+Trident+Z5+Neo+DDR5+64GB+%282x32%29+6000&tag=lifeupgrad02b-20",
+        "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/g-skill-trident-z5-neo-ddr5-64gb-6000.webp",
+        "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/g-skill-trident-z5-neo-ddr5-64gb-6000.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T13:19:55Z"
+      "linkCheckedAt": "2026-07-10T13:32:27Z"
     },
     "storage": {
       "label": "SSD / Storage",
       "bangForBuck": {
         "title": "WD Black SN850X 1TB NVMe",
         "price": "~$100",
-        "url": "https://www.amazon.com/s?k=WD+Black+SN850X+1TB+NVMe&tag=lifeupgrad02b-20"
+        "url": "https://www.amazon.com/s?k=WD+Black+SN850X+1TB+NVMe&tag=lifeupgrad02b-20",
+        "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/wd-black-sn850x-1tb-nvme.webp",
+        "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/wd-black-sn850x-1tb-nvme.thumb.webp"
       },
       "highEnd": {
         "title": "Samsung 990 PRO 2TB NVMe",
@@ -67,7 +73,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/samsung-990-pro-2tb-nvme.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/samsung-990-pro-2tb-nvme.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T13:19:55Z"
+      "linkCheckedAt": "2026-07-10T13:32:27Z"
     },
     "motherboard": {
       "label": "Motherboard",
@@ -85,7 +91,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/msi-mag-b850-tomahawk-max-wifi.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/msi-mag-b850-tomahawk-max-wifi.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T13:19:55Z"
+      "linkCheckedAt": "2026-07-10T13:32:27Z"
     },
     "psu": {
       "label": "Power Supply (PSU)",
@@ -99,16 +105,20 @@
       "highEnd": {
         "title": "Corsair RM1000x 1000W 80+ Gold",
         "price": "~$190",
-        "url": "https://www.amazon.com/s?k=Corsair+RM1000x+1000W+80%2B+Gold&tag=lifeupgrad02b-20"
+        "url": "https://www.amazon.com/s?k=Corsair+RM1000x+1000W+80%2B+Gold&tag=lifeupgrad02b-20",
+        "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-rm1000x-1000w-80-gold.webp",
+        "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-rm1000x-1000w-80-gold.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T13:19:55Z"
+      "linkCheckedAt": "2026-07-10T13:32:27Z"
     },
     "cooler": {
       "label": "CPU Cooler",
       "bangForBuck": {
         "title": "Thermalright Peerless Assassin 120 SE",
         "price": "~$36",
-        "url": "https://www.amazon.com/s?k=Thermalright+Peerless+Assassin+120+SE&tag=lifeupgrad02b-20"
+        "url": "https://www.amazon.com/s?k=Thermalright+Peerless+Assassin+120+SE&tag=lifeupgrad02b-20",
+        "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/thermalright-peerless-assassin-120-se.webp",
+        "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/thermalright-peerless-assassin-120-se.thumb.webp"
       },
       "highEnd": {
         "title": "ARCTIC Liquid Freezer III 360",
@@ -117,7 +127,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/arctic-liquid-freezer-iii-360.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/arctic-liquid-freezer-iii-360.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T13:19:55Z"
+      "linkCheckedAt": "2026-07-10T13:32:27Z"
     }
   },
   "featuredSystems": [
@@ -145,13 +155,17 @@
           "type": "Memory",
           "name": "Corsair Vengeance DDR5 32GB 6000 CL30",
           "price": "~$380",
-          "url": "https://www.amazon.com/s?k=Corsair+Vengeance+DDR5+32GB+6000+CL30&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Corsair+Vengeance+DDR5+32GB+6000+CL30&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-vengeance-ddr5-32gb-6000-cl30.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-vengeance-ddr5-32gb-6000-cl30.thumb.webp"
         },
         {
           "type": "Storage",
           "name": "WD Black SN850X 1TB NVMe",
           "price": "~$100",
-          "url": "https://www.amazon.com/s?k=WD+Black+SN850X+1TB+NVMe&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=WD+Black+SN850X+1TB+NVMe&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/wd-black-sn850x-1tb-nvme.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/wd-black-sn850x-1tb-nvme.thumb.webp"
         },
         {
           "type": "Motherboard",
@@ -173,13 +187,17 @@
           "type": "Cooler",
           "name": "Thermalright Peerless Assassin 120 SE",
           "price": "~$36",
-          "url": "https://www.amazon.com/s?k=Thermalright+Peerless+Assassin+120+SE&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Thermalright+Peerless+Assassin+120+SE&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/thermalright-peerless-assassin-120-se.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/thermalright-peerless-assassin-120-se.thumb.webp"
         },
         {
           "type": "Case",
           "name": "Montech AIR 903 MAX",
           "price": "~$75",
-          "url": "https://www.amazon.com/s?k=Montech+AIR+903+MAX&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Montech+AIR+903+MAX&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/montech-air-903-max.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/montech-air-903-max.thumb.webp"
         }
       ],
       "totalPrice": "~$1,321"
@@ -208,7 +226,9 @@
           "type": "Memory",
           "name": "Corsair Vengeance DDR5 32GB 6000 CL30",
           "price": "~$380",
-          "url": "https://www.amazon.com/s?k=Corsair+Vengeance+DDR5+32GB+6000+CL30&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Corsair+Vengeance+DDR5+32GB+6000+CL30&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-vengeance-ddr5-32gb-6000-cl30.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-vengeance-ddr5-32gb-6000-cl30.thumb.webp"
         },
         {
           "type": "Storage",
@@ -230,19 +250,25 @@
           "type": "PSU",
           "name": "Montech Century II 850W 80+ Gold",
           "price": "~$90",
-          "url": "https://www.amazon.com/s?k=Montech+Century+II+850W+80%2B+Gold&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Montech+Century+II+850W+80%2B+Gold&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/montech-century-ii-850w-80-gold.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/montech-century-ii-850w-80-gold.thumb.webp"
         },
         {
           "type": "Cooler",
           "name": "Thermalright Peerless Assassin 120 SE",
           "price": "~$36",
-          "url": "https://www.amazon.com/s?k=Thermalright+Peerless+Assassin+120+SE&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Thermalright+Peerless+Assassin+120+SE&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/thermalright-peerless-assassin-120-se.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/thermalright-peerless-assassin-120-se.thumb.webp"
         },
         {
           "type": "Case",
           "name": "Corsair 4000D Airflow",
           "price": "~$95",
-          "url": "https://www.amazon.com/s?k=Corsair+4000D+Airflow&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Corsair+4000D+Airflow&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-4000d-airflow.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-4000d-airflow.thumb.webp"
         }
       ],
       "totalPrice": "~$1,861"
@@ -271,7 +297,9 @@
           "type": "Memory",
           "name": "G.Skill Trident Z5 Neo DDR5 64GB 6000",
           "price": "~$700",
-          "url": "https://www.amazon.com/s?k=G.Skill+Trident+Z5+Neo+DDR5+64GB+6000&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=G.Skill+Trident+Z5+Neo+DDR5+64GB+6000&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/g-skill-trident-z5-neo-ddr5-64gb-6000.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/g-skill-trident-z5-neo-ddr5-64gb-6000.thumb.webp"
         },
         {
           "type": "Storage",
@@ -293,7 +321,9 @@
           "type": "PSU",
           "name": "Corsair RM1000x 1000W 80+ Gold",
           "price": "~$190",
-          "url": "https://www.amazon.com/s?k=Corsair+RM1000x+1000W+80%2B+Gold&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Corsair+RM1000x+1000W+80%2B+Gold&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-rm1000x-1000w-80-gold.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-rm1000x-1000w-80-gold.thumb.webp"
         },
         {
           "type": "Cooler",
@@ -307,7 +337,9 @@
           "type": "Case",
           "name": "Lian Li O11 Dynamic EVO",
           "price": "~$170",
-          "url": "https://www.amazon.com/s?k=Lian+Li+O11+Dynamic+EVO&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Lian+Li+O11+Dynamic+EVO&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/lian-li-o11-dynamic-evo.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/lian-li-o11-dynamic-evo.thumb.webp"
         }
       ],
       "totalPrice": "~$3,320"
@@ -337,7 +369,9 @@
           "name": "Corsair Dominator Platinum RGB 64GB (2x32) DDR5-5200 CL40",
           "price": "~$973",
           "url": "https://www.amazon.com/s?k=Corsair+Dominator+Platinum+RGB+64GB+%282x32%29+DDR5-5200+CL40&tag=lifeupgrad02b-20",
-          "qty": 2
+          "qty": 2,
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-dominator-platinum-rgb-64gb-2x32-ddr5-5200-cl40.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-dominator-platinum-rgb-64gb-2x32-ddr5-5200-cl40.thumb.webp"
         },
         {
           "type": "Storage",
@@ -352,25 +386,33 @@
           "type": "Motherboard",
           "name": "ASUS ROG Crosshair X870E GLACIAL EATX",
           "price": "~$1300",
-          "url": "https://www.amazon.com/s?k=ASUS+ROG+Crosshair+X870E+GLACIAL+EATX&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=ASUS+ROG+Crosshair+X870E+GLACIAL+EATX&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/asus-rog-crosshair-x870e-glacial-eatx.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/asus-rog-crosshair-x870e-glacial-eatx.thumb.webp"
         },
         {
           "type": "PSU",
           "name": "Corsair HX1500i 1500W 80+ Platinum",
           "price": "~$350",
-          "url": "https://www.amazon.com/s?k=Corsair+HX1500i+1500W+80%2B+Platinum&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Corsair+HX1500i+1500W+80%2B+Platinum&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-hx1500i-1500w-80-platinum.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-hx1500i-1500w-80-platinum.thumb.webp"
         },
         {
           "type": "Cooler",
           "name": "Corsair iCUE LINK TITAN 360 RX LCD",
           "price": "~$220",
-          "url": "https://www.amazon.com/s?k=Corsair+iCUE+LINK+TITAN+360+RX+LCD&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=Corsair+iCUE+LINK+TITAN+360+RX+LCD&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-icue-link-titan-360-rx-lcd.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-icue-link-titan-360-rx-lcd.thumb.webp"
         },
         {
           "type": "Case",
           "name": "HYTE Y70 Touch Infinite",
           "price": "~$350",
-          "url": "https://www.amazon.com/s?k=HYTE+Y70+Touch+Infinite&tag=lifeupgrad02b-20"
+          "url": "https://www.amazon.com/s?k=HYTE+Y70+Touch+Infinite&tag=lifeupgrad02b-20",
+          "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/hyte-y70-touch-infinite.webp",
+          "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/hyte-y70-touch-infinite.thumb.webp"
         }
       ],
       "totalPrice": "~$13,166",
