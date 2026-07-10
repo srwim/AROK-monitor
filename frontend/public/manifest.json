@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-10T11:42:11Z",
+  "generatedAt": "2026-07-10T13:19:58Z",
   "disclosure": "As an Amazon Associate I earn from qualifying purchases.",
   "componentUpgrades": {
     "cpu": {
@@ -19,7 +19,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-ryzen-7-9800x3d.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-ryzen-7-9800x3d.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T11:42:09Z"
+      "linkCheckedAt": "2026-07-10T13:19:55Z"
     },
     "gpu": {
       "label": "Graphics Card (GPU)",
@@ -37,7 +37,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-radeon-rx-9070-xt.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-radeon-rx-9070-xt.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T11:42:09Z"
+      "linkCheckedAt": "2026-07-10T13:19:55Z"
     },
     "ram": {
       "label": "Memory (RAM)",
@@ -51,7 +51,7 @@
         "price": "~$700",
         "url": "https://www.amazon.com/s?k=G.Skill+Trident+Z5+Neo+DDR5+64GB+%282x32%29+6000&tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-07-10T11:42:09Z"
+      "linkCheckedAt": "2026-07-10T13:19:55Z"
     },
     "storage": {
       "label": "SSD / Storage",
@@ -67,7 +67,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/samsung-990-pro-2tb-nvme.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/samsung-990-pro-2tb-nvme.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T11:42:09Z"
+      "linkCheckedAt": "2026-07-10T13:19:55Z"
     },
     "motherboard": {
       "label": "Motherboard",
@@ -85,7 +85,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/msi-mag-b850-tomahawk-max-wifi.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/msi-mag-b850-tomahawk-max-wifi.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T11:42:09Z"
+      "linkCheckedAt": "2026-07-10T13:19:55Z"
     },
     "psu": {
       "label": "Power Supply (PSU)",
@@ -101,7 +101,7 @@
         "price": "~$190",
         "url": "https://www.amazon.com/s?k=Corsair+RM1000x+1000W+80%2B+Gold&tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-07-10T11:42:09Z"
+      "linkCheckedAt": "2026-07-10T13:19:55Z"
     },
     "cooler": {
       "label": "CPU Cooler",
@@ -117,7 +117,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/arctic-liquid-freezer-iii-360.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/arctic-liquid-freezer-iii-360.thumb.webp"
       },
-      "linkCheckedAt": "2026-07-10T11:42:09Z"
+      "linkCheckedAt": "2026-07-10T13:19:55Z"
     }
   },
   "featuredSystems": [
