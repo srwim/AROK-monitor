@@ -1,0 +1,41 @@
+# Manual-trigger catalog enrichment: pulls manufacturer og:image thumbnails
+# into parts_catalog.json (tier 1) for parts Open Icecat doesn't cover, then
+# commits the result. Run it after adding parts or productUrls; the regular
+# verify-thumbnails workflow reports remaining gaps.
+name: Enrich parts catalog
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Enrich catalog from manufacturer pages
+        working-directory: upgrades-pipeline
+        env:
+          ICECAT_SHOPNAME: ${{ secrets.ICECAT_SHOPNAME }}
+          ICECAT_API_TOKEN: ${{ secrets.ICECAT_API_TOKEN }}
+        run: python enrich_catalog.py | tee "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit catalog if changed
+        run: |
+          git config user.name  "arok-catalog-bot"
+          git config user.email "actions@github.com"
+          git add upgrades-pipeline/parts_catalog.json
+          if git diff --cached --quiet; then
+            echo "No catalog changes."
+          else
+            git commit -m "chore: enrich parts catalog with manufacturer thumbnails"
+            git pull --rebase
+            git push
+          fi

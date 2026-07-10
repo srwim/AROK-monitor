@@ -1,5 +1,5 @@
 {
- "_comment": "Part-metadata registry, keyed by the exact component name used in build_manifest.py. build_manifest merges this by name to drive thumbnails: a manual 'image' is tier 1; 'brand'+'mpn' feed the tier-2 Open Icecat lookup; absent -> the app shows a category icon. Fields gtin/asin exist so a future Amazon PA-API (or other retailer) feed can populate this file automatically keyed on those identifiers. 'source' records where the metadata came from (manual | amazon | icecat | pa-api). Empty mpn = not yet enriched; the verify-thumbnails workflow reports these gaps.",
+ "_comment": "Part-metadata registry, keyed by the exact component name used in build_manifest.py. build_manifest merges this by name to drive thumbnails: a manual 'image' is tier 1; 'brand'+'mpn' feed the tier-2 Open Icecat lookup; absent -> the app shows a category icon. Fields gtin/asin exist so a future Amazon PA-API (or other retailer) feed can populate this file automatically keyed on those identifiers. 'source' records where the metadata came from (manual | amazon | icecat | pa-api). Empty mpn = not yet enriched; the verify-thumbnails workflow reports these gaps. 'productUrl' is the manufacturer product page used by enrich_catalog.py to pull the official og:image into 'image' (tier 1); empty productUrl = enrichment can't reach that part yet.",
  "parts": {
   "AMD Ryzen 5 9600X": {
    "brand": "AMD",
@@ -8,7 +8,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.amd.com/en/products/processors/desktops/ryzen/9000-series/amd-ryzen-5-9600x.html"
   },
   "AMD Ryzen 7 9700X": {
    "brand": "AMD",
@@ -17,7 +18,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.amd.com/en/products/processors/desktops/ryzen/9000-series/amd-ryzen-7-9700x.html"
   },
   "AMD Ryzen 7 9800X3D": {
    "brand": "AMD",
@@ -26,7 +28,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.amd.com/en/products/processors/desktops/ryzen/9000-series/amd-ryzen-7-9800x3d.html"
   },
   "AMD Ryzen 9 9950X3D": {
    "brand": "AMD",
@@ -35,7 +38,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.amd.com/en/products/processors/desktops/ryzen/9000-series/amd-ryzen-9-9950x3d.html"
   },
   "NVIDIA GeForce RTX 5060": {
    "brand": "NVIDIA",
@@ -44,7 +48,8 @@
    "asin": "",
    "image": "",
    "source": "",
-   "updatedAt": ""
+   "updatedAt": "",
+   "productUrl": "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5060-family/"
   },
   "AMD Radeon RX 9070 16GB": {
    "brand": "AMD",
@@ -53,7 +58,8 @@
    "asin": "",
    "image": "",
    "source": "",
-   "updatedAt": ""
+   "updatedAt": "",
+   "productUrl": "https://www.amd.com/en/products/graphics/desktops/radeon/9000-series/amd-radeon-rx-9070.html"
   },
   "NVIDIA GeForce RTX 5080": {
    "brand": "NVIDIA",
@@ -62,7 +68,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5080/"
   },
   "ASUS ROG Astral OC GeForce RTX 5090 32GB": {
    "brand": "ASUS",
@@ -71,7 +78,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://rog.asus.com/graphics-cards/graphics-cards/rog-astral/rog-astral-rtx5090-o32g-gaming/"
   },
   "Corsair Vengeance DDR5 32GB 6000 CL30": {
    "brand": "Corsair",
@@ -80,7 +88,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.corsair.com/us/en/p/memory/cmk32gx5m2b6000z30/vengeance-32gb-2x16gb-ddr5-dram-6000mts-cl30-amd-expo-memory-kit-black-cmk32gx5m2b6000z30"
   },
   "G.Skill Trident Z5 Neo DDR5 64GB 6000": {
    "brand": "G.Skill",
@@ -89,7 +98,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": ""
   },
   "Corsair Dominator Platinum RGB 64GB (2x32) DDR5-5200 CL40": {
    "brand": "Corsair",
@@ -98,7 +108,8 @@
    "asin": "",
    "image": "",
    "source": "amazon",
-   "updatedAt": "2026-07-08"
+   "updatedAt": "2026-07-08",
+   "productUrl": ""
   },
   "WD Black SN850X 1TB NVMe": {
    "brand": "Western Digital",
@@ -107,7 +118,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://shop.sandisk.com/products/ssd/internal-ssd/wd-black-sn850x-nvme-ssd"
   },
   "Samsung 990 EVO Plus 2TB NVMe": {
    "brand": "Samsung",
@@ -116,7 +128,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.samsung.com/us/computing/memory-storage/solid-state-drives/990-evo-plus-pcie-gen4-x4-nvme-ssd-2tb-mz-v9s2t0b-am/"
   },
   "Samsung 990 PRO 2TB NVMe": {
    "brand": "Samsung",
@@ -125,7 +138,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.samsung.com/us/computing/memory-storage/solid-state-drives/990-pro-pcie-4-0-nvme-ssd-2tb-mz-v9p2t0b-am/"
   },
   "Samsung 9100 PRO 8TB NVMe PCIe 5.0": {
    "brand": "Samsung",
@@ -134,7 +148,8 @@
    "asin": "",
    "image": "",
    "source": "amazon",
-   "updatedAt": "2026-07-08"
+   "updatedAt": "2026-07-08",
+   "productUrl": ""
   },
   "Gigabyte B650 Aorus Elite AX": {
    "brand": "Gigabyte",
@@ -143,7 +158,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.gigabyte.com/Motherboard/B650-AORUS-ELITE-AX"
   },
   "MSI MAG B850 Tomahawk MAX WiFi": {
    "brand": "MSI",
@@ -152,7 +168,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.msi.com/Motherboard/MAG-B850-TOMAHAWK-MAX-WIFI"
   },
   "ASUS ROG Strix X870E-E Gaming WiFi": {
    "brand": "ASUS",
@@ -161,7 +178,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://rog.asus.com/motherboards/rog-strix/rog-strix-x870e-e-gaming-wifi/"
   },
   "ASUS ROG Crosshair X870E GLACIAL EATX": {
    "brand": "ASUS",
@@ -170,7 +188,8 @@
    "asin": "",
    "image": "",
    "source": "",
-   "updatedAt": ""
+   "updatedAt": "",
+   "productUrl": ""
   },
   "be quiet! Pure Power 12 M 750W": {
    "brand": "be quiet!",
@@ -179,7 +198,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.bequiet.com/en/powersupply/pure-power-12-m"
   },
   "Montech Century II 850W 80+ Gold": {
    "brand": "Montech",
@@ -188,7 +208,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": ""
   },
   "Corsair RM1000x 1000W 80+ Gold": {
    "brand": "Corsair",
@@ -197,7 +218,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.corsair.com/us/en/p/psu/cp-9020271-na/rmx-series-rm1000x-fully-modular-power-supply-cp-9020271-na"
   },
   "Corsair HX1500i 1500W 80+ Platinum": {
    "brand": "Corsair",
@@ -206,7 +228,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": ""
   },
   "Thermalright Peerless Assassin 120 SE": {
    "brand": "Thermalright",
@@ -215,7 +238,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.thermalright.com/product/peerless-assassin-120-se/"
   },
   "ARCTIC Liquid Freezer III 360": {
    "brand": "ARCTIC",
@@ -224,7 +248,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://www.arctic.de/us/Liquid-Freezer-III-360/ACFRE00136A"
   },
   "Corsair iCUE LINK TITAN 360 RX LCD": {
    "brand": "Corsair",
@@ -233,7 +258,8 @@
    "asin": "",
    "image": "",
    "source": "",
-   "updatedAt": ""
+   "updatedAt": "",
+   "productUrl": ""
   },
   "Montech AIR 903 MAX": {
    "brand": "Montech",
@@ -242,7 +268,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": ""
   },
   "Corsair 4000D Airflow": {
    "brand": "Corsair",
@@ -251,7 +278,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": ""
   },
   "Lian Li O11 Dynamic EVO": {
    "brand": "Lian Li",
@@ -260,7 +288,8 @@
    "asin": "",
    "image": "",
    "source": "manual",
-   "updatedAt": "2026-07-10"
+   "updatedAt": "2026-07-10",
+   "productUrl": "https://lian-li.com/product/o11-dynamic-evo/"
   },
   "HYTE Y70 Touch Infinite": {
    "brand": "HYTE",
@@ -269,7 +298,8 @@
    "asin": "",
    "image": "",
    "source": "icecat",
-   "updatedAt": "2026-07-08"
+   "updatedAt": "2026-07-08",
+   "productUrl": "https://hyte.com/store/y70-touch-infinite"
   }
  }
 }
