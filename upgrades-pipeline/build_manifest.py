@@ -394,6 +394,8 @@ def enrich_picks(component_upgrades: dict, catalog: dict) -> dict:
                 continue
             if meta.get("image"):
                 pick["image"] = meta["image"]
+                if meta.get("thumb"):
+                    pick["thumb"] = meta["thumb"]
             elif meta.get("brand") and meta.get("mpn"):
                 url = image_for(meta["brand"], meta["mpn"])
                 if url:
@@ -412,6 +414,8 @@ def enrich_from_catalog(systems: list[dict], catalog: dict) -> list[dict]:
                 continue
             if meta.get("image"):
                 comp["image"] = meta["image"]
+                if meta.get("thumb"):
+                    comp["thumb"] = meta["thumb"]
             elif meta.get("brand") and meta.get("mpn"):
                 comp["_brand"], comp["_mpn"] = meta["brand"], meta["mpn"]
     return systems

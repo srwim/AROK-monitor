@@ -12,9 +12,9 @@ const amazonSearch = (q: string) =>
   `https://www.amazon.com/s?k=${encodeURIComponent(q)}&tag=${AMAZON_TAG}`;
 
 // ── Manifest types ──────────────────────────────────────────────────────────
-type Pick = { title: string; asin?: string; price?: string; image?: string; url: string };
+type Pick = { title: string; asin?: string; price?: string; image?: string; thumb?: string; url: string };
 type ComponentUpgrade = { label: string; bangForBuck: Pick; highEnd: Pick };
-type SystemComponent = { type: string; name: string; url: string; price?: string; store?: string; qty?: number; image?: string };
+type SystemComponent = { type: string; name: string; url: string; price?: string; store?: string; qty?: number; image?: string; thumb?: string };
 type FeaturedSystem = {
   name: string;
   source?: string;
@@ -163,7 +163,8 @@ function PickThumb({ pick }: { pick: Pick }) {
       title={`${pick.title} — click to enlarge`}
       className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-white/5 p-1 transition-transform hover:scale-105 focus:outline-none"
     >
-      <img src={pick.image} alt={pick.title} loading="lazy" className="h-full w-full object-contain" />
+      {/* card shows the tiny rendition; the lightbox loads the full image */}
+      <img src={pick.thumb ?? pick.image} alt={pick.title} loading="lazy" decoding="async" className="h-full w-full object-contain" />
     </button>
   );
 }
@@ -556,7 +557,8 @@ function ComponentThumb({ c }: { c: SystemComponent }) {
         title={`${c.name} — click to enlarge`}
         className={`${box} shrink-0 overflow-hidden rounded-md bg-white/5 p-0.5 transition-transform hover:scale-110 focus:outline-none`}
       >
-        <img src={c.image} alt={c.name} loading="lazy" className="h-full w-full object-contain" />
+        {/* row shows the tiny rendition; the lightbox loads the full image */}
+        <img src={c.thumb ?? c.image} alt={c.name} loading="lazy" decoding="async" className="h-full w-full object-contain" />
       </button>
     );
   }

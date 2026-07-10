@@ -27,15 +27,28 @@ jobs:
           ICECAT_API_TOKEN: ${{ secrets.ICECAT_API_TOKEN }}
         run: python enrich_catalog.py | tee "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit catalog if changed
+      # Uncompressed source image -> compressed renditions + catalog tags.
+      # Produces thumbs/<slug>.webp (lossless full, lightbox) and
+      # thumbs/<slug>.thumb.webp (160px card rendition) for every part with a
+      # source; idempotent via imageHash.
+      - name: Process images (compress, resize, tag)
+        working-directory: upgrades-pipeline
+        env:
+          ICECAT_SHOPNAME: ${{ secrets.ICECAT_SHOPNAME }}
+          ICECAT_API_TOKEN: ${{ secrets.ICECAT_API_TOKEN }}
+        run: |
+          pip install Pillow
+          python process_images.py | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit catalog + processed images if changed
         run: |
           git config user.name  "arok-catalog-bot"
           git config user.email "actions@github.com"
-          git add upgrades-pipeline/parts_catalog.json
+          git add upgrades-pipeline/parts_catalog.json upgrades-pipeline/thumbs
           if git diff --cached --quiet; then
             echo "No catalog changes."
           else
-            git commit -m "chore: enrich parts catalog with manufacturer thumbnails"
+            git commit -m "chore: enrich catalog + compress thumbnail renditions"
             git pull --rebase
             git push
           fi

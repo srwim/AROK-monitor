@@ -87,7 +87,7 @@ def main() -> int:
 
     filled, skipped_icecat, no_url, failed = [], [], [], []
     for name, part in cat.get("parts", {}).items():
-        if part.get("image") and not force:
+        if (part.get("sourceImage") or part.get("image")) and not force:
             continue
         url = (part.get("productUrl") or "").strip()
         if not url:
@@ -103,7 +103,9 @@ def main() -> int:
         try:
             img = og_image(url)
             if img and image_ok(img):
-                part["image"] = img
+                # Stage as the SOURCE; process_images.py downloads it, writes
+                # compressed renditions, and sets the final image/thumb URLs.
+                part["sourceImage"] = img
                 part["source"] = "manufacturer"
                 part["updatedAt"] = today
                 filled.append(name)
