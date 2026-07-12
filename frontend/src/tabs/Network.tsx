@@ -20,6 +20,18 @@ function riskLabel(c: AssessedConn): string {
   return "ok";
 }
 
+// What to hand to investigate(): the remote IP, or "listen:<port>" for
+// listeners with no remote host (e.g. "Listening on all interfaces").
+function investigateTarget(c: AssessedConn): string {
+  const ip = c.raddr.split(":")[0];
+  if (ip) return ip;
+  if (c.status === "LISTEN") {
+    const port = c.laddr?.split(":").pop();
+    if (port) return `listen:${port}`;
+  }
+  return "";
+}
+
 // ── Investigation drawer ──────────────────────────────────────────────────────
 function InvestigateDrawer({ data, onClose, onFlag, onUnflag, busy }: {
   data: NetInvestigation;
@@ -37,9 +49,11 @@ function InvestigateDrawer({ data, onClose, onFlag, onUnflag, busy }: {
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-[10px] uppercase tracking-wider text-slate-500">
-              <Globe size={12} /> Remote endpoint
+              <Globe size={12} /> {data.listener ? "Local listener" : "Remote endpoint"}
             </div>
-            <div className="mt-0.5 break-all font-mono text-lg font-semibold text-slate-100">{data.ip}</div>
+            <div className="mt-0.5 break-all font-mono text-lg font-semibold text-slate-100">
+              {data.listener ? `Port ${data.port} — ${data.services[0] ?? "unknown service"}` : data.ip}
+            </div>
             {data.hostname && <div className="mt-0.5 break-all text-sm text-cyan-400">{data.hostname}</div>}
           </div>
           <button onClick={onClose} className="shrink-0 rounded-md p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-200">
@@ -51,8 +65,14 @@ function InvestigateDrawer({ data, onClose, onFlag, onUnflag, busy }: {
           <Badge tone={data.safe ? "green" : data.risk >= 75 ? "red" : data.risk >= 50 ? "amber" : "slate"}>
             {data.safe ? "flagged safe" : `risk ${data.risk}`}
           </Badge>
-          <Badge tone="slate">{data.public ? "public IP" : "private / LAN"}</Badge>
-          <Badge tone="cyan">{data.connectionCount} connection{data.connectionCount === 1 ? "" : "s"}</Badge>
+          <Badge tone={data.listener && data.public ? "amber" : "slate"}>
+            {data.listener
+              ? (data.public ? "exposed on all interfaces" : "local interface only")
+              : (data.public ? "public IP" : "private / LAN")}
+          </Badge>
+          <Badge tone="cyan">
+            {data.connectionCount} {data.listener ? "listening socket" : "connection"}{data.connectionCount === 1 ? "" : "s"}
+          </Badge>
         </div>
 
         {data.reasons.length > 0 && (
@@ -74,7 +94,9 @@ function InvestigateDrawer({ data, onClose, onFlag, onUnflag, busy }: {
         )}
 
         <div className="mb-4">
-          <div className="mb-1.5 text-[10px] uppercase tracking-wider text-slate-500">Local processes talking to it</div>
+          <div className="mb-1.5 text-[10px] uppercase tracking-wider text-slate-500">
+            {data.listener ? "Processes holding this port" : "Local processes talking to it"}
+          </div>
           <div className="divide-y divide-slate-800/70 rounded-xl border border-slate-800">
             {data.processes.map((p, i) => (
               <div key={i} className="flex items-center gap-2 px-3 py-2 text-xs">
@@ -99,14 +121,16 @@ function InvestigateDrawer({ data, onClose, onFlag, onUnflag, busy }: {
               <ShieldCheck size={14} /> Flag as Safe
             </button>
           )}
-          <a
-            href={`https://www.virustotal.com/gui/ip-address/${encodeURIComponent(data.ip)}`}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="ml-auto inline-flex items-center gap-1 text-xs text-slate-500 hover:text-cyan-400"
-          >
-            Look up on VirusTotal <ExternalLink size={11} />
-          </a>
+          {!data.listener && (
+            <a
+              href={`https://www.virustotal.com/gui/ip-address/${encodeURIComponent(data.ip)}`}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="ml-auto inline-flex items-center gap-1 text-xs text-slate-500 hover:text-cyan-400"
+            >
+              Look up on VirusTotal <ExternalLink size={11} />
+            </a>
+          )}
         </div>
       </div>
     </div>
@@ -209,9 +233,9 @@ export default function NetworkTab() {
                   <li key={i} className="flex items-center gap-2 text-xs">
                     <Badge tone={riskTone(c.severity)}>{c.risk}</Badge>
                     <span className="font-medium text-slate-300">{c.proc ?? `pid ${c.pid ?? "?"}`}</span>
-                    <span className="tabular-nums text-slate-500">→ {c.raddr}</span>
+                    <span className="tabular-nums text-slate-500">→ {c.raddr || `listening on ${c.laddr}`}</span>
                     <span className="min-w-0 flex-1 truncate text-slate-500">{c.reasons[0]}</span>
-                    <button onClick={() => investigate(c.raddr.split(":")[0])} className="shrink-0 text-cyan-400 hover:text-cyan-300">Investigate</button>
+                    <button onClick={() => investigate(investigateTarget(c))} className="shrink-0 text-cyan-400 hover:text-cyan-300">Investigate</button>
                   </li>
                 ))}
               </ul>
@@ -233,7 +257,7 @@ export default function NetworkTab() {
               </thead>
               <tbody>
                 {conns.map((c, i) => {
-                  const ip = c.raddr.split(":")[0];
+                  const target = investigateTarget(c);
                   return (
                     <tr key={i} className="border-b border-slate-800/50 text-slate-300 hover:bg-slate-800/30">
                       <td className="py-1.5 pr-3">
@@ -246,15 +270,17 @@ export default function NetworkTab() {
                         )}
                       </td>
                       <td className="py-1.5 pr-3 font-medium">{c.proc ?? `pid ${c.pid ?? "?"}`}</td>
-                      <td className="py-1.5 pr-3 tabular-nums text-slate-400">{c.raddr || "—"}</td>
+                      <td className="py-1.5 pr-3 tabular-nums text-slate-400">
+                        {c.raddr || (c.status === "LISTEN" ? <span className="text-slate-500">local · {c.laddr}</span> : "—")}
+                      </td>
                       <td className="py-1.5 pr-3">
                         <Badge tone={c.status === "ESTABLISHED" ? "green" : c.status === "LISTEN" ? "cyan" : "slate"}>{c.status}</Badge>
                       </td>
                       <td className="py-1.5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {ip && (
+                          {target && (
                             <button
-                              onClick={() => investigate(ip)}
+                              onClick={() => investigate(target)}
                               title="Investigate this endpoint"
                               className="inline-flex items-center gap-1 rounded-md bg-slate-800/90 px-2 py-1 text-xs text-slate-300 ring-1 ring-inset ring-slate-600/30 hover:bg-slate-700/90 hover:text-slate-100"
                             >

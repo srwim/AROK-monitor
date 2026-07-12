@@ -198,7 +198,15 @@ def assess(conns: list[dict]) -> dict:
     safe_seen = 0
     for c in conns:
         raddr_ip, _ = _addr_parts(c.get("raddr", ""))
-        key = endpoint_key(c.get("proc"), raddr_ip) if raddr_ip else ""
+        _, laddr_port = _addr_parts(c.get("laddr", ""))
+        if raddr_ip:
+            key = endpoint_key(c.get("proc"), raddr_ip)
+        elif c.get("status") == "LISTEN" and laddr_port:
+            # Listeners have no remote host — key them by local port so they
+            # can be investigated and flagged safe too.
+            key = endpoint_key(c.get("proc"), f"listen:{laddr_port}")
+        else:
+            key = ""
         is_safe = key in safe
         score, reasons = _score(c)
         if is_safe:
@@ -267,6 +275,8 @@ def investigate(ip: str) -> dict:
         ip = ip[1:-1]
     if not ip:
         return {"ok": False, "detail": "no ip"}
+    if ip.startswith("listen:"):
+        return _investigate_listener(ip)
     import monitor  # local import avoids an import cycle at load
     host = _rdns(ip) if _is_public(ip) else None
     peers: list[dict] = []
@@ -304,6 +314,52 @@ def investigate(ip: str) -> dict:
     }
 
 
+def _investigate_listener(key_ip: str) -> dict:
+    """Drill-down on a local listening port ("listen:<port>"): which processes
+    hold it, on which interfaces, and why it was flagged. Same response shape
+    as investigate() so the UI drawer can render either."""
+    try:
+        port = int(key_ip.split(":", 1)[1])
+    except (IndexError, ValueError):
+        return {"ok": False, "detail": "bad listener port"}
+    import monitor  # local import avoids an import cycle at load
+    peers: list[dict] = []
+    worst = 0
+    reasons: list[str] = []
+    exposed = False
+    for c in monitor.connections(400):
+        l_ip, l_port = _addr_parts(c.get("laddr", ""))
+        if c.get("status") != "LISTEN" or l_port != port:
+            continue
+        if l_ip in ("0.0.0.0", "::"):
+            exposed = True
+        score, why = _score(c)
+        if score > worst:
+            worst, reasons = score, why
+        peers.append({
+            "proc": c.get("proc"), "pid": c.get("pid"),
+            "laddr": c.get("laddr"), "raddr": c.get("raddr") or "(listening)",
+            "status": c.get("status"),
+        })
+    key = endpoint_key(peers[0]["proc"] if peers else None, key_ip)
+    return {
+        "ok": True,
+        "ip": key_ip,
+        "listener": True,
+        "port": port,
+        "hostname": None,
+        # For listeners, "public" means exposed on all interfaces.
+        "public": exposed,
+        "safe": key in _load_safe(),
+        "risk": worst,
+        "reasons": reasons,
+        "services": [_PORT_NAMES.get(port, f"port {port}")],
+        "ports": [port],
+        "connectionCount": len(peers),
+        "processes": peers,
+    }
+
+
 def findings(conns: list[dict]) -> list[dict]:
     """Deterministic suspicious-connection findings for the alerts pipeline —
     one per unflagged endpoint at or above the threshold."""
@@ -314,7 +370,7 @@ def findings(conns: list[dict]) -> list[dict]:
         if c["safe"] or c["risk"] < SUSPICIOUS_SCORE or c["key"] in seen:
             continue
         seen.add(c["key"])
-        raddr = c.get("raddr", "?")
+        raddr = c.get("raddr") or f"listening on {c.get('laddr') or '?'}"
         out.append({
             "kind": "suspicious_connection",
             "severity": c["severity"],

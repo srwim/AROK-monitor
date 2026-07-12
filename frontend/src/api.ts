@@ -47,6 +47,8 @@ export type SafeEntry = { proc: string; ip: string; note: string; flaggedAt: num
 export type NetInvestigation = {
   ok: boolean;
   ip: string;
+  listener?: boolean;  // true when investigating a local listening port ("listen:<port>")
+  port?: number;
   hostname: string | null;
   public: boolean;
   safe: boolean;
