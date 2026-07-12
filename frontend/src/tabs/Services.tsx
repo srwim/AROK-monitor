@@ -38,7 +38,7 @@ export default function ServicesTab() {
       )}
 
       {services && services.length === 0 ? (
-        <Panel title="No services">
+        <Panel title="No Services">
           <p className="text-sm text-slate-500">
             Service enumeration is Windows-only. Run the demo on Windows to see live services here — this panel
             will populate automatically via <code className="text-slate-400">psutil.win_service_iter()</code>.

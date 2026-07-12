@@ -115,6 +115,7 @@ def get_config() -> dict:
         "enabled": _flag("ai_enabled"),
         "local_enabled": _flag("ai_local_enabled"),
         "api_enabled": _flag("ai_api_enabled"),
+        "chat_enabled": _flag("ai_chat_enabled"),
         "api_key_set": bool(_api_key()),
         "local_model_ready": model_ready(),
         "local_model_simulated": _model_simulated(),
@@ -163,7 +164,7 @@ def set_local_model_path(path: str) -> dict:
     return {"ok": True, "config": get_config()}
 
 
-def set_config(enabled=None, local_enabled=None, api_enabled=None, api_key=None, model_url=None) -> dict:
+def set_config(enabled=None, local_enabled=None, api_enabled=None, api_key=None, model_url=None, chat_enabled=None) -> dict:
     if enabled is not None:
         db.set_setting("ai_enabled", "1" if enabled else "0")
         db.log_event("ai", f"AI insights {'enabled' if enabled else 'disabled'}")
@@ -179,6 +180,9 @@ def set_config(enabled=None, local_enabled=None, api_enabled=None, api_key=None,
     if model_url is not None:
         db.set_setting("ai_model_url", model_url.strip())
         db.log_event("ai", "model URL updated" if model_url.strip() else "model URL reset to default")
+    if chat_enabled is not None:
+        db.set_setting("ai_chat_enabled", "1" if chat_enabled else "0")
+        db.log_event("ai", f"AI chat {'enabled' if chat_enabled else 'disabled'}")
     return get_config()
 
 

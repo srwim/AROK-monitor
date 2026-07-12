@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { api, type Settings, type LicenseStatus, type UpdateInfo } from "../api";
+import { api, type Settings, type LicenseStatus, type UpdateInfo, type AiConfig } from "../api";
 import { Panel, Badge, Button } from "../components/ui";
 
 // ── License panel ─────────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ function UpdatePanel({ version }: { version?: string }) {
   return (
     <Panel
       title="Updates"
-      action={<Button onClick={check} disabled={checking}>{checking ? "Checking…" : "Check for updates"}</Button>}
+      action={<Button onClick={check} disabled={checking}>{checking ? "Checking…" : "Check for Updates"}</Button>}
     >
       <div className="space-y-2 text-sm text-slate-400">
         <p>
@@ -103,13 +103,20 @@ export default function SettingsTab() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [thresholds, setThresholds] = useState<Record<string, number>>({});
   const [saved, setSaved] = useState<string | null>(null);
+  const [aiCfg, setAiCfg] = useState<AiConfig | null>(null);
 
   useEffect(() => {
     api.settings().then((s) => {
       setSettings(s);
       setThresholds({ ...s.abs_thresholds });
     });
+    api.aiConfig().then(setAiCfg).catch(() => {});
   }, []);
+
+  const setChat = async (v: boolean) => {
+    setAiCfg(await api.setAiConfig({ chat_enabled: v }));
+    setSaved(`Chat with AI ${v ? "enabled — available in AI Insights and on the Dashboard" : "disabled"}`);
+  };
 
   const save = async (metric: string) => {
     await api.setThreshold(metric, thresholds[metric]);
@@ -177,6 +184,23 @@ export default function SettingsTab() {
                 <option value="cloud">Anthropic Cloud</option>
               </select>
             </Row>
+            <Row label="Chat with AI">
+              <button
+                onClick={() => setChat(!(aiCfg?.chat_enabled ?? false))}
+                disabled={!aiCfg}
+                role="switch"
+                aria-checked={aiCfg?.chat_enabled ?? false}
+                title="Show a chat panel for the active AI engine in AI Insights and on the Dashboard"
+                className={`relative h-5 w-9 rounded-full transition-colors disabled:opacity-40 ${
+                  aiCfg?.chat_enabled ? "bg-cyan-600" : "bg-slate-700"
+                }`}
+              >
+                <span
+                  className="absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all"
+                  style={{ left: aiCfg?.chat_enabled ? "18px" : "2px" }}
+                />
+              </button>
+            </Row>
             <Row label="Sample interval">
               <NumberField
                 suffix="s"
@@ -204,7 +228,7 @@ export default function SettingsTab() {
           </p>
         </Panel>
 
-        <Panel title="Absolute alert thresholds (safety net)">
+        <Panel title="Absolute Alert Thresholds (safety net)">
           <div className="space-y-4">
             {Object.entries(thresholds).map(([metric, value]) => (
               <div key={metric} className="flex items-center gap-3">

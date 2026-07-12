@@ -65,7 +65,7 @@ function RegistrySection() {
 
   return (
     <Panel
-      title="Registry cleaner (conservative, known-safe only)"
+      title="Registry Cleaner (conservative, known-safe only)"
       action={<Button onClick={scan} disabled={scanning}>{scanning ? "Scanning…" : "Scan"}</Button>}
     >
       <Notice>
@@ -102,7 +102,7 @@ function RegistrySection() {
               I understand a restore point + .reg backup will be made, and I want to remove the selected entries.
             </label>
             <Button danger onClick={clean} disabled={!consent || sel.size === 0 || busy}>
-              {busy ? "Cleaning…" : `Create restore point & clean ${sel.size} selected`}
+              {busy ? "Cleaning…" : `Create Restore Point & Clean ${sel.size} Selected`}
             </Button>
           </div>
         )
@@ -157,7 +157,7 @@ function TronSection() {
   };
 
   return (
-    <Panel title="Tron — deep clean & debloat (guided)">
+    <Panel title="Tron — Deep Clean & Debloat (guided)">
       <Notice>
         Tron is a powerful third-party maintenance script that makes aggressive system changes. AROK
         does <strong>not</strong> auto-download it (official distribution uses rotating mirrors). Download it
@@ -213,7 +213,7 @@ function TronSection() {
             I verified the checksum and consent to AROK creating a restore point and launching Tron elevated.
           </label>
           <Button danger onClick={launch} disabled={!verified || !consent || busy}>
-            {busy ? "Launching…" : "Create restore point & launch Tron"}
+            {busy ? "Launching…" : "Create Restore Point & Launch Tron"}
           </Button>
           {launchMsg && <p className="mt-1 text-xs text-cyan-300">{launchMsg}</p>}
         </li>
@@ -248,7 +248,7 @@ function TempSection() {
 
   return (
     <Panel
-      title="Temporary files"
+      title="Temporary Files"
       action={<Button onClick={scan}>Scan</Button>}
     >
       <div className="flex items-center justify-between">
@@ -257,7 +257,7 @@ function TempSection() {
         </p>
         <Button danger onClick={clean} disabled={busy || mb === null}>
           <Trash2 size={12} className="mr-1 inline" />
-          {busy ? "Cleaning…" : "Clean temp"}
+          {busy ? "Cleaning…" : "Clean Temp"}
         </Button>
       </div>
       {msg && <p className="mt-2 text-sm text-cyan-300">{msg}</p>}
@@ -285,7 +285,7 @@ export default function CleanupTab() {
         <h2 className="text-lg font-bold text-slate-200">Cleanup</h2>
         <Button onClick={makeRestorePoint} disabled={rpBusy}>
           <ShieldCheck size={13} className="mr-1 inline" />
-          {rpBusy ? "Creating…" : "Create restore point now"}
+          {rpBusy ? "Creating…" : "Create Restore Point Now"}
         </Button>
       </div>
       {rpMsg && (

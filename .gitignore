@@ -30,6 +30,7 @@ Thumbs.db
 CLAUDE.md
 REVIEW-*.md
 LAUNCH-*.md
+RELEASE-*.md
 
 # Raw screen-recording sources (only the converted gif/png ship)
 docs/screenshots/*.mp4

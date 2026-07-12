@@ -171,7 +171,7 @@ export default function AnalyticsTab() {
               {w.label}
             </button>
           ))}
-          <Button danger onClick={purge}>Purge old logs</Button>
+          <Button danger onClick={purge}>Purge Old Logs</Button>
         </div>
       </div>
 
@@ -263,10 +263,10 @@ export default function AnalyticsTab() {
 
       {/* Anomaly alerts — cause of each spike, moved here from the old Alerts tab */}
       <Panel
-        title="Anomaly alerts (z-score + absolute threshold)"
+        title="Anomaly Alerts (z-score + absolute threshold)"
         action={
           winAlerts.length > 0 ? (
-            <Button onClick={clearAll} disabled={clearingAll}>{clearingAll ? "Clearing…" : "Clear all"}</Button>
+            <Button onClick={clearAll} disabled={clearingAll}>{clearingAll ? "Clearing…" : "Clear All"}</Button>
           ) : undefined
         }
       >
@@ -309,7 +309,7 @@ export default function AnalyticsTab() {
       </Panel>
 
       {/* Event log — control actions & system events */}
-      <Panel title="Event log (control actions & system events)">
+      <Panel title="Event Log (control actions & system events)">
         {(events ?? []).length === 0 ? (
           <p className="text-sm text-slate-500">No events yet. Control actions (kill, block IP, service stop/start) land here.</p>
         ) : (

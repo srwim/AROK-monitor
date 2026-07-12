@@ -4,6 +4,7 @@ import { api, type DetailData } from "../api";
 import { usePolling, useLiveStats, fmtBytes, fmtTime } from "../hooks";
 import { Panel, Gauge, Badge, Modal, NumberTicker } from "../components/ui";
 import NetworkMap from "../components/NetworkMap";
+import ChatPanel from "../components/ChatPanel";
 
 // ── Detail modal ─────────────────────────────────────────────────────────────
 
@@ -340,8 +341,16 @@ export default function DashboardTab() {
   const history = usePolling(() => api.analytics(900), 6000);
   const alerts = usePolling(() => api.alerts(), 6000);
   const insight = usePolling(() => api.insights(), 30000);
+  const aiCfg = usePolling(() => api.aiConfig(), 15000);
   const conns = usePolling(() => api.network(60), 6000);
   const [open, setOpen] = useState<Metric | null>(null);
+
+  // Chat rides the Dashboard only when the user enabled it (AI Insights /
+  // Settings) and a chat-capable engine is actually active.
+  const chatReady =
+    (aiCfg?.enabled ?? false) &&
+    (aiCfg?.chat_enabled ?? false) &&
+    ((aiCfg?.local_enabled && aiCfg?.local_model_ready) || (aiCfg?.api_enabled && aiCfg?.api_key_set));
 
   const chart = (history ?? []).map((h) => ({
     t: fmtTime(h.ts),
@@ -423,6 +432,9 @@ export default function DashboardTab() {
               </p>
             )}
           </Panel>
+          {chatReady && (
+            <ChatPanel engine={aiCfg?.engine ?? "local"} enabled compact />
+          )}
           <Panel title="Active Alerts">
             {unacked.length === 0 ? (
               <p className="text-sm text-slate-500">All clear — no unacknowledged alerts.</p>

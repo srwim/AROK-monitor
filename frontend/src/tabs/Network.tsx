@@ -89,14 +89,14 @@ function InvestigateDrawer({ data, onClose, onFlag, onUnflag, busy }: {
 
         <div className="flex items-center gap-2 border-t border-slate-800 pt-4">
           {data.safe ? (
-            <Button onClick={onUnflag} disabled={busy}>Remove safe flag</Button>
+            <Button onClick={onUnflag} disabled={busy}>Remove Safe Flag</Button>
           ) : (
             <button
               onClick={onFlag}
               disabled={busy}
               className="inline-flex items-center gap-1.5 rounded-md bg-emerald-950/70 px-3 py-1.5 text-xs font-semibold text-emerald-300 ring-1 ring-inset ring-emerald-500/25 transition-colors hover:bg-emerald-900/60 disabled:opacity-50"
             >
-              <ShieldCheck size={14} /> Flag as safe
+              <ShieldCheck size={14} /> Flag as Safe
             </button>
           )}
           <a
@@ -175,7 +175,7 @@ export default function NetworkTab() {
                 tab === t ? "bg-cyan-950/80 text-cyan-300 ring-1 ring-inset ring-cyan-500/25" : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              {t === "live" ? "Live connections" : `Safe log${safelist?.safe.length ? ` (${safelist.safe.length})` : ""}`}
+              {t === "live" ? "Live Connections" : `Safe Log${safelist?.safe.length ? ` (${safelist.safe.length})` : ""}`}
             </button>
           ))}
         </div>
@@ -295,10 +295,10 @@ function SafeLog({ entries, onUnflag, busy, onInvestigate }: {
   onInvestigate: (ip: string) => void;
 }) {
   return (
-    <Panel title="Safe connections" action={<Badge tone="green">excluded from suspicion</Badge>}>
+    <Panel title="Safe Connections" action={<Badge tone="green">excluded from suspicion</Badge>}>
       {entries.length === 0 ? (
         <p className="py-3 text-sm text-slate-500">
-          No endpoints flagged safe yet. Investigate a connection and click <span className="text-emerald-400">Flag as safe</span> to
+          No endpoints flagged safe yet. Investigate a connection and click <span className="text-emerald-400">Flag as Safe</span> to
           silence it here.
         </p>
       ) : (

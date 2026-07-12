@@ -31,7 +31,7 @@ import sensors
 import upgrade
 import updater
 
-app = FastAPI(title="AROK Monitor", version="2.0.2")
+app = FastAPI(title="AROK Monitor", version="2.1.1")
 
 _stop = threading.Event()
 
@@ -368,6 +368,7 @@ class AiConfigReq(BaseModel):
     api_enabled: bool | None = None
     api_key: str | None = None
     model_url: str | None = None
+    chat_enabled: bool | None = None
 
 
 @app.get("/api/ai/config")
@@ -377,7 +378,7 @@ def ai_config():
 
 @app.post("/api/ai/config")
 def ai_config_set(req: AiConfigReq):
-    return ai.set_config(req.enabled, req.local_enabled, req.api_enabled, req.api_key, req.model_url)
+    return ai.set_config(req.enabled, req.local_enabled, req.api_enabled, req.api_key, req.model_url, req.chat_enabled)
 
 
 @app.post("/api/ai/download")

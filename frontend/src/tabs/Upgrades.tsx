@@ -655,7 +655,7 @@ function FeaturedSystems({ systems }: { systems: FeaturedSystem[] }) {
 function GpuWatch({ entries }: { entries: GpuWatchEntry[] }) {
   if (!entries.length) return null;
   return (
-    <Panel title="GPU watch">
+    <Panel title="GPU Watch">
       <ul className="divide-y divide-slate-800/70">
         {entries.map((g) => (
           <li key={g.model} className="flex items-center justify-between gap-3 py-2.5">
@@ -675,7 +675,7 @@ function GpuWatch({ entries }: { entries: GpuWatchEntry[] }) {
               </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <AmazonLink url={g.url}>View listings</AmazonLink>
+              <AmazonLink url={g.url}>View Listings</AmazonLink>
             </div>
           </li>
         ))}
@@ -710,7 +710,7 @@ function healthTone(health: string): "green" | "amber" | "red" | "slate" {
 function SystemHardware({ hw }: { hw: HardwareInventory | null }) {
   if (!hw) {
     return (
-      <Panel title="Your system">
+      <Panel title="Your System">
         <p className="text-sm text-slate-500">Detecting hardware…</p>
       </Panel>
     );
@@ -730,7 +730,7 @@ function SystemHardware({ hw }: { hw: HardwareInventory | null }) {
   const disks = hw.sensors?.disks ?? [];
   return (
     <Panel
-      title="Your system"
+      title="Your System"
       action={<Badge tone="slate">{hw.os}</Badge>}
     >
       <div className="-mt-1">
@@ -872,7 +872,7 @@ export default function UpgradesTab() {
       </div>
 
       {error && (
-        <Panel title="Upgrades unavailable">
+        <Panel title="Upgrades Unavailable">
           <p className="text-sm text-slate-400">
             Couldn’t load the upgrades catalog right now. It refreshes automatically — check back shortly.
           </p>

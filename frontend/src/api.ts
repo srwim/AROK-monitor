@@ -127,6 +127,7 @@ export type AiConfig = {
   enabled: boolean;
   local_enabled: boolean;
   api_enabled: boolean;
+  chat_enabled: boolean;
   api_key_set: boolean;
   local_model_ready: boolean;
   local_model_simulated: boolean;
@@ -349,7 +350,7 @@ export const api = {
   events: () => get<AppEvent[]>("/api/events"),
   insights: () => get<Insight>("/api/insights"),
   aiConfig: () => get<AiConfig>("/api/ai/config"),
-  setAiConfig: (patch: Partial<{ enabled: boolean; local_enabled: boolean; api_enabled: boolean; api_key: string; model_url: string }>) =>
+  setAiConfig: (patch: Partial<{ enabled: boolean; local_enabled: boolean; api_enabled: boolean; api_key: string; model_url: string; chat_enabled: boolean }>) =>
     post<AiConfig>("/api/ai/config", patch),
   aiDownload: () => post<AiConfig["download"]>("/api/ai/download"),
   aiSelectModel: (model_id: string) => post<{ ok: boolean; config?: AiConfig; detail?: string }>("/api/ai/select-model", { model_id }),

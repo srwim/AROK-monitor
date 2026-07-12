@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Sparkles, RefreshCw, Download, Cloud, HardDrive, Power, Wrench,
-  Check, X, ExternalLink, Key, ChevronRight, FolderOpen, Send,
+  Check, X, ExternalLink, Key, ChevronRight, FolderOpen, ChevronDown,
 } from "lucide-react";
-import { api, type Insight, type OptimizeResult, type CloudConnection, type AiConfig, type ChatTurn } from "../api";
+import { api, type Insight, type OptimizeResult, type CloudConnection, type AiConfig } from "../api";
 import { usePolling, fmtTime } from "../hooks";
 import { Panel, Badge } from "../components/ui";
+import ChatPanel from "../components/ChatPanel";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -159,13 +160,8 @@ function LocalModelPanel({
               Context 2 048 tokens · narration temperature 0.3.
             </div>
           )}
-          <details className="text-xs text-slate-500">
-            <summary className="cursor-pointer hover:text-slate-300">Change model</summary>
-            <div className="mt-3">
-              <ModelPicker catalog={catalog} selectedId={selectedId} onSelect={onSelectModel} onBrowse={onBrowse}
-                onDownload={onDownload} downloadLabel={`Re-download ${selected?.name ?? "model"}`} busy={busy} />
-            </div>
-          </details>
+          <ModelPicker catalog={catalog} selectedId={selectedId} onSelect={onSelectModel} onBrowse={onBrowse}
+            onDownload={onDownload} downloadLabel={`Re-download ${selected?.name ?? "model"}`} busy={busy} />
         </div>
       ) : downloading ? (
         <div>
@@ -182,8 +178,8 @@ function LocalModelPanel({
       ) : (
         <div className="space-y-3">
           <p className="text-sm text-slate-400">
-            Pick an open-source model to download, or point AROK at a GGUF you already have. Once local,
-            narration never leaves this machine — no account, no API key, no network.
+            Pick an open-source model to download — or use a GGUF you already have.
+            Once local, narration never leaves this machine.
           </p>
           <ModelPicker catalog={catalog} selectedId={selectedId} onSelect={onSelectModel} onBrowse={onBrowse}
             onDownload={onDownload} downloadLabel={`Download ${selected?.name ?? "model"}${selected ? ` (~${selected.sizeGB} GB)` : ""}`} busy={busy} />
@@ -196,7 +192,8 @@ function LocalModelPanel({
   );
 }
 
-// Curated model menu + browse-to-your-own + download.
+// Curated model menu + browse-to-your-own + download, collapsed behind a
+// "Model Selection" dropdown so the panel stays compact.
 function ModelPicker({
   catalog, selectedId, onSelect, onBrowse, onDownload, downloadLabel, busy,
 }: {
@@ -208,8 +205,17 @@ function ModelPicker({
   downloadLabel: string;
   busy?: boolean;
 }) {
+  const selected = (catalog ?? []).find((m) => m.id === selectedId);
   return (
-    <div className="space-y-3">
+    <details className="group rounded-lg border border-slate-800 bg-slate-900/40 open:border-slate-700">
+      <summary className="flex cursor-pointer select-none items-center justify-between gap-3 px-3 py-2.5 text-sm text-slate-300 transition-colors hover:text-slate-100 [&::-webkit-details-marker]:hidden">
+        <span className="font-medium">Model Selection</span>
+        <span className="flex items-center gap-2">
+          <span className="text-xs text-slate-500">{selected?.name ?? "Custom GGUF"}</span>
+          <ChevronDown size={14} className="text-slate-500 transition-transform group-open:rotate-180" />
+        </span>
+      </summary>
+      <div className="space-y-3 border-t border-slate-800 p-3">
       <div className="space-y-1.5">
         {(catalog ?? []).map((m) => {
           const on = m.id === selectedId;
@@ -252,89 +258,8 @@ function ModelPicker({
           <FolderOpen size={14} /> Use my own GGUF…
         </button>
       </div>
-    </div>
-  );
-}
-
-// ── Chat with the loaded model ────────────────────────────────────────────────
-function ChatPanel({ engine }: { engine: string }) {
-  const [open, setOpen] = useState(false);
-  const [turns, setTurns] = useState<ChatTurn[]>([]);
-  const [input, setInput] = useState("");
-  const [busy, setBusy] = useState(false);
-  const endRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [turns, busy]);
-
-  const send = async () => {
-    const msg = input.trim();
-    if (!msg || busy) return;
-    const next = [...turns, { role: "user" as const, content: msg }];
-    setTurns(next);
-    setInput("");
-    setBusy(true);
-    try {
-      const r = await api.aiChat(msg, next);
-      setTurns([...next, { role: "assistant", content: r.reply || "(no reply)" }]);
-    } catch {
-      setTurns([...next, { role: "assistant", content: "Chat request failed." }]);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <Panel
-      title="Chat with the model"
-      action={
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] text-slate-600">{engine}</span>
-          <Toggle checked={open} onChange={setOpen} />
-        </div>
-      }
-    >
-      {!open ? (
-        <p className="text-sm text-slate-500">
-          Toggle on to chat directly with the active engine. Runs on whichever model is loaded — local stays on your machine.
-        </p>
-      ) : (
-        <div className="space-y-3">
-          <div className="max-h-72 space-y-2 overflow-y-auto rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-            {turns.length === 0 ? (
-              <p className="py-6 text-center text-xs text-slate-600">Ask anything — e.g. “what should I check if my PC feels slow?”</p>
-            ) : (
-              turns.map((t, i) => (
-                <div key={i} className={`flex ${t.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
-                    t.role === "user" ? "bg-cyan-950/70 text-cyan-100" : "bg-slate-800/80 text-slate-200"
-                  }`}>
-                    {t.content}
-                  </div>
-                </div>
-              ))
-            )}
-            {busy && <div className="flex justify-start"><div className="rounded-2xl bg-slate-800/80 px-3 py-2 text-sm text-slate-500">thinking…</div></div>}
-            <div ref={endRef} />
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") send(); }}
-              placeholder="Type a message…"
-              className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:border-cyan-700 focus:outline-none"
-            />
-            <button
-              onClick={send}
-              disabled={busy || !input.trim()}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-cyan-950 px-3 py-2 text-sm font-medium text-cyan-300 hover:bg-cyan-900 disabled:opacity-40"
-            >
-              <Send size={14} /> Send
-            </button>
-          </div>
-        </div>
-      )}
-    </Panel>
+      </div>
+    </details>
   );
 }
 
@@ -768,8 +693,14 @@ export default function InsightsTab() {
         </div>
       )}
 
-      {/* Chat with whichever engine is active */}
-      {(localActive || cloudActive) && <ChatPanel engine={config?.engine ?? "local"} />}
+      {/* Chat with whichever engine is active — toggle persists (also on Dashboard) */}
+      {(localActive || cloudActive) && (
+        <ChatPanel
+          engine={config?.engine ?? "local"}
+          enabled={config?.chat_enabled ?? false}
+          onToggle={(v) => patch({ chat_enabled: v })}
+        />
+      )}
 
       {/* Narrative */}
       <Panel
@@ -790,7 +721,7 @@ export default function InsightsTab() {
 
       <RecommendationsPanel insight={insight} />
 
-      <Panel title="Deterministic findings (LLM narrator pattern — detection never hallucinates)">
+      <Panel title="Deterministic Findings (LLM narrator pattern — detection never hallucinates)">
         <ul className="space-y-2">
           {(insight?.findings ?? []).map((f, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-slate-400">

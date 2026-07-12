@@ -31,11 +31,12 @@ AROK watches your Windows PC, detects anomalies deterministically, and uses a lo
 
 ## What's inside
 
-Ten tabs, all live against the local backend: **Dashboard · Processes · Network · Services · Cleanup · Analytics · AI Insights · Alerts · Upgrades · Settings**, plus a global **Gaming mode** toggle (with auto-detect).
+Nine tabs, all live against the local backend: **Dashboard · Processes · Network · Services · Cleanup · Analytics · AI Insights · Upgrades · Settings**, plus a global **Gaming mode** toggle (with auto-detect).
 
-- **Dashboard** — live CPU/memory/disk/network/process cards with drill-down detail, the AI Pulse narrative, and the animated world map of your network connections.
-- **Network** — a geographic world map that resolves external connections and animates traffic between you and each endpoint, above a live connections table.
-- **AI Insights** — the narrator: anomaly findings, plain-English system story, and one-click optimization recommendations.
+- **Dashboard** — live CPU/memory/disk/network/process cards with drill-down detail, the AI Pulse narrative, the animated world map of your network connections, and (when Chat with AI is on) an inline chat panel right under the Pulse.
+- **Network** — a geographic world map that resolves external connections and animates traffic between you and each endpoint, above a live connections table. Every connection is scored with transparent, deterministic heuristics (port reputation, process location, unknown owners, public-interface listeners); click **Investigate** on any endpoint for a drill-down of why it was flagged, and flag it **safe** to exclude it from future suspicion.
+- **Analytics** — resource-trend graphs with spike-cause markers: click a marker to pin that moment and drill into the per-process snapshot that caused it, with the anomaly-alert table and event log right below.
+- **AI Insights** — the narrator: anomaly findings, plain-English system story, one-click optimization recommendations, a compact **Model Selection** dropdown for the local engine, and a **Chat with AI** panel for talking directly to the active engine (persisted toggle, also switchable in Settings; the chat rides the Dashboard too).
 - **Sensors** — SMART drive health, wear and temperatures feed both the alerting and the upgrade advice; a failing disk tells you to back up *before* it dies.
 - **Cleanup** — temp-file cleaner, conservative registry cleaner (restore point + `.reg` backup first), and a guided, checksum-verified Tron launcher.
 - **Upgrade Advisor** — diagnosis-led recommendations from your own telemetry: findings like "storage 91% full" or "drive at 85% wear" rank what's actually worth upgrading, with picks matched to your CPU socket and memory generation so nothing incompatible is ever suggested. Plus priced full builds and an RTX 50-series GPU watch, refreshed daily. *Affiliate-funded — every link is tagged and FTC-disclosed.*
@@ -43,7 +44,7 @@ Ten tabs, all live against the local backend: **Dashboard · Processes · Networ
 
 ## Real local AI
 
-The in-app model download is real by default: AROK fetches a Gemma 2 2B Q4 GGUF (~1.7 GB) from Hugging Face, after which narration runs entirely offline (`pip install -r backend\requirements-ai.txt` for inference support). Engine priority: **local model → Anthropic Cloud (optional, bring your own key) → deterministic template**. Without any AI configured, narration falls back to templates — the app always works.
+Pick your model in-app: a curated menu of six open-source GGUFs (Qwen 2.5 1.5B → Mistral 7B, each with parameter count and download size; Gemma 2 2B is the default) — or point AROK at a GGUF you already have on disk. After download, narration and chat run entirely offline (`pip install -r backend\requirements-ai.txt` for inference support). Engine priority: **local model → Anthropic Cloud (optional, bring your own key) → deterministic template**. Without any AI configured, narration falls back to templates — the app always works.
 
 ## Install
 
@@ -85,9 +86,9 @@ React dev with hot reload: `cd frontend && npm run dev` (proxies `/api` and `/ws
 ## Files
 
 ```
-backend/   main.py · monitor.py · sensors.py · db.py · ai.py · control.py · hardware.py · cleanup.py
+backend/   main.py · monitor.py · netsec.py · sensors.py · db.py · ai.py · control.py · hardware.py · cleanup.py
            optimizer.py · licensing.py · updater.py · autostart.py · desktop.py · arok.spec · requirements*.txt
-frontend/  Vite + React + TS + Tailwind v4 · src/tabs/ (10 tabs) · src/components/ (ui.tsx, NetworkMap.tsx) · src/geo.ts
+frontend/  Vite + React + TS + Tailwind v4 · src/tabs/ (9 tabs) · src/components/ (ui.tsx, NetworkMap.tsx) · src/geo.ts
 upgrades-pipeline/  build_manifest.py · affiliate.py · icecat.py · parts_catalog.json · manifest.json
 scripts/   bump_version.py · release_summary.py · preflight_pipeline.py
 ```
