@@ -106,7 +106,14 @@ class TrayApp:
         try:
             import webview
             ft = tuple(file_types) if file_types else ()
-            result = self.window.create_file_dialog(webview.OPEN_DIALOG, allow_multiple=False, file_types=ft)
+            try:
+                result = self.window.create_file_dialog(webview.OPEN_DIALOG, allow_multiple=False, file_types=ft)
+            except (ValueError, TypeError) as e:
+                # pywebview rejects file_types that aren't in the exact
+                # "Description (*.ext)" form. Rather than swallow the dialog,
+                # reopen it with no filter so the user can still pick a file.
+                log(f"pick_file: bad file_types {ft!r} ({e}); retrying unfiltered")
+                result = self.window.create_file_dialog(webview.OPEN_DIALOG, allow_multiple=False)
             if result:
                 return result[0] if isinstance(result, (list, tuple)) else result
         except Exception as e:

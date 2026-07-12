@@ -565,7 +565,7 @@ export default function InsightsTab() {
   const browseModel = async () => {
     setModelBusy(true);
     try {
-      const r = await api.pickFile(["gguf"]);
+      const r = await api.pickFile(["GGUF models (*.gguf)", "All files (*.*)"]);
       if (r.ok && r.path) { await api.aiLocalPath(r.path); refetchConfig(); }
     } finally { setModelBusy(false); }
   };
