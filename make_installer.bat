@@ -32,7 +32,7 @@ where iscc >nul 2>nul && (iscc installer.iss || goto :err) || (
 )
 
 echo.
-echo  Done. Installer: installer_out\AROK-Setup-2.1.3.exe
+echo  Done. Installer: installer_out\AROK-Setup-2.1.4.exe
 goto :end
 :err
 echo BUILD FAILED - see output above.
