@@ -53,6 +53,45 @@ def fatal(msg: str):
     sys.exit(1)
 
 
+def _icon_path() -> str | None:
+    """Locate the brand .ico (bundled next to the exe, or in branding/ in dev)."""
+    here = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    for cand in (os.path.join(here, "icon.ico"), os.path.join(here, "..", "branding", "icon.ico")):
+        if os.path.exists(cand):
+            return cand
+    return None
+
+
+def _set_window_icon(title: str = "AROK Monitor"):
+    """Stamp the brand icon onto the native window via WM_SETICON.
+
+    pywebview's WinForms window carries no icon of its own, so the taskbar
+    thumbnail preview and alt-tab header show a blank/generic app. Setting
+    both ICON_SMALL and ICON_BIG fixes the preview, alt-tab, and the taskbar
+    button in dev mode (where the python.exe resource icon would otherwise win).
+    """
+    path = _icon_path()
+    if not path:
+        return
+    try:
+        import ctypes
+        hwnd = ctypes.windll.user32.FindWindowW(None, title)
+        if not hwnd:
+            log("window icon: hwnd not found")
+            return
+        IMAGE_ICON, LR_LOADFROMFILE, LR_DEFAULTSIZE = 1, 0x0010, 0x0040
+        WM_SETICON, ICON_SMALL, ICON_BIG = 0x0080, 0, 1
+        small = ctypes.windll.user32.LoadImageW(None, path, IMAGE_ICON, 16, 16, LR_LOADFROMFILE)
+        big = ctypes.windll.user32.LoadImageW(None, path, IMAGE_ICON, 0, 0, LR_LOADFROMFILE | LR_DEFAULTSIZE)
+        if small:
+            ctypes.windll.user32.SendMessageW(hwnd, WM_SETICON, ICON_SMALL, small)
+        if big:
+            ctypes.windll.user32.SendMessageW(hwnd, WM_SETICON, ICON_BIG, big)
+        log("window icon set")
+    except Exception as e:
+        log(f"window icon failed (non-fatal): {e}")
+
+
 def _port_in_use() -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(0.5)
@@ -221,10 +260,9 @@ class TrayApp:
 
     def _tray_icon_image(self):
         from PIL import Image
-        here = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-        for cand in (os.path.join(here, "icon.ico"), os.path.join(here, "..", "branding", "icon.ico")):
-            if os.path.exists(cand):
-                return Image.open(cand)
+        path = _icon_path()
+        if path:
+            return Image.open(path)
         # fallback: plain dark disc
         img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
         from PIL import ImageDraw
@@ -283,6 +321,16 @@ def start():
 
     app = TrayApp()
 
+    # Give the process its own taskbar identity BEFORE any window exists.
+    # Without this, Windows groups the window under the host process (python /
+    # generic), so the taskbar thumbnail preview shows no app icon or name.
+    try:
+        import ctypes
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("SolTek.AROK.Monitor")
+        log("AppUserModelID set")
+    except Exception as e:
+        log(f"AppUserModelID failed (non-fatal): {e}")
+
     # register the window-raise hook for /api/desktop/show + mark desktop mode
     import main
     main.app.state.show_window = app.show_window
@@ -312,6 +360,9 @@ def start():
             background_color="#07090f",
         )
         app.window.events.closing += app.on_closing
+        # once the native window exists, stamp the brand icon on it so the
+        # taskbar thumbnail / alt-tab preview identify the app correctly
+        app.window.events.shown += lambda: _set_window_icon("AROK Monitor")
         app.build_tray()
         log("entering webview.start()")
         webview.start()

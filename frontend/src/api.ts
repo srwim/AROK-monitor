@@ -54,6 +54,7 @@ export type NetInvestigation = {
   safe: boolean;
   risk: number;
   reasons: string[];
+  advice?: string[];  // plain-English next steps (listeners)
   services: string[];
   ports: number[];
   connectionCount: number;
@@ -140,6 +141,7 @@ export type AiConfig = {
   catalog?: ModelCatalogEntry[];
   download: { status: string; pct: number; error: string | null };
   engine: string;
+  local_error?: string | null;  // why the local engine can't run (model present but unloadable)
 };
 
 export type ChatReply = { ok: boolean; reply: string; engine: string; detail?: string };

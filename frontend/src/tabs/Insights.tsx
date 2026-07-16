@@ -154,6 +154,15 @@ function LocalModelPanel({
               ? " Narration runs entirely on this machine — no API key, no network."
               : " Toggle on to use it for narration."}
           </p>
+          {config.local_error && (
+            <div className="rounded-lg border border-amber-900/60 bg-amber-950/30 px-4 py-3 text-xs leading-relaxed text-amber-200">
+              <span className="font-semibold text-amber-300">Model installed, but the engine can't run it: </span>
+              {config.local_error}
+              <span className="block mt-1 text-amber-200/70">
+                Until this is fixed, narration uses the deterministic template and chat is unavailable.
+              </span>
+            </div>
+          )}
           {config.local_enabled && (
             <div className="rounded-lg bg-slate-800/60 px-4 py-3 text-sm text-slate-300">
               <span className="font-medium text-emerald-400">● Active</span> — All inference runs locally.

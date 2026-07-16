@@ -1,19 +1,31 @@
 # PyInstaller spec — build with: pyinstaller arok.spec
 # Produces dist/AROK/AROK.exe (one-folder build: faster startup than one-file)
+import importlib.util
 import os
 
 block_cipher = None
 
+# Local-AI runtime (llama-cpp-python) is optional: bundle it when installed —
+# including its native DLLs in llama_cpp/lib — but never fail the build over it.
+if importlib.util.find_spec("llama_cpp"):
+    from PyInstaller.utils.hooks import collect_all
+    _llama_datas, _llama_bins, _llama_hidden = collect_all("llama_cpp")
+    print("arok.spec: bundling local-AI runtime (llama_cpp)")
+else:
+    _llama_datas, _llama_bins, _llama_hidden = [], [], []
+    print("arok.spec: llama_cpp not installed - exe ships without local AI")
+
 a = Analysis(
     ["desktop.py"],
     pathex=["."],
-    binaries=[],
+    binaries=_llama_bins,
     datas=[
         ("../frontend/dist", "frontend/dist"),  # React build (dual-serving)
         ("index.html", "."),                    # legacy fallback UI
         ("icon.ico", "."),                      # tray icon
-    ] + ([("license_pub.hex", ".")] if os.path.exists("license_pub.hex") else []),
-    hiddenimports=[
+    ] + ([("license_pub.hex", ".")] if os.path.exists("license_pub.hex") else [])
+      + _llama_datas,
+    hiddenimports=_llama_hidden + [
         "uvicorn.logging", "uvicorn.loops", "uvicorn.loops.auto",
         "uvicorn.protocols", "uvicorn.protocols.http", "uvicorn.protocols.http.auto",
         "uvicorn.protocols.websockets", "uvicorn.protocols.websockets.auto",

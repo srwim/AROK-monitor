@@ -652,6 +652,35 @@ function FeaturedSystems({ systems }: { systems: FeaturedSystem[] }) {
 }
 
 // ── GPU watch (curated high-demand cards: reference MSRP + live-listings link) ─
+
+// Local product thumbnails, keyed by model-name slug. Files live in
+// frontend/public/gpu/ (e.g. "NVIDIA GeForce RTX 5090" → /gpu/nvidia-geforce-rtx-5090.jpg).
+// Manifest data stays image-free — the daily pipeline can't clobber these, and
+// a missing file just falls back to the chip icon.
+function gpuSlug(model: string): string {
+  return model.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+
+function GpuThumb({ model }: { model: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <span className="grid h-9 w-14 shrink-0 place-items-center rounded-lg bg-slate-800/80 text-emerald-400 ring-1 ring-inset ring-slate-700/50">
+        <Microchip size={15} />
+      </span>
+    );
+  }
+  return (
+    <img
+      src={`/gpu/${gpuSlug(model)}.jpg`}
+      alt={model}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className="h-9 w-14 shrink-0 rounded-lg object-cover ring-1 ring-inset ring-slate-700/50"
+    />
+  );
+}
+
 function GpuWatch({ entries }: { entries: GpuWatchEntry[] }) {
   if (!entries.length) return null;
   return (
@@ -660,9 +689,7 @@ function GpuWatch({ entries }: { entries: GpuWatchEntry[] }) {
         {entries.map((g) => (
           <li key={g.model} className="flex items-center justify-between gap-3 py-2.5">
             <div className="flex min-w-0 items-center gap-2.5">
-              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-slate-800/80 text-emerald-400 ring-1 ring-inset ring-slate-700/50">
-                <Microchip size={15} />
-              </span>
+              <GpuThumb model={g.model} />
               <div className="min-w-0">
                 <div className="truncate text-sm font-medium text-slate-200">{g.model}</div>
                 <div className="mt-0.5 text-xs text-slate-500">

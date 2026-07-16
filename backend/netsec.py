@@ -59,6 +59,22 @@ _BAD_PORTS: dict[int, str] = {
 # Standard, expected outbound ports — explicitly zero-risk.
 _GOOD_PORTS = {80, 443, 53, 123, 993, 995, 587, 465, 22}
 
+# Ports Windows itself listens on out of the box (or with common features like
+# File & Printer Sharing / Remote Desktop enabled). A LISTENer here owned by an
+# OS process is normal on effectively every Windows PC — the firewall profile,
+# not the socket, decides who can actually reach it. Only informational.
+# The same port held by a NON-system process stays fully suspicious.
+_OS_SERVICE_PORTS: dict[int, str] = {
+    135: "RPC endpoint mapper",
+    137: "NetBIOS name service", 138: "NetBIOS datagram", 139: "NetBIOS session",
+    445: "SMB (File & Printer Sharing)",
+    3389: "Remote Desktop",
+    5040: "Windows connected-devices service",
+    5357: "WSD network discovery",
+}
+_SYSTEM_PROCS = {"system", "svchost.exe", "lsass.exe", "services.exe",
+                 "wininit.exe", "spoolsv.exe", "termservice"}
+
 # Process executable path fragments that indicate a non-system binary.
 _RISKY_PATH_HINTS = ("\\temp\\", "\\tmp\\", "\\appdata\\local\\temp\\",
                      "\\downloads\\", "\\windows\\temp\\", "/tmp/")
@@ -151,7 +167,16 @@ def _score(conn: dict) -> tuple[int, list[str]]:
 
     # Inbound exposure: listening on all interfaces on a non-standard port.
     if status == "LISTEN" and laddr_ip in ("0.0.0.0", "::") and laddr_port not in _GOOD_PORTS:
-        if laddr_port in _BAD_PORTS:
+        proc_l = (proc or "").lower()
+        if laddr_port in _OS_SERVICE_PORTS and proc_l in _SYSTEM_PROCS:
+            # Standard Windows service listener owned by the OS — normal on
+            # virtually every Windows PC; never a finding on its own.
+            score += 10
+            reasons.append(
+                f"{_OS_SERVICE_PORTS[laddr_port]} — standard Windows service "
+                "listener; exposure is governed by Windows Firewall"
+            )
+        elif laddr_port in _BAD_PORTS:
             score += 60
             reasons.append(f"Listening on all interfaces — {_BAD_PORTS[laddr_port]}")
         elif laddr_port and laddr_port < 49152:
@@ -342,6 +367,41 @@ def _investigate_listener(key_ip: str) -> dict:
             "status": c.get("status"),
         })
     key = endpoint_key(peers[0]["proc"] if peers else None, key_ip)
+
+    # Plain-English next steps, so a flag is never a dead end.
+    advice: list[str] = []
+    os_owned = bool(peers) and all(
+        (p.get("proc") or "").lower() in _SYSTEM_PROCS for p in peers
+    )
+    if port in _OS_SERVICE_PORTS and os_owned:
+        advice.append(
+            f"{_OS_SERVICE_PORTS[port]} is a standard Windows service — this "
+            "listener exists on most Windows PCs and is not by itself a sign of compromise."
+        )
+        advice.append(
+            "Windows Firewall governs who can reach it: on Public networks it is "
+            "blocked by default; on Private (home) networks only LAN devices can connect."
+        )
+        if port in (137, 138, 139, 445):
+            advice.append(
+                "Not using file or printer sharing? Turn it off under Settings → "
+                "Network & internet → Advanced network settings → Advanced sharing settings."
+            )
+        elif port == 3389:
+            advice.append(
+                "Not using Remote Desktop? Turn it off under Settings → System → Remote Desktop."
+            )
+        advice.append("If this is expected on your network, Flag as Safe to silence future alerts for it.")
+    elif exposed:
+        advice.append(
+            "A process on this PC is accepting connections on every network interface. "
+            "If you don't recognize it, investigate or uninstall the app."
+        )
+        advice.append(
+            "To keep the app but close the door, add an inbound block rule for this "
+            "port in Windows Defender Firewall → Advanced settings → Inbound Rules."
+        )
+
     return {
         "ok": True,
         "ip": key_ip,
@@ -353,6 +413,7 @@ def _investigate_listener(key_ip: str) -> dict:
         "safe": key in _load_safe(),
         "risk": worst,
         "reasons": reasons,
+        "advice": advice,
         "services": [_PORT_NAMES.get(port, f"port {port}")],
         "ports": [port],
         "connectionCount": len(peers),

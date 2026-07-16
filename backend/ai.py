@@ -72,6 +72,7 @@ def model_url() -> str:
 _download = {"status": "idle", "pct": 0.0, "error": None}
 _dl_lock = threading.Lock()
 _local_llm = None
+_local_err: str | None = None  # why the local engine can't run (set by _try_local)
 
 
 # ---------- config ----------
@@ -126,6 +127,9 @@ def get_config() -> dict:
         "catalog": MODEL_CATALOG,
         "download": dl,
         "engine": engine_name(),
+        # Why the local engine can't run (None until a load has been attempted
+        # and failed) — lets the UI say "installed but not runnable" honestly.
+        "local_error": _local_err if _local_llm is False else None,
     }
 
 
@@ -190,7 +194,13 @@ def engine_name() -> str:
     if not _flag("ai_enabled"):
         return "off"
     if _flag("ai_local_enabled") and model_ready():
-        return "local (simulated)" if _model_simulated() else f"local ({MODEL_NAME})"
+        if _model_simulated():
+            return "local (simulated)"
+        # Once a load attempt has failed, stop claiming "local" — the header
+        # must reflect what will actually answer, not what's on disk.
+        if _local_llm is not False:
+            name = db.get_setting("ai_model_name", "") or MODEL_NAME
+            return f"local ({name})"
     if _flag("ai_api_enabled") and _api_key():
         model = db.get_setting("ai_api_model", "claude-haiku-4-5-20251001") or "claude-haiku-4-5-20251001"
         return f"cloud:{model}"
@@ -262,17 +272,28 @@ def _simulated_download():
 # ---------- narration ----------
 
 def _try_local():
-    global _local_llm
+    global _local_llm, _local_err
     if _local_llm is not None:
         return _local_llm
     if model_ready() and not _model_simulated():
         try:
             from llama_cpp import Llama
             _local_llm = Llama(model_path=_effective_model_file(), n_ctx=2048, verbose=False)
-        except Exception:
+            _local_err = None
+        except ImportError:
             _local_llm = False
+            _local_err = ("llama-cpp-python is not installed — the model file is "
+                          "downloaded but nothing can run it. Install it with: pip install "
+                          "llama-cpp-python --extra-index-url "
+                          "https://abetlen.github.io/llama-cpp-python/whl/cpu")
+        except Exception as e:
+            _local_llm = False
+            _local_err = f"model failed to load: {type(e).__name__}: {e}"
     else:
         _local_llm = False
+        _local_err = "no usable model file (missing, or a demo-mode placeholder)"
+    if _local_err:
+        db.log_event("ai", f"local engine unavailable: {_local_err}")
     return _local_llm
 
 
@@ -332,13 +353,41 @@ def chat(message: str, history: list | None = None) -> dict:
         llm = _try_local()
         if llm:
             try:
-                msgs = [{"role": "system", "content": system}]
-                for turn in (history or [])[-8:]:
+                # No "system" role here: several GGUF chat templates (Gemma 2
+                # among them) reject it outright ("System role not supported").
+                # Fold the instructions into the first user turn instead —
+                # works with every template.
+                turns = (history or [])[-8:]
+                # the UI includes the just-sent message in history — drop the
+                # duplicate so the model doesn't see it twice
+                if turns and turns[-1].get("role") == "user" \
+                        and str(turns[-1].get("content", "")).strip() == message:
+                    turns = turns[:-1]
+                msgs = []
+                for turn in turns:
                     role = "assistant" if turn.get("role") == "assistant" else "user"
                     msgs.append({"role": role, "content": str(turn.get("content", ""))})
                 msgs.append({"role": "user", "content": message})
-                out = llm.create_chat_completion(messages=msgs, max_tokens=400, temperature=0.4)
-                reply = out["choices"][0]["message"]["content"].strip()
+                for m in msgs:  # instructions ride the first user turn
+                    if m["role"] == "user":
+                        m["content"] = f"{system}\n\n{m['content']}"
+                        break
+                try:
+                    out = llm.create_chat_completion(messages=msgs, max_tokens=400, temperature=0.4)
+                    reply = out["choices"][0]["message"]["content"].strip()
+                except Exception as te:
+                    # Some GGUF chat templates reject shapes they don't expect
+                    # (system roles, non-alternating turns, ...). Never fail the
+                    # user over template quirks — fall back to plain completion,
+                    # the same path narration uses.
+                    db.log_event("ai", f"chat template fallback: {te}")
+                    convo = "\n".join(
+                        f"{'Assistant' if m['role'] == 'assistant' else 'User'}: {m['content']}"
+                        for m in msgs
+                    )
+                    out = llm(f"{convo}\nAssistant:", max_tokens=400, temperature=0.4,
+                              stop=["User:", "\nUser "])
+                    reply = out["choices"][0]["text"].strip()
                 return {"ok": True, "reply": reply, "engine": engine_name()}
             except Exception as e:
                 return {"ok": False, "reply": f"Local model error: {e}", "engine": engine_name()}
@@ -351,9 +400,28 @@ def chat(message: str, history: list | None = None) -> dict:
         if reply:
             return {"ok": True, "reply": reply.strip(), "engine": engine_name()}
 
+    # Nothing answered — say exactly why, not just "no engine".
+    if _flag("ai_local_enabled") and _local_llm is False and _local_err:
+        return {"ok": False, "engine": engine_name(),
+                "reply": f"The local model can't run: {_local_err}"}
     return {"ok": False, "engine": engine_name(),
             "reply": "No chat-capable engine is active. Download or select a local model, "
                      "or connect the Anthropic API, then try again."}
+
+
+def _clean_narrative(text: str) -> str:
+    """Scrub small-model tics from a narrative: markdown headers/bold, and
+    trailing meta-commentary ('Let me know if...', '**Explanation:** ...')."""
+    import re
+    text = text.strip()
+    # cut everything from a meta/explanation marker onward
+    text = re.split(r"\*\*?\s*(?:Explanation|Note)\s*:?\*\*?|"
+                    r"\bLet me know if\b", text, maxsplit=1)[0]
+    # leading bold header like "**Status Narrative:**"
+    text = re.sub(r"^\*\*[^*\n]{0,60}\*\*:?\s*", "", text)
+    # stray markdown emphasis
+    text = text.replace("**", "").replace("__", "")
+    return text.strip()
 
 
 def narrate_system(latest: dict, alerts: list, history: list, recs: list | None = None) -> dict:
@@ -371,16 +439,23 @@ def narrate_system(latest: dict, alerts: list, history: list, recs: list | None 
     prompt = (
         "You are AROK, a system monitoring narrator. Turn these findings into a short, "
         "plain-English status narrative (3-5 sentences), ending with the optimization "
-        "recommendations if any. Do not invent numbers or recommendations.\n\nFindings:\n"
+        "recommendations if any. Do not invent numbers or recommendations. "
+        "Reply with the narrative sentences ONLY — no headings, no markdown, no "
+        "explanation of what you wrote, and no offers to rephrase or help further.\n\nFindings:\n"
         + "\n".join(f"- {f}" for f in findings)
     )
     text = _narrate_with_model(prompt)
+    if text:
+        text = _clean_narrative(text)
+    used_model = bool(text)
     if not text:
         text = _template_narrative(latest, alerts, findings, recs)
     return {
         "enabled": True,
         "ts": time.time(),
-        "engine": engine_name(),
+        # Report the engine that actually wrote this narrative — if every model
+        # path failed and the template stepped in, say "template", not "local".
+        "engine": engine_name() if used_model else "template",
         "findings": findings,
         "narrative": text,
     }

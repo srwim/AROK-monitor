@@ -9,6 +9,10 @@ call .venv\Scripts\activate.bat 2>nul || (
 
 echo [1/4] Installing build deps...
 pip install -q -r backend\requirements.txt -r backend\requirements-desktop.txt pyinstaller
+REM Local-AI runtime (optional but shipped by default). Prebuilt CPU wheel so no
+REM compiler is needed. If this fails the build continues - the exe just ships
+REM without local AI (template/cloud narration still work).
+pip install -q -r backend\requirements-ai.txt --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu || echo   WARNING: llama-cpp-python install failed - exe will ship WITHOUT local AI.
 
 echo [2/4] Building React frontend...
 cd frontend
@@ -32,7 +36,7 @@ where iscc >nul 2>nul && (iscc installer.iss || goto :err) || (
 )
 
 echo.
-echo  Done. Installer: installer_out\AROK-Setup-2.1.4.exe
+echo  Done. Installer: installer_out\AROK-Setup-2.2.2.exe
 goto :end
 :err
 echo BUILD FAILED - see output above.

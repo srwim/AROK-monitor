@@ -76,6 +76,19 @@ function prefersReducedMotion(): boolean {
   return !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+// The OS reduced-motion hint (Windows: Accessibility → Visual effects →
+// Animation effects, also flipped off by "best performance" tweaks) is only
+// the *default* here. A monitoring map with no packet flow looks broken, so
+// the map carries its own motion toggle and the user's explicit choice wins.
+const MOTION_KEY = "arok-map-motion";
+function initialMotion(): boolean {
+  try {
+    const saved = localStorage.getItem(MOTION_KEY);
+    if (saved !== null) return saved === "1";
+  } catch { /* storage unavailable — fall through */ }
+  return !prefersReducedMotion();
+}
+
 /** Collapse raw connections into deduplicated, geo-resolved external endpoints. */
 function buildEndpoints(conns: Conn[]): { endpoints: Endpoint[]; localCount: number } {
   const map = new Map<string, Endpoint>();
@@ -113,6 +126,16 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; e: Endpoint; below: boolean } | null>(null);
+  const [motion, setMotion] = useState(initialMotion);
+  const motionRef = useRef(motion);
+  motionRef.current = motion;
+
+  const toggleMotion = () => {
+    setMotion((m) => {
+      try { localStorage.setItem(MOTION_KEY, m ? "0" : "1"); } catch { /* non-fatal */ }
+      return !m;
+    });
+  };
 
   const { endpoints, localCount } = useMemo(() => buildEndpoints(conns), [conns]);
   const epRef = useRef(endpoints);
@@ -238,7 +261,7 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
       ctx.drawImage(base, 0, 0);
       if (!dots) return;
 
-      const reduce = prefersReducedMotion();
+      const reduce = !motionRef.current;
       const cl = client();
       const glow = 10 * dpr;
       const psize = 3.2 * dpr;
@@ -363,7 +386,7 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
     };
 
     const pulse = () => {
-      if (prefersReducedMotion()) return;
+      if (!motionRef.current) return;
       pins.slice(0, 14).forEach((pin, i) => {
         setTimeout(() => ripples.push({ x: pin.x, y: pin.y, t: performance.now() }), i * 120);
       });
@@ -486,17 +509,28 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
         </div>
       </div>
 
-      {/* legend */}
-      <div className="pointer-events-none absolute bottom-3 right-4 flex items-center gap-4 text-[11px] text-slate-400">
-        <span className="inline-flex items-center gap-1.5">
+      {/* legend + motion toggle */}
+      <div className="absolute bottom-3 right-4 flex items-center gap-4 text-[11px] text-slate-400">
+        <span className="pointer-events-none inline-flex items-center gap-1.5">
           <i className="inline-block h-2 w-2 rounded-full" style={{ background: THEME.send, boxShadow: `0 0 8px ${THEME.send}` }} /> Send
         </span>
-        <span className="inline-flex items-center gap-1.5">
+        <span className="pointer-events-none inline-flex items-center gap-1.5">
           <i className="inline-block h-2 w-2 rounded-full" style={{ background: THEME.recv, boxShadow: `0 0 8px ${THEME.recv}` }} /> Receive
         </span>
-        <span className="inline-flex items-center gap-1.5">
+        <span className="pointer-events-none inline-flex items-center gap-1.5">
           <i className="inline-block h-2 w-2 rounded-full" style={{ background: THEME.client, boxShadow: `0 0 8px ${THEME.client}` }} /> {clientLabel}
         </span>
+        <button
+          onClick={toggleMotion}
+          title={motion ? "Pause packet animation" : "Play packet animation"}
+          className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 transition-colors ${
+            motion
+              ? "border-cyan-800/60 bg-cyan-950/50 text-cyan-300 hover:bg-cyan-900/50"
+              : "border-slate-700 bg-slate-900/60 text-slate-500 hover:text-slate-300"
+          }`}
+        >
+          {motion ? "❚❚" : "▶"} Motion
+        </button>
       </div>
 
       {/* empty state */}

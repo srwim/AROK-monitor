@@ -84,6 +84,15 @@ function InvestigateDrawer({ data, onClose, onFlag, onUnflag, busy }: {
           </div>
         )}
 
+        {(data.advice?.length ?? 0) > 0 && (
+          <div className="mb-4 rounded-xl border border-cyan-900/50 bg-cyan-950/20 p-3">
+            <div className="mb-1 text-xs font-semibold text-cyan-300">What you can do</div>
+            <ul className="space-y-1 text-xs text-slate-400">
+              {(data.advice ?? []).map((a, i) => <li key={i} className="flex gap-1.5"><ChevronRight size={13} className="mt-0.5 shrink-0 text-cyan-500" />{a}</li>)}
+            </ul>
+          </div>
+        )}
+
         {data.services.length > 0 && (
           <div className="mb-4">
             <div className="mb-1 text-[10px] uppercase tracking-wider text-slate-500">Services / ports</div>
