@@ -288,7 +288,14 @@ class TrayApp:
             Menu.SEPARATOR,
             Item("Quit AROK (stop monitoring)", self.quit),
         )
-        self.icon = pystray.Icon("AROK Monitor", self._tray_icon_image(), "AROK Monitor v1.0", menu)
+        # tooltip carries the real version (updater.py is the source of truth —
+        # never hardcode it here, the bump script doesn't scan for stale "v1.0")
+        try:
+            from updater import DISPLAY_VERSION as _ver
+        except Exception:
+            _ver = ""
+        self.icon = pystray.Icon("AROK Monitor", self._tray_icon_image(),
+                                 f"AROK Monitor {_ver}".strip(), menu)
         self.icon.run_detached()
         log("tray icon running")
 
