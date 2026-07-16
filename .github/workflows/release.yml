@@ -37,6 +37,10 @@ jobs:
         run: |
           pip install -r backend/requirements.txt
           if (Test-Path backend/requirements-desktop.txt) { pip install -r backend/requirements-desktop.txt }
+          # Local-AI runtime (prebuilt CPU wheel). Non-fatal: if it can't install,
+          # arok.spec skips bundling and the exe ships without local AI.
+          pip install -r backend/requirements-ai.txt --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+          if ($LASTEXITCODE -ne 0) { Write-Warning "local-AI runtime skipped (llama-cpp-python failed to install)" }
           pip install pyinstaller
 
       - name: Build AROK.exe (PyInstaller)
