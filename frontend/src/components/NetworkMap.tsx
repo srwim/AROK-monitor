@@ -72,21 +72,17 @@ function loadDots(): Promise<Dots | null> {
   return dotsPromise;
 }
 
-function prefersReducedMotion(): boolean {
-  return !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-// The OS reduced-motion hint (Windows: Accessibility → Visual effects →
-// Animation effects, also flipped off by "best performance" tweaks) is only
-// the *default* here. A monitoring map with no packet flow looks broken, so
-// the map carries its own motion toggle and the user's explicit choice wins.
+// Packet animation defaults ON — a monitoring map with no packet flow looks
+// broken, and the OS reduced-motion hint (Windows "Animation effects", also
+// flipped off by "best performance" tweaks) proved too easy to trip by
+// accident. The map's own toggle is the sole control; the choice persists.
 const MOTION_KEY = "arok-map-motion";
 function initialMotion(): boolean {
   try {
     const saved = localStorage.getItem(MOTION_KEY);
     if (saved !== null) return saved === "1";
   } catch { /* storage unavailable — fall through */ }
-  return !prefersReducedMotion();
+  return true;
 }
 
 /** Collapse raw connections into deduplicated, geo-resolved external endpoints. */
