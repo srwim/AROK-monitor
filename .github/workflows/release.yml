@@ -62,10 +62,37 @@ jobs:
               Out-File -Encoding ascii "$($_.FullName).sha256"
           }
 
-      - name: Publish release with installer
-        uses: softprops/action-gh-release@v2
+      # Keep the built installer even if publishing fails (e.g. GitHub API
+      # outage) — it can then be attached to the release by re-running only
+      # the publish, or downloaded manually from the run page.
+      - name: Upload installer as build artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: |
-            installer_out/*.exe
-            installer_out/*.sha256
-          generate_release_notes: true
+          name: installer
+          path: installer_out/
+
+      # Publish via gh CLI with retry/backoff: GitHub API 503s (the "Unicorn"
+      # page) killed the one-shot release action twice; a transient outage
+      # should never cost a finished build.
+      - name: Publish release with installer
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $files = Get-ChildItem installer_out/*.exe, installer_out/*.sha256 | ForEach-Object FullName
+          for ($i = 1; $i -le 5; $i++) {
+            gh release view $tag 2>$null | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+              gh release create $tag --generate-notes --verify-tag
+            }
+            if ($LASTEXITCODE -eq 0) {
+              gh release upload $tag $files --clobber
+              if ($LASTEXITCODE -eq 0) { Write-Host "release published"; exit 0 }
+            }
+            $wait = 30 * $i
+            Write-Warning "publish attempt $i failed - retrying in $wait s"
+            Start-Sleep -Seconds $wait
+          }
+          Write-Error "release publish failed after 5 attempts"
+          exit 1
