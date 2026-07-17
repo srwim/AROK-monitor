@@ -21,8 +21,8 @@ import threading
 import time
 import urllib.request
 
-VERSION = "2.2.6"
-DISPLAY_VERSION = "v2.2.6"
+VERSION = "2.2.7"
+DISPLAY_VERSION = "v2.2.7"
 REPO = os.environ.get("AROK_REPO", "srwim/AROK-monitor")
 
 CHECK_INTERVAL = 6 * 3600      # steady-state re-check cadence (seconds)
