@@ -73,8 +73,8 @@ CURATED: dict[str, dict] = {
     },
     "psu": {
         "label": "Power Supply (PSU)",
-        "bangForBuck": {"title": "be quiet! Pure Power 12 M 750W 80+ Gold", "asin": "", "price": "~$80"},
-        "highEnd": {"title": "Corsair RM1000x 1000W 80+ Gold", "asin": "", "price": "~$190"},
+        "bangForBuck": {"title": "Corsair RM1000x 1000W 80+ Gold", "asin": "", "price": "~$190"},
+        "highEnd": {"title": "Corsair HX1500i (2025) 1500W Fully Modular", "asin": "", "price": "~$430"},
     },
     "cooler": {
         "label": "CPU Cooler",

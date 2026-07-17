@@ -223,8 +223,8 @@ const CPU_BY_SOCKET: Partial<Record<NonNullable<Socket>, { bang: Pick; high: Pic
     note: "Drop-in upgrades for your AM5 socket — no new motherboard needed",
   },
   AM4: {
-    bang: { title: "AMD Ryzen 5 5600", price: "~$120", url: amazonSearch("AMD Ryzen 5 5600 CPU") },
-    high: { title: "AMD Ryzen 7 5700X3D", price: "~$230", url: amazonSearch("AMD Ryzen 7 5700X3D CPU") },
+    bang: { title: "AMD Ryzen 7 5700X3D", price: "~$230", url: amazonSearch("AMD Ryzen 7 5700X3D CPU") },
+    high: { title: "AMD Ryzen 7 5800X3D", price: "~$330", url: amazonSearch("AMD Ryzen 7 5800X3D CPU") },
     note: "Drop-in upgrades for your AM4 socket — no new motherboard needed",
   },
   LGA1700: {
@@ -265,6 +265,22 @@ const MOBO_BY_SOCKET: Partial<Record<NonNullable<Socket>, { bang: Pick; high: Pi
 
 const DEAD_END_SOCKETS: Socket[] = ["LGA1151", "LGA1200"];
 
+// GPU class awareness: someone already on an 80/90-class GeForce (or a Radeon
+// flagship) isn't shopping midrange — show flagship-current upgrades instead
+// of the manifest's mainstream picks.
+function gpuIsHighEnd(name?: string | null): boolean {
+  const n = (name ?? "").toLowerCase();
+  return (
+    /rtx\s*[2-9]0[89]0/.test(n) ||          // RTX 2080/3080/3090/4080/4090/5080/5090…
+    /rx\s*(6900|6950|7900|9070)\b/.test(n)  // Radeon flagship classes
+  );
+}
+
+const GPU_HIGH_END: { bang: Pick; high: Pick } = {
+  bang: { title: "NVIDIA GeForce RTX 5080", price: "~$999", url: amazonSearch("NVIDIA GeForce RTX 5080 graphics card") },
+  high: { title: "NVIDIA GeForce RTX 5090", price: "~$1,999", url: amazonSearch("NVIDIA GeForce RTX 5090 graphics card") },
+};
+
 type Ddr = "DDR4" | "DDR5" | null;
 
 function detectDdr(ramType?: string | null): Ddr {
@@ -293,6 +309,13 @@ type Tailored = { entry: ComponentUpgrade; note: string | null; wellEquipped?: b
 function tailorCategory(key: string, entry: ComponentUpgrade, hw: HardwareInventory | null): Tailored {
   if (!hw) return { entry, note: null };
   const socket = detectSocket(hw.cpu?.name);
+
+  if (key === "gpu" && gpuIsHighEnd(hw.gpu?.name)) {
+    return {
+      entry: { ...entry, bangForBuck: GPU_HIGH_END.bang, highEnd: GPU_HIGH_END.high },
+      note: `Matched to your ${hw.gpu?.name ?? "high-end GPU"} — flagship-class upgrades only`,
+    };
+  }
 
   if (key === "cpu") {
     const table = socket ? CPU_BY_SOCKET[socket] : undefined;

@@ -96,18 +96,16 @@
     "psu": {
       "label": "Power Supply (PSU)",
       "bangForBuck": {
-        "title": "be quiet! Pure Power 12 M 750W 80+ Gold",
-        "price": "~$80",
-        "url": "https://www.amazon.com/s?k=be+quiet%21+Pure+Power+12+M+750W+80%2B+Gold&tag=lifeupgrad02b-20",
-        "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/be-quiet-pure-power-12-m-750w.webp",
-        "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/be-quiet-pure-power-12-m-750w.thumb.webp"
-      },
-      "highEnd": {
         "title": "Corsair RM1000x 1000W 80+ Gold",
         "price": "~$190",
         "url": "https://www.amazon.com/s?k=Corsair+RM1000x+1000W+80%2B+Gold&tag=lifeupgrad02b-20",
-        "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-rm1000x-1000w-80-gold.webp",
-        "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-rm1000x-1000w-80-gold.thumb.webp"
+        "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-rm1000x-1000w-80-gold.thumb.webp",
+        "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/corsair-rm1000x-1000w-80-gold.webp"
+      },
+      "highEnd": {
+        "title": "Corsair HX1500i (2025) 1500W Fully Modular",
+        "price": "~$430",
+        "url": "https://www.amazon.com/s?k=Corsair+HX1500i+2025+1500W+power+supply&tag=lifeupgrad02b-20"
       },
       "linkCheckedAt": "2026-07-17T10:29:13Z"
     },

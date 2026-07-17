@@ -334,6 +334,42 @@ def _narrate_with_model(prompt: str) -> str | None:
     return None
 
 
+def _live_context() -> str:
+    """Compact deterministic snapshot of this machine for chat grounding, so
+    "how's my PC?" is answerable without pasting metrics. All numbers come
+    from monitor/db/optimizer (LLM-narrator rule: the model only reads them).
+    Best-effort — an empty string just means chat runs without live context."""
+    try:
+        import monitor
+        import optimizer
+        latest = monitor.latest() or {}
+        lines = [
+            f"CPU {latest.get('cpu', 0):.0f}%, memory {latest.get('mem', 0):.0f}%, "
+            f"disk {latest.get('disk', 0):.0f}% used, {latest.get('proc_count', 0)} processes, "
+            f"network {latest.get('net_recv', 0)/1024:.0f} KB/s down / "
+            f"{latest.get('net_sent', 0)/1024:.0f} KB/s up"
+        ]
+        top = [p for p in monitor.top_processes(6) if p.get("name")]
+        if top:
+            lines.append("top processes: " + "; ".join(
+                f"{p['name']} (cpu {p.get('cpu_percent') or 0:.0f}%, mem {p.get('memory_percent') or 0:.0f}%)"
+                for p in top[:5]
+            ))
+        unacked = [a for a in db.recent_alerts(10) if not a.get("acked")]
+        if unacked:
+            lines.append("active alerts: " + "; ".join(a.get("message", "") for a in unacked[:4]))
+        else:
+            lines.append("no active alerts")
+        recs = optimizer.recommendations()
+        if recs:
+            lines.append("available optimizations: " + "; ".join(
+                f"{r.get('title', '')} ({r.get('impact', '')})" for r in recs[:3]
+            ))
+        return "\n".join(lines)
+    except Exception:
+        return ""
+
+
 def chat(message: str, history: list | None = None) -> dict:
     """Free-form chat with the active AI engine (local model, else cloud).
     Returns {ok, reply, engine}. Never raises; degrades to a clear message
@@ -345,8 +381,13 @@ def chat(message: str, history: list | None = None) -> dict:
         return {"ok": False, "reply": "AI insights are off — enable them to chat.", "engine": "off"}
 
     system = ("You are AROK, a concise assistant embedded in a Windows system "
-              "monitor. Answer briefly and practically. You cannot see live "
-              "metrics in this chat unless the user pastes them.")
+              "monitor. Answer briefly and practically.")
+    ctx = _live_context()
+    if ctx:
+        system += ("\n\nLive snapshot of this machine, measured just now — "
+                   "answer from these numbers and never invent others:\n" + ctx)
+    else:
+        system += " You cannot see live metrics unless the user pastes them."
 
     # local model: use its chat template when available
     if _flag("ai_local_enabled"):
@@ -368,10 +409,9 @@ def chat(message: str, history: list | None = None) -> dict:
                     role = "assistant" if turn.get("role") == "assistant" else "user"
                     msgs.append({"role": role, "content": str(turn.get("content", ""))})
                 msgs.append({"role": "user", "content": message})
-                for m in msgs:  # instructions ride the first user turn
-                    if m["role"] == "user":
-                        m["content"] = f"{system}\n\n{m['content']}"
-                        break
+                # Instructions + live snapshot ride the CURRENT user turn (the
+                # one just appended) so every reply reflects fresh numbers.
+                msgs[-1]["content"] = f"{system}\n\n{msgs[-1]['content']}"
                 try:
                     out = llm.create_chat_completion(messages=msgs, max_tokens=400, temperature=0.4)
                     reply = out["choices"][0]["message"]["content"].strip()
