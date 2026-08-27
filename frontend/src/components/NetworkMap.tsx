@@ -16,15 +16,15 @@ import { clientLocation, ipFromRaddr, isLocalIp, resolveIp } from "../geo";
  */
 
 const THEME = {
-  land: "#20305a",
-  pin: "#38bdf8", // sky-400 — external endpoints
-  pinCore: "#e0f2fe",
-  client: "#34d399", // emerald-400 — the local client
+  land: "#1c261e",
+  pin: "#7ab6cd", // sky-400 — external endpoints
+  pinCore: "#ece9dc",
+  client: "#40d09c", // emerald-400 — the local client
   clientCore: "#ecfdf5",
-  send: "#fb7185", // rose-400 — outbound packets
-  recv: "#38bdf8", // sky-400 — inbound packets
+  send: "#d18a70", // rose-400 — outbound packets
+  recv: "#7ab6cd", // sky-400 — inbound packets
   arc: "rgba(99,130,200,0.22)",
-  ripple: "#38bdf8",
+  ripple: "#7ab6cd",
 };
 
 type Dots = {
@@ -209,6 +209,7 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
 
     const layoutPins = () => {
       if (!dots) return;
+      needsFrame = true;
       const eps = epRef.current;
       let maxN = 1;
       eps.forEach((e) => (maxN = Math.max(maxN, e.count)));
@@ -375,9 +376,16 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
       }
     };
 
+    // With motion off the scene is static — draw once and idle (needsFrame
+    // re-arms on resize, data changes, hover, and the motion toggle) instead
+    // of burning a full redraw 60x/s for identical pixels.
+    let needsFrame = true;
     const loop = (now: number) => {
       if (!running) return;
-      draw(now);
+      if (motionRef.current || needsFrame) {
+        draw(now);
+        needsFrame = false;
+      }
       raf = requestAnimationFrame(loop);
     };
 
@@ -402,6 +410,7 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
           best = pn;
         }
       }
+      if (hover !== best) needsFrame = true;
       hover = best;
       if (best) {
         const x = ev.clientX - rect.left;
@@ -418,6 +427,7 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
       } else setTooltip(null);
     };
     const onLeave = () => {
+      if (hover) needsFrame = true;
       hover = null;
       setTooltip(null);
     };
@@ -449,9 +459,10 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
       }, 4500);
     });
 
-    // expose a relayout hook so the data-effect can re-run pin layout
+    // expose hooks so the data-effect and motion toggle can wake the loop
     (canvas as any).__relayout = layoutPins;
     (canvas as any).__pulse = pulse;
+    (canvas as any).__wake = () => { needsFrame = true; };
 
     return () => {
       running = false;
@@ -473,6 +484,11 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
     }
   }, [endpoints]);
 
+  // Redraw once when motion is toggled (covers the paused → paused-but-dirty case).
+  useEffect(() => {
+    (canvasRef.current as any)?.__wake?.();
+  }, [motion]);
+
   const countries = endpoints.length;
   const clientLabel = clientLocation()?.label ?? "Client";
 
@@ -482,7 +498,7 @@ export default function NetworkMap({ conns }: { conns: Conn[] }) {
       className="relative w-full overflow-hidden rounded-xl border border-slate-800"
       style={{
         height: 340,
-        background: "radial-gradient(120% 140% at 50% -10%, #0b1326, #070b16 60%)",
+        background: "radial-gradient(120% 140% at 50% -10%, #10150f, #0a0d0a 60%)",
       }}
     >
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />

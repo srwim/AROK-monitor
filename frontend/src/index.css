@@ -1,12 +1,74 @@
 @import "tailwindcss";
 
+/* ── AROK theme: cinematic near-black, forest green, warm sand ──────────────
+   Direction from the arok.ai design library (near-black grounds, editorial
+   serif against a light grotesk, forest green + warm sand). The whole app is
+   built on Tailwind palette classes, so the retheme lives here: remap the
+   scales once and every tab follows.
+   ponytail: token remap over per-component edits — one file retints the app. */
+@theme {
+  /* Neutrals ("slate"): moss-tinted charcoal that warms toward sand as it
+     lightens. Never pure black or white. */
+  --color-slate-950: oklch(0.15 0.008 150);
+  --color-slate-900: oklch(0.2 0.01 150);
+  --color-slate-800: oklch(0.26 0.012 148);
+  --color-slate-700: oklch(0.34 0.013 146);
+  --color-slate-600: oklch(0.43 0.013 144);
+  --color-slate-500: oklch(0.53 0.014 140);
+  --color-slate-400: oklch(0.65 0.015 130);
+  --color-slate-300: oklch(0.77 0.016 115);
+  --color-slate-200: oklch(0.86 0.018 105);
+  --color-slate-100: oklch(0.92 0.02 100);
+  --color-slate-50: oklch(0.96 0.015 100);
+
+  /* Accent ("cyan" slot): forest green. */
+  --color-cyan-300: oklch(0.84 0.1 150);
+  --color-cyan-400: oklch(0.77 0.12 152);
+  --color-cyan-500: oklch(0.69 0.13 153);
+  --color-cyan-600: oklch(0.58 0.12 154);
+  --color-cyan-700: oklch(0.49 0.1 155);
+  --color-cyan-800: oklch(0.4 0.08 156);
+  --color-cyan-900: oklch(0.33 0.06 156);
+  --color-cyan-950: oklch(0.25 0.045 156);
+
+  /* Gradient partner ("blue" slot): deep pine. */
+  --color-blue-400: oklch(0.68 0.1 168);
+  --color-blue-500: oklch(0.59 0.1 169);
+  --color-blue-600: oklch(0.51 0.1 170);
+  --color-blue-700: oklch(0.43 0.09 172);
+
+  /* Warnings ("amber" slot): warm sand. */
+  --color-amber-300: oklch(0.87 0.09 85);
+  --color-amber-400: oklch(0.8 0.11 83);
+  --color-amber-500: oklch(0.73 0.12 80);
+  --color-amber-600: oklch(0.63 0.12 75);
+  --color-amber-900: oklch(0.32 0.06 75);
+  --color-amber-950: oklch(0.26 0.045 75);
+
+  /* Success ("emerald"): mint, kept distinct from the forest accent. */
+  --color-emerald-300: oklch(0.87 0.12 162);
+  --color-emerald-400: oklch(0.8 0.14 163);
+  --color-emerald-500: oklch(0.72 0.15 163);
+  --color-emerald-900: oklch(0.33 0.06 163);
+  --color-emerald-950: oklch(0.26 0.045 163);
+
+  /* Data-viz roles, softened to sit on a moss ground. */
+  --color-sky-400: oklch(0.75 0.08 205); /* receive: glacier */
+  --color-sky-500: oklch(0.67 0.09 210);
+  --color-rose-400: oklch(0.73 0.11 35); /* send: clay */
+  --color-rose-500: oklch(0.66 0.13 33);
+  --color-violet-400: oklch(0.72 0.1 295); /* memory */
+  --color-violet-500: oklch(0.64 0.11 295);
+  --color-fuchsia-500: oklch(0.64 0.13 25); /* swap bar */
+}
+
 :root {
   color-scheme: dark;
 }
 
 body {
-  background: #07090f;
-  color: #e2e8f0;
+  background: oklch(0.13 0.008 150);
+  color: oklch(0.88 0.015 100);
   font-family: ui-sans-serif, system-ui, "Segoe UI", sans-serif;
 }
 
@@ -17,9 +79,13 @@ h2 {
   letter-spacing: 0.02em;
 }
 
+::selection {
+  background: oklch(0.49 0.1 155 / 0.5);
+}
+
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: oklch(0.26 0.012 148); border-radius: 4px; }
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }

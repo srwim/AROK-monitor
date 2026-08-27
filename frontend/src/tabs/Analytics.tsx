@@ -14,11 +14,11 @@ const WINDOWS = [
 ];
 
 const SERIES = [
-  { key: "cpu",   label: "CPU %",       color: "#22d3ee", yAxis: "pct",  type: "monotone" as const },
-  { key: "mem",   label: "MEM %",       color: "#a78bfa", yAxis: "pct",  type: "monotone" as const },
-  { key: "disk",  label: "Disk %",      color: "#f59e0b", yAxis: "pct",  type: "monotone" as const },
-  { key: "net",   label: "Net KB/s",    color: "#38bdf8", yAxis: "raw",  type: "monotone" as const },
-  { key: "procs", label: "Processes",   color: "#34d399", yAxis: "raw",  type: "stepAfter" as const },
+  { key: "cpu",   label: "CPU %",       color: "#55c187", yAxis: "pct",  type: "monotone" as const },
+  { key: "mem",   label: "MEM %",       color: "#a291d4", yAxis: "pct",  type: "monotone" as const },
+  { key: "disk",  label: "Disk %",      color: "#cda24a", yAxis: "pct",  type: "monotone" as const },
+  { key: "net",   label: "Net KB/s",    color: "#7ab6cd", yAxis: "raw",  type: "monotone" as const },
+  { key: "procs", label: "Processes",   color: "#40d09c", yAxis: "raw",  type: "stepAfter" as const },
 ] as const;
 
 type SeriesKey = (typeof SERIES)[number]["key"];
@@ -127,7 +127,7 @@ export default function AnalyticsTab() {
           const dd = Math.abs(d.ts - a.ts);
           if (dd < bestD) { bestD = dd; best = d; }
         }
-        const color = a.severity === "critical" ? "#ef4444" : "#f59e0b";
+        const color = a.severity === "critical" ? "#ef4444" : "#cda24a";
         return { key: a.id, x: best.t, y: (best as any)[series] as number, color, a };
       })
       .filter((m): m is { key: number; x: string; y: number; color: string; a: Alert } => m !== null);
@@ -192,12 +192,12 @@ export default function AnalyticsTab() {
         <div className="h-80">
           <ResponsiveContainer>
             <LineChart data={data} margin={{ top: 4, right: 48, left: 0, bottom: 0 }} onClick={onChartClick} style={{ cursor: "pointer" }}>
-              <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" />
-              <XAxis dataKey="t" tick={{ fill: "#475569", fontSize: 10 }} minTickGap={60} />
-              <YAxis yAxisId="pct" domain={[0, 100]} tick={{ fill: "#475569", fontSize: 10 }} width={32} tickFormatter={(v) => `${v}%`} />
-              <YAxis yAxisId="raw" orientation="right" tick={{ fill: "#475569", fontSize: 10 }} width={48} />
+              <CartesianGrid stroke="#232823" strokeDasharray="3 3" />
+              <XAxis dataKey="t" tick={{ fill: "#4e564d", fontSize: 10 }} minTickGap={60} />
+              <YAxis yAxisId="pct" domain={[0, 100]} tick={{ fill: "#4e564d", fontSize: 10 }} width={32} tickFormatter={(v) => `${v}%`} />
+              <YAxis yAxisId="raw" orientation="right" tick={{ fill: "#4e564d", fontSize: 10 }} width={48} />
               <Tooltip
-                contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 8 }}
+                contentStyle={{ background: "#131712", border: "1px solid #3a413a", borderRadius: 8 }}
                 labelFormatter={(l) => `Time ${l}`}
                 formatter={tooltipFmt}
               />
@@ -226,7 +226,7 @@ export default function AnalyticsTab() {
                   y={m.y}
                   r={5}
                   fill={m.color}
-                  stroke="#0f172a"
+                  stroke="#131712"
                   strokeWidth={1.5}
                   ifOverflow="extendDomain"
                   onClick={() => setPinnedTs(m.a.ts)}

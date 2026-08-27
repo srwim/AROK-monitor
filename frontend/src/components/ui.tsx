@@ -54,7 +54,7 @@ export function StatCard({ label, value, suffix, accent, sub }: { label: string;
 }
 
 export function Gauge({ value, label }: { value: number; label: string }) {
-  const color = value >= 90 ? "#ef4444" : value >= 70 ? "#f59e0b" : "#10b981";
+  const color = value >= 90 ? "#ef4444" : value >= 70 ? "#cda24a" : "#38a873";
   return (
     <div className="flex flex-col items-center">
       <div className="relative h-2 w-full overflow-hidden rounded-full bg-slate-800">

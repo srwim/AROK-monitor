@@ -398,19 +398,19 @@ export default function DashboardTab() {
                 <AreaChart data={chart}>
                   <defs>
                     <linearGradient id="gc" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#55c187" stopOpacity={0.5} />
+                      <stop offset="100%" stopColor="#55c187" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gm" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#a78bfa" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="#a78bfa" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#a291d4" stopOpacity={0.5} />
+                      <stop offset="100%" stopColor="#a291d4" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="t" tick={{ fill: "#475569", fontSize: 10 }} minTickGap={50} />
-                  <YAxis domain={[0, 100]} tick={{ fill: "#475569", fontSize: 10 }} width={32} />
-                  <Tooltip contentStyle={{ background: "#0f172a", border: "1px solid #334155", borderRadius: 8 }} />
-                  <Area type="monotone" dataKey="cpu" stroke="#22d3ee" fill="url(#gc)" strokeWidth={2} name="CPU %" />
-                  <Area type="monotone" dataKey="mem" stroke="#a78bfa" fill="url(#gm)" strokeWidth={2} name="MEM %" />
+                  <XAxis dataKey="t" tick={{ fill: "#4e564d", fontSize: 10 }} minTickGap={50} />
+                  <YAxis domain={[0, 100]} tick={{ fill: "#4e564d", fontSize: 10 }} width={32} />
+                  <Tooltip contentStyle={{ background: "#131712", border: "1px solid #3a413a", borderRadius: 8 }} />
+                  <Area type="monotone" dataKey="cpu" stroke="#55c187" fill="url(#gc)" strokeWidth={2} name="CPU %" />
+                  <Area type="monotone" dataKey="mem" stroke="#a291d4" fill="url(#gm)" strokeWidth={2} name="MEM %" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

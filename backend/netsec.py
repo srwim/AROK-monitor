@@ -146,14 +146,30 @@ def safe_list() -> list[dict]:
 
 # ---------- scoring ----------
 
+# pid -> (cached_at, exe_path). assess() runs every ~6s per client and
+# Process(pid).exe() is a syscall-heavy lookup — the answer for a live pid
+# doesn't change, so cache it. PID reuse inside the TTL is theoretically
+# possible but harmless here (worst case: one scoring pass uses a stale path).
+_path_cache: dict[int, tuple[float, str]] = {}
+_PATH_TTL = 120.0
+
+
 def _proc_path(pid: int | None) -> str:
     if not pid:
         return ""
+    now = time.time()
+    hit = _path_cache.get(pid)
+    if hit and now - hit[0] < _PATH_TTL:
+        return hit[1]
     try:
         import psutil
-        return (psutil.Process(pid).exe() or "").lower()
+        path = (psutil.Process(pid).exe() or "").lower()
     except Exception:
-        return ""
+        path = ""
+    if len(_path_cache) > 512:  # bound memory; cheap full reset
+        _path_cache.clear()
+    _path_cache[pid] = (now, path)
+    return path
 
 
 def _score(conn: dict) -> tuple[int, list[str]]:
