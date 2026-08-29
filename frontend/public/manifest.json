@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-28T20:28:19Z",
+  "generatedAt": "2026-08-29T14:03:51Z",
   "disclosure": "As an Amazon Associate I earn from qualifying purchases.",
   "componentUpgrades": {
     "cpu": {
@@ -19,7 +19,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-ryzen-7-9800x3d.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-ryzen-7-9800x3d.thumb.webp"
       },
-      "linkCheckedAt": "2026-08-28T20:28:19Z"
+      "linkCheckedAt": "2026-08-29T14:03:51Z"
     },
     "gpu": {
       "label": "Graphics Card (GPU)",
@@ -37,7 +37,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-radeon-rx-9070-xt.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/amd-radeon-rx-9070-xt.thumb.webp"
       },
-      "linkCheckedAt": "2026-08-28T20:28:19Z"
+      "linkCheckedAt": "2026-08-29T14:03:51Z"
     },
     "ram": {
       "label": "Memory (RAM)",
@@ -55,7 +55,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/g-skill-trident-z5-neo-ddr5-64gb-6000.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/g-skill-trident-z5-neo-ddr5-64gb-6000.thumb.webp"
       },
-      "linkCheckedAt": "2026-08-28T20:28:19Z"
+      "linkCheckedAt": "2026-08-29T14:03:51Z"
     },
     "storage": {
       "label": "SSD / Storage",
@@ -73,7 +73,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/samsung-990-pro-2tb-nvme.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/samsung-990-pro-2tb-nvme.thumb.webp"
       },
-      "linkCheckedAt": "2026-08-28T20:28:19Z"
+      "linkCheckedAt": "2026-08-29T14:03:51Z"
     },
     "motherboard": {
       "label": "Motherboard",
@@ -91,7 +91,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/msi-mag-b850-tomahawk-max-wifi.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/msi-mag-b850-tomahawk-max-wifi.thumb.webp"
       },
-      "linkCheckedAt": "2026-08-28T20:28:19Z"
+      "linkCheckedAt": "2026-08-29T14:03:51Z"
     },
     "psu": {
       "label": "Power Supply (PSU)",
@@ -107,7 +107,7 @@
         "price": "~$430",
         "url": "https://www.amazon.com/s?k=Corsair+HX1500i+%282025%29+1500W+Fully+Modular&tag=lifeupgrad02b-20"
       },
-      "linkCheckedAt": "2026-08-28T20:28:19Z"
+      "linkCheckedAt": "2026-08-29T14:03:51Z"
     },
     "cooler": {
       "label": "CPU Cooler",
@@ -125,7 +125,7 @@
         "image": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/arctic-liquid-freezer-iii-360.webp",
         "thumb": "https://raw.githubusercontent.com/srwim/AROK-monitor/main/upgrades-pipeline/thumbs/arctic-liquid-freezer-iii-360.thumb.webp"
       },
-      "linkCheckedAt": "2026-08-28T20:28:19Z"
+      "linkCheckedAt": "2026-08-29T14:03:51Z"
     }
   },
   "featuredSystems": [
